@@ -101,9 +101,10 @@ export class AuthController {
       }
 
       // Check if email is verified
-      if (!user.is_email_verified) {
-        throw new ApiError('Please verify your email before logging in', 403);
-      }
+      // TEMPORARY: Disabled for development - will re-enable after domain setup
+      // if (!user.is_email_verified) {
+      //   throw new ApiError('Please verify your email before logging in', 403);
+      // }
 
       // Check if user must reset password (migrated users)
       if (user.must_reset_password) {
