@@ -25,6 +25,7 @@ const allowedOrigins = [
   frontendUrl,
   'http://localhost:5173',
   'http://localhost:3000',
+  'http://52.78.232.37',
   'https://www.hanyanghars.com',
   'https://hanyanghars.com'
 ].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
