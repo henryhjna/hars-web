@@ -123,10 +123,10 @@ resource "aws_key_pair" "hars_key" {
   }
 }
 
-# EC2 Instance (Free Tier: t2.micro)
+# EC2 Instance (Free Tier: t3.micro for ap-northeast-2)
 resource "aws_instance" "hars_ec2" {
   ami                    = var.ami_id # Ubuntu 22.04 LTS in ap-northeast-2
-  instance_type          = "t2.micro" # Free tier eligible
+  instance_type          = "t3.micro" # Free tier eligible in ap-northeast-2
   key_name               = aws_key_pair.hars_key.key_name
   vpc_security_group_ids = [aws_security_group.hars_sg.id]
   subnet_id              = aws_subnet.hars_public_subnet.id
