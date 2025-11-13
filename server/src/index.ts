@@ -116,8 +116,9 @@ app.listen(PORT, () => {
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err: Error) => {
-  console.error('Unhandled Promise Rejection:', err);
-  process.exit(1);
+  console.error('❌ Unhandled Promise Rejection:', err.message);
+  // Don't exit the process - just log the error
+  // This allows the server to continue running even if email/S3 connections fail
 });
 
 export default app;
