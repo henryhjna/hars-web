@@ -108,11 +108,12 @@ export default function ReviewForm() {
             navigate('/reviewer');
           }, 2000);
         } else {
-          loadData(); // Reload to get updated data
+          await loadData(); // Reload to get updated data
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save review');
+      console.error('Review submission error:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to save review');
     } finally {
       setSubmitting(false);
     }
@@ -356,8 +357,6 @@ export default function ReviewForm() {
               >
                 <option value="">-- Select Recommendation --</option>
                 <option value="accept">Accept</option>
-                <option value="minor_revision">Minor Revision</option>
-                <option value="major_revision">Major Revision</option>
                 <option value="reject">Reject</option>
               </select>
             </div>

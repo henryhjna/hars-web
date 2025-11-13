@@ -64,6 +64,26 @@ class SubmissionService {
     return response.data;
   }
 
+  // Admin: Get all submissions
+  async getAllSubmissions(): Promise<ApiResponse<Submission[]>> {
+    const response = await api.get<ApiResponse<Submission[]>>('/submissions');
+    return response.data;
+  }
+
+  // Admin: Get submissions by event
+  async getEventSubmissions(eventId: string): Promise<ApiResponse<Submission[]>> {
+    const response = await api.get<ApiResponse<Submission[]>>(`/submissions/event/${eventId}`);
+    return response.data;
+  }
+
+  // Admin: Update submission status
+  async updateSubmissionStatus(id: string, status: string): Promise<ApiResponse<Submission>> {
+    const response = await api.patch<ApiResponse<Submission>>(`/submissions/${id}/status`, {
+      status,
+    });
+    return response.data;
+  }
+
   // Get PDF URL
   getPdfUrl(pdfUrl: string): string {
     // If pdfUrl starts with http, return as is, otherwise prepend API base URL

@@ -53,6 +53,9 @@ coverage/
 tmp/
 temp/
 
+# Uploaded files
+server/uploads/
+
 # Documentation (internal use only)
 PROJECT_STRUCTURE.md
 claude.md

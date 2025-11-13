@@ -78,6 +78,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         </Badge>
                       </Link>
                     )}
+                    <Link
+                      to="/my-submissions"
+                      className="text-sm font-medium text-gray-500 hover:text-gray-900"
+                    >
+                      My Submissions
+                    </Link>
                     <span className="text-sm text-gray-700">
                       {user?.first_name} {user?.last_name}
                     </span>
@@ -164,6 +170,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     </div>
                     <div className="text-sm font-medium text-gray-500">{user?.email}</div>
                   </div>
+                  <Link
+                    to="/my-submissions"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  >
+                    My Submissions
+                  </Link>
                   {user?.roles.includes('reviewer') && (
                     <Link
                       to="/reviewer"
