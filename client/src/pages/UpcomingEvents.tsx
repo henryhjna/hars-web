@@ -206,20 +206,22 @@ export default function UpcomingEvents() {
       </section>
 
       {/* Conference Overview */}
-      <section className="bg-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-6">Conference Overview</h2>
-          <div className="prose prose-lg max-w-none">
-            {conferenceDescription.split('\n').map((paragraph, index) =>
-              paragraph.trim() && (
-                <p key={index} className="text-gray-700 text-lg leading-relaxed mb-4">
-                  {paragraph.trim()}
-                </p>
-              )
-            )}
+      {event.show_overview && (
+        <section className="bg-white py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Conference Overview</h2>
+            <div className="prose prose-lg max-w-none">
+              {conferenceDescription.split('\n').map((paragraph, index) =>
+                paragraph.trim() && (
+                  <p key={index} className="text-gray-700 text-lg leading-relaxed mb-4">
+                    {paragraph.trim()}
+                  </p>
+                )
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Research Topics */}
       {topics.length > 0 && (
@@ -248,7 +250,7 @@ export default function UpcomingEvents() {
       )}
 
       {/* Special Practitioner Sessions */}
-      {event?.event_content?.practitioner_sessions && (
+      {event.show_practitioner_sessions && event?.event_content?.practitioner_sessions && (
         <section className="bg-accent-50 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center gap-3 mb-6">
@@ -271,7 +273,7 @@ export default function UpcomingEvents() {
       )}
 
       {/* Submission Guidelines */}
-      {event?.event_content?.submission_guidelines && (
+      {event.show_submission_guidelines && event?.event_content?.submission_guidelines && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">Submission Guidelines</h2>
           <div className="bg-white p-8 rounded-lg shadow-md">
@@ -297,7 +299,7 @@ export default function UpcomingEvents() {
       )}
 
       {/* Awards */}
-      {event?.event_content?.awards && (
+      {event.show_awards && event?.event_content?.awards && (
         <section className="bg-gradient-to-br from-amber-50 to-yellow-50 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center gap-3 mb-8">
@@ -320,7 +322,7 @@ export default function UpcomingEvents() {
       )}
 
       {/* Academic Committee */}
-      {academicCommittee.length > 0 && (
+      {event.show_committees && academicCommittee.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="flex items-center justify-center gap-3 mb-8">
             <Users className="h-8 w-8 text-primary-600" />
@@ -340,7 +342,7 @@ export default function UpcomingEvents() {
       )}
 
       {/* Organizing Committee */}
-      {organizingCommittee.length > 0 && (
+      {event.show_committees && organizingCommittee.length > 0 && (
         <section className="bg-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Conference Organizing Committee</h2>
@@ -375,7 +377,7 @@ export default function UpcomingEvents() {
       )}
 
       {/* Venue Information */}
-      {(event.event_content?.venue_info?.name || event.event_content?.venue_info?.address ||
+      {event.show_venue && (event.event_content?.venue_info?.name || event.event_content?.venue_info?.address ||
         (event.event_content?.venue_info?.accessibility && event.event_content.venue_info.accessibility.length > 0) ||
         (event.event_content?.venue_info?.contact && event.event_content.venue_info.contact.length > 0)) && (
         <section className="bg-gray-100 py-16">

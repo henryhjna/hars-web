@@ -7,11 +7,15 @@ interface DisplayTabProps {
   basicForm: {
     theme_color: string;
     banner_image_url: string;
+    show_overview: boolean;
+    show_practitioner_sessions: boolean;
+    show_submission_guidelines: boolean;
+    show_awards: boolean;
+    show_committees: boolean;
+    show_venue: boolean;
     show_keynote: boolean;
-    show_program: boolean;
-    show_testimonials: boolean;
     show_photos: boolean;
-    show_best_paper: boolean;
+    show_testimonials: boolean;
   };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -128,11 +132,15 @@ export default function DisplayTab({ event, basicForm, onInputChange, onSubmit, 
           </p>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[
+              { name: 'show_overview', label: 'Show Conference Overview' },
+              { name: 'show_practitioner_sessions', label: 'Show Practitioner Sessions' },
+              { name: 'show_submission_guidelines', label: 'Show Submission Guidelines' },
+              { name: 'show_awards', label: 'Show Awards' },
+              { name: 'show_committees', label: 'Show Committees' },
+              { name: 'show_venue', label: 'Show Venue Information' },
               { name: 'show_keynote', label: 'Show Keynote Speakers' },
-              { name: 'show_program', label: 'Show Program' },
-              { name: 'show_testimonials', label: 'Show Testimonials' },
               { name: 'show_photos', label: 'Show Photos' },
-              { name: 'show_best_paper', label: 'Show Best Paper' },
+              { name: 'show_testimonials', label: 'Show Testimonials' },
             ].map((option) => (
               <div
                 key={option.name}

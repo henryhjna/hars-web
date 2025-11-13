@@ -76,11 +76,15 @@ CREATE TABLE events (
     }'::jsonb,
 
     -- UI customization (what sections to show)
+    show_overview BOOLEAN DEFAULT TRUE,
+    show_practitioner_sessions BOOLEAN DEFAULT TRUE,
+    show_submission_guidelines BOOLEAN DEFAULT TRUE,
+    show_awards BOOLEAN DEFAULT TRUE,
+    show_committees BOOLEAN DEFAULT TRUE,
+    show_venue BOOLEAN DEFAULT TRUE,
     show_keynote BOOLEAN DEFAULT TRUE,
-    show_program BOOLEAN DEFAULT TRUE,
-    show_testimonials BOOLEAN DEFAULT FALSE,
     show_photos BOOLEAN DEFAULT TRUE,
-    show_best_paper BOOLEAN DEFAULT FALSE,
+    show_testimonials BOOLEAN DEFAULT FALSE,
 
     status VARCHAR(20) DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'ongoing', 'past')),
     created_by UUID REFERENCES users(id),

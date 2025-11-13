@@ -85,11 +85,15 @@ export default function AdminEventDetails() {
     registration_deadline: string;
     theme_color: string;
     banner_image_url: string;
+    show_overview: boolean;
+    show_practitioner_sessions: boolean;
+    show_submission_guidelines: boolean;
+    show_awards: boolean;
+    show_committees: boolean;
+    show_venue: boolean;
     show_keynote: boolean;
-    show_program: boolean;
-    show_testimonials: boolean;
     show_photos: boolean;
-    show_best_paper: boolean;
+    show_testimonials: boolean;
     status: Event['status'];
   }>({
     title: '',
@@ -105,11 +109,15 @@ export default function AdminEventDetails() {
     registration_deadline: '',
     theme_color: '#3B82F6',
     banner_image_url: '',
+    show_overview: true,
+    show_practitioner_sessions: true,
+    show_submission_guidelines: true,
+    show_awards: true,
+    show_committees: true,
+    show_venue: true,
     show_keynote: true,
-    show_program: true,
-    show_testimonials: true,
     show_photos: true,
-    show_best_paper: true,
+    show_testimonials: true,
     status: 'upcoming',
   });
 
@@ -144,11 +152,15 @@ export default function AdminEventDetails() {
         registration_deadline: eventData.registration_deadline?.split('T')[0] || '',
         theme_color: eventData.theme_color,
         banner_image_url: eventData.banner_image_url || '',
+        show_overview: eventData.show_overview,
+        show_practitioner_sessions: eventData.show_practitioner_sessions,
+        show_submission_guidelines: eventData.show_submission_guidelines,
+        show_awards: eventData.show_awards,
+        show_committees: eventData.show_committees,
+        show_venue: eventData.show_venue,
         show_keynote: eventData.show_keynote,
-        show_program: eventData.show_program,
-        show_testimonials: eventData.show_testimonials,
         show_photos: eventData.show_photos,
-        show_best_paper: eventData.show_best_paper,
+        show_testimonials: eventData.show_testimonials,
         status: eventData.status,
       });
 

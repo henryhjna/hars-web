@@ -56,11 +56,15 @@ export class EventModel {
       banner_image_url,
       highlight_stats,
       event_content,
+      show_overview,
+      show_practitioner_sessions,
+      show_submission_guidelines,
+      show_awards,
+      show_committees,
+      show_venue,
       show_keynote,
-      show_program,
-      show_testimonials,
       show_photos,
-      show_best_paper,
+      show_testimonials,
       status,
     } = eventData;
 
@@ -70,9 +74,10 @@ export class EventModel {
         submission_start_date, submission_end_date, review_deadline,
         notification_date, program_announcement_date, registration_deadline,
         theme_color, banner_image_url, highlight_stats, event_content,
-        show_keynote, show_program, show_testimonials, show_photos, show_best_paper,
+        show_overview, show_practitioner_sessions, show_submission_guidelines,
+        show_awards, show_committees, show_venue, show_keynote, show_photos, show_testimonials,
         status, created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
       RETURNING *
     `;
 
@@ -92,11 +97,15 @@ export class EventModel {
       banner_image_url || null,
       highlight_stats ? JSON.stringify(highlight_stats) : null,
       event_content ? JSON.stringify(event_content) : null,
+      show_overview !== undefined ? show_overview : true,
+      show_practitioner_sessions !== undefined ? show_practitioner_sessions : true,
+      show_submission_guidelines !== undefined ? show_submission_guidelines : true,
+      show_awards !== undefined ? show_awards : true,
+      show_committees !== undefined ? show_committees : true,
+      show_venue !== undefined ? show_venue : true,
       show_keynote !== undefined ? show_keynote : true,
-      show_program !== undefined ? show_program : true,
-      show_testimonials !== undefined ? show_testimonials : false,
       show_photos !== undefined ? show_photos : true,
-      show_best_paper !== undefined ? show_best_paper : false,
+      show_testimonials !== undefined ? show_testimonials : false,
       status || 'upcoming',
       createdBy,
     ]);
@@ -122,11 +131,15 @@ export class EventModel {
       banner_image_url,
       highlight_stats,
       event_content,
+      show_overview,
+      show_practitioner_sessions,
+      show_submission_guidelines,
+      show_awards,
+      show_committees,
+      show_venue,
       show_keynote,
-      show_program,
-      show_testimonials,
       show_photos,
-      show_best_paper,
+      show_testimonials,
       status,
     } = eventData;
 
@@ -147,14 +160,18 @@ export class EventModel {
         banner_image_url = COALESCE($13, banner_image_url),
         highlight_stats = COALESCE($14, highlight_stats),
         event_content = COALESCE($15, event_content),
-        show_keynote = COALESCE($16, show_keynote),
-        show_program = COALESCE($17, show_program),
-        show_testimonials = COALESCE($18, show_testimonials),
-        show_photos = COALESCE($19, show_photos),
-        show_best_paper = COALESCE($20, show_best_paper),
-        status = COALESCE($21, status),
+        show_overview = COALESCE($16, show_overview),
+        show_practitioner_sessions = COALESCE($17, show_practitioner_sessions),
+        show_submission_guidelines = COALESCE($18, show_submission_guidelines),
+        show_awards = COALESCE($19, show_awards),
+        show_committees = COALESCE($20, show_committees),
+        show_venue = COALESCE($21, show_venue),
+        show_keynote = COALESCE($22, show_keynote),
+        show_photos = COALESCE($23, show_photos),
+        show_testimonials = COALESCE($24, show_testimonials),
+        status = COALESCE($25, status),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $22
+      WHERE id = $26
       RETURNING *
     `;
 
@@ -174,11 +191,15 @@ export class EventModel {
       banner_image_url,
       highlight_stats ? JSON.stringify(highlight_stats) : undefined,
       event_content ? JSON.stringify(event_content) : undefined,
+      show_overview,
+      show_practitioner_sessions,
+      show_submission_guidelines,
+      show_awards,
+      show_committees,
+      show_venue,
       show_keynote,
-      show_program,
-      show_testimonials,
       show_photos,
-      show_best_paper,
+      show_testimonials,
       status,
       id,
     ]);

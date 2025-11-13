@@ -105,11 +105,15 @@ export interface Event {
   banner_image_url?: string;
   highlight_stats?: Record<string, any>;
   event_content?: EventContent;
+  show_overview: boolean;
+  show_practitioner_sessions: boolean;
+  show_submission_guidelines: boolean;
+  show_awards: boolean;
+  show_committees: boolean;
+  show_venue: boolean;
   show_keynote: boolean;
-  show_program: boolean;
-  show_testimonials: boolean;
   show_photos: boolean;
-  show_best_paper: boolean;
+  show_testimonials: boolean;
   status: EventStatus;
   created_by: string;
   created_at: Date;
