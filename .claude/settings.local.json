@@ -35,7 +35,10 @@
       "Bash(printenv:*)",
       "Bash(unset VITE_API_BASE_URL)",
       "Bash(env -u VITE_API_BASE_URL bash -c \"cd c:/projects/hars-web/client && npm run dev\")",
-      "Bash(ssh:*)"
+      "Bash(ssh:*)",
+      "Bash(cmd.exe /c \"C:\\terraform\\terraform.exe init\")",
+      "Bash(cmd.exe /c \"C:\\terraform\\terraform.exe plan\":*)",
+      "Bash(cmd.exe /c \"C:\\terraform\\terraform.exe state show aws_security_group.hars_sg\")"
     ],
     "deny": [],
     "ask": []

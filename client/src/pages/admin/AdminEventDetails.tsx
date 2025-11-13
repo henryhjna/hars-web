@@ -2,9 +2,15 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import eventService from '../../services/event.service';
 import pastEventsService from '../../services/pastEvents.service';
-import type { Event, EventPhoto, KeynoteSpeaker, Testimonial, EventContent, CommitteeMember, VenueInfo } from '../../types';
+import type { Event, EventPhoto, KeynoteSpeaker, Testimonial, EventContent, CommitteeMember } from '../../types';
 
-type ContentTab = 'basic' | 'content' | 'photos' | 'speakers' | 'testimonials' | 'stats' | 'venue';
+// Import tab components
+import BasicInfoTab from './tabs/BasicInfoTab';
+import ContentTab from './tabs/ContentTab';
+import MediaTab from './tabs/MediaTab';
+import DisplayTab from './tabs/DisplayTab';
+
+type ContentTab = 'basic' | 'content' | 'media' | 'display';
 
 export default function AdminEventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -164,6 +170,7 @@ export default function AdminEventDetails() {
           awards: eventData.event_content.awards || '',
           academic_committee: eventData.event_content.academic_committee || [],
           organizing_committee: eventData.event_content.organizing_committee || [],
+          venue_info: eventData.event_content.venue_info || undefined,
         });
       }
     } catch (err: any) {
@@ -452,6 +459,10 @@ export default function AdminEventDetails() {
     }));
   };
 
+  const handleContentFormChange = (updates: Partial<EventContent>) => {
+    setContentForm((prev) => ({ ...prev, ...updates }));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -511,13 +522,10 @@ export default function AdminEventDetails() {
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex">
             {[
-              { key: 'basic' as ContentTab, label: '📝 Basic Info' },
-              { key: 'content' as ContentTab, label: '📄 Content', hide: isNewEvent },
-              { key: 'venue' as ContentTab, label: '📍 Venue', hide: isNewEvent },
-              { key: 'photos' as ContentTab, label: `📸 Photos (${photos.length})`, hide: isNewEvent },
-              { key: 'speakers' as ContentTab, label: `🎤 Speakers (${speakers.length})`, hide: isNewEvent },
-              { key: 'testimonials' as ContentTab, label: `💬 Testimonials (${testimonials.length})`, hide: isNewEvent },
-              { key: 'stats' as ContentTab, label: '📊 Display', hide: isNewEvent },
+              { key: 'basic' as ContentTab, label: 'Basic Info' },
+              { key: 'content' as ContentTab, label: 'Content & Venue', hide: isNewEvent },
+              { key: 'media' as ContentTab, label: `Media & People (${photos.length + speakers.length + testimonials.length})`, hide: isNewEvent },
+              { key: 'display' as ContentTab, label: 'Display Settings', hide: isNewEvent },
             ].filter(tab => !tab.hide).map((tab) => (
               <button
                 key={tab.key}
@@ -537,675 +545,48 @@ export default function AdminEventDetails() {
         <div className="p-6">
           {/* Basic Info Tab */}
           {activeTab === 'basic' && (
-            <form onSubmit={handleSaveBasicInfo} className="space-y-6 max-w-4xl">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Event Title *</label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={basicForm.title}
-                    onChange={handleBasicInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    name="description"
-                    value={basicForm.description}
-                    onChange={handleBasicInputChange}
-                    rows={3}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Event Date *</label>
-                  <input
-                    type="date"
-                    name="event_date"
-                    value={basicForm.event_date}
-                    onChange={handleBasicInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Status *</label>
-                  <select
-                    name="status"
-                    value={basicForm.status}
-                    onChange={handleBasicInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  >
-                    <option value="upcoming">Upcoming</option>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="past">Past</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Location</label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={basicForm.location}
-                    onChange={handleBasicInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Venue Details</label>
-                  <input
-                    type="text"
-                    name="venue_details"
-                    value={basicForm.venue_details}
-                    onChange={handleBasicInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Submission Start Date *</label>
-                  <input
-                    type="date"
-                    name="submission_start_date"
-                    value={basicForm.submission_start_date}
-                    onChange={handleBasicInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Submission End Date *</label>
-                  <input
-                    type="date"
-                    name="submission_end_date"
-                    value={basicForm.submission_end_date}
-                    onChange={handleBasicInputChange}
-                    required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Review Deadline</label>
-                  <input
-                    type="date"
-                    name="review_deadline"
-                    value={basicForm.review_deadline}
-                    onChange={handleBasicInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Notification Date</label>
-                  <input
-                    type="date"
-                    name="notification_date"
-                    value={basicForm.notification_date}
-                    onChange={handleBasicInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Program Announcement Date</label>
-                  <input
-                    type="date"
-                    name="program_announcement_date"
-                    value={basicForm.program_announcement_date}
-                    onChange={handleBasicInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Registration Deadline</label>
-                  <input
-                    type="date"
-                    name="registration_deadline"
-                    value={basicForm.registration_deadline}
-                    onChange={handleBasicInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700">Banner Image URL</label>
-                  <input
-                    type="text"
-                    name="banner_image_url"
-                    value={basicForm.banner_image_url}
-                    onChange={handleBasicInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                    placeholder="https://example.com/banner.jpg"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Display Options</label>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {[
-                      { name: 'show_keynote', label: 'Show Keynote Speakers' },
-                      { name: 'show_program', label: 'Show Program' },
-                      { name: 'show_testimonials', label: 'Show Testimonials' },
-                      { name: 'show_photos', label: 'Show Photos' },
-                      { name: 'show_best_paper', label: 'Show Best Paper' },
-                    ].map((option) => (
-                      <div key={option.name} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          name={option.name}
-                          checked={basicForm[option.name as keyof typeof basicForm] as boolean}
-                          onChange={handleBasicInputChange}
-                          className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                        />
-                        <label className="ml-2 text-sm text-gray-700">{option.label}</label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4 border-t">
-                <Link
-                  to="/admin/events"
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </Link>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  {isNewEvent ? 'Create Event' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
+            <BasicInfoTab
+              isNewEvent={isNewEvent}
+              basicForm={basicForm}
+              onInputChange={handleBasicInputChange}
+              onSubmit={handleSaveBasicInfo}
+            />
           )}
 
-          {/* Event Content Tab */}
+          {/* Content Tab */}
           {activeTab === 'content' && (
-            <form onSubmit={handleSaveEventContent} className="space-y-8 max-w-4xl">
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-gray-900">Event Content Sections</h2>
-                <p className="text-gray-600">Manage dynamic content sections displayed on the event page.</p>
-
-                {/* Conference Overview */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Conference Overview
-                  </label>
-                  <textarea
-                    name="overview"
-                    value={contentForm.overview}
-                    onChange={handleContentInputChange}
-                    rows={6}
-                    placeholder="Enter the conference overview..."
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                {/* Special Practitioner Sessions */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Special Practitioner Sessions
-                  </label>
-                  <textarea
-                    name="practitioner_sessions"
-                    value={contentForm.practitioner_sessions}
-                    onChange={handleContentInputChange}
-                    rows={6}
-                    placeholder="Enter information about practitioner sessions..."
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                {/* Submission Guidelines */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Submission Guidelines
-                  </label>
-                  <textarea
-                    name="submission_guidelines"
-                    value={contentForm.submission_guidelines}
-                    onChange={handleContentInputChange}
-                    rows={8}
-                    placeholder="Enter submission guidelines..."
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                {/* Awards */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Awards Information
-                  </label>
-                  <textarea
-                    name="awards"
-                    value={contentForm.awards}
-                    onChange={handleContentInputChange}
-                    rows={4}
-                    placeholder="Enter information about awards..."
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-
-                {/* Academic Committee */}
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Academic Committee
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => handleAddCommitteeMember('academic_committee')}
-                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                    >
-                      Add Member
-                    </button>
-                  </div>
-                  <div className="space-y-4">
-                    {contentForm.academic_committee?.map((member, index) => (
-                      <div key={index} className="p-4 border border-gray-300 rounded-md space-y-3">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          <input
-                            type="text"
-                            placeholder="Name"
-                            value={member.name}
-                            onChange={(e) =>
-                              handleUpdateCommitteeMember('academic_committee', index, 'name', e.target.value)
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-md"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Affiliation"
-                            value={member.affiliation}
-                            onChange={(e) =>
-                              handleUpdateCommitteeMember('academic_committee', index, 'affiliation', e.target.value)
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-md"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Research Area"
-                            value={member.area || ''}
-                            onChange={(e) =>
-                              handleUpdateCommitteeMember('academic_committee', index, 'area', e.target.value)
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-md"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCommitteeMember('academic_committee', index)}
-                          className="text-red-600 hover:text-red-800 text-sm"
-                        >
-                          Remove Member
-                        </button>
-                      </div>
-                    ))}
-                    {(!contentForm.academic_committee || contentForm.academic_committee.length === 0) && (
-                      <p className="text-gray-500 text-sm">No academic committee members added yet.</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Organizing Committee */}
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Organizing Committee
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => handleAddCommitteeMember('organizing_committee')}
-                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                    >
-                      Add Member
-                    </button>
-                  </div>
-                  <div className="space-y-4">
-                    {contentForm.organizing_committee?.map((member, index) => (
-                      <div key={index} className="p-4 border border-gray-300 rounded-md space-y-3">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          <input
-                            type="text"
-                            placeholder="Name"
-                            value={member.name}
-                            onChange={(e) =>
-                              handleUpdateCommitteeMember('organizing_committee', index, 'name', e.target.value)
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-md"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Affiliation"
-                            value={member.affiliation}
-                            onChange={(e) =>
-                              handleUpdateCommitteeMember('organizing_committee', index, 'affiliation', e.target.value)
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-md"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Role"
-                            value={member.role || ''}
-                            onChange={(e) =>
-                              handleUpdateCommitteeMember('organizing_committee', index, 'role', e.target.value)
-                            }
-                            className="px-3 py-2 border border-gray-300 rounded-md"
-                          />
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCommitteeMember('organizing_committee', index)}
-                          className="text-red-600 hover:text-red-800 text-sm"
-                        >
-                          Remove Member
-                        </button>
-                      </div>
-                    ))}
-                    {(!contentForm.organizing_committee || contentForm.organizing_committee.length === 0) && (
-                      <p className="text-gray-500 text-sm">No organizing committee members added yet.</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Save Button */}
-              <div className="flex justify-end pt-4 border-t">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Save Event Content
-                </button>
-              </div>
-            </form>
+            <ContentTab
+              contentForm={contentForm}
+              onInputChange={handleContentInputChange}
+              onAddCommitteeMember={handleAddCommitteeMember}
+              onUpdateCommitteeMember={handleUpdateCommitteeMember}
+              onRemoveCommitteeMember={handleRemoveCommitteeMember}
+              onSubmit={handleSaveEventContent}
+              onContentFormChange={handleContentFormChange}
+            />
           )}
 
-          {/* Photos Tab */}
-          {activeTab === 'photos' && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Event Photos</h2>
-                <button
-                  onClick={() => setShowPhotoModal(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Add Photo
-                </button>
-              </div>
-
-              {photos.length === 0 ? (
-                <p className="text-gray-600">No photos yet. Add your first photo!</p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {photos.map((photo) => (
-                    <div key={photo.id} className="relative group">
-                      <img
-                        src={photo.photo_url}
-                        alt={photo.caption || 'Event photo'}
-                        className="w-full h-48 object-cover rounded-lg"
-                      />
-                      {photo.is_highlight && (
-                        <span className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded text-xs font-semibold">
-                          Highlight
-                        </span>
-                      )}
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-opacity rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <button
-                          onClick={() => handleDeletePhoto(photo.id)}
-                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                      {photo.caption && (
-                        <p className="mt-2 text-sm text-gray-600">{photo.caption}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+          {/* Media Tab */}
+          {activeTab === 'media' && (
+            <MediaTab
+              photos={photos}
+              speakers={speakers}
+              testimonials={testimonials}
+              onAddPhoto={() => setShowPhotoModal(true)}
+              onDeletePhoto={handleDeletePhoto}
+              onAddSpeaker={() => setShowSpeakerModal(true)}
+              onDeleteSpeaker={handleDeleteSpeaker}
+              onAddTestimonial={() => setShowTestimonialModal(true)}
+              onDeleteTestimonial={handleDeleteTestimonial}
+            />
           )}
 
-          {/* Speakers Tab */}
-          {activeTab === 'speakers' && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Keynote Speakers</h2>
-                <button
-                  onClick={() => setShowSpeakerModal(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Add Speaker
-                </button>
-              </div>
-
-              {speakers.length === 0 ? (
-                <p className="text-gray-600">No speakers yet. Add your first speaker!</p>
-              ) : (
-                <div className="space-y-4">
-                  {speakers.map((speaker) => (
-                    <div key={speaker.id} className="border border-gray-200 rounded-lg p-4 flex gap-4">
-                      {speaker.photo_url && (
-                        <img
-                          src={speaker.photo_url}
-                          alt={speaker.name}
-                          className="w-24 h-24 rounded-full object-cover"
-                        />
-                      )}
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold">{speaker.name}</h3>
-                        {speaker.title && <p className="text-sm text-gray-600">{speaker.title}</p>}
-                        {speaker.affiliation && (
-                          <p className="text-sm text-gray-600">{speaker.affiliation}</p>
-                        )}
-                        {speaker.topic && (
-                          <p className="mt-2 text-sm font-medium">
-                            Topic: {speaker.topic}
-                          </p>
-                        )}
-                        {speaker.presentation_time && (
-                          <p className="text-sm text-gray-600">Time: {speaker.presentation_time}</p>
-                        )}
-                        {speaker.bio && <p className="mt-2 text-sm text-gray-700">{speaker.bio}</p>}
-                      </div>
-                      <button
-                        onClick={() => handleDeleteSpeaker(speaker.id)}
-                        className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 self-start"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Testimonials Tab */}
-          {activeTab === 'testimonials' && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Testimonials</h2>
-                <button
-                  onClick={() => setShowTestimonialModal(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Add Testimonial
-                </button>
-              </div>
-
-              {testimonials.length === 0 ? (
-                <p className="text-gray-600">No testimonials yet. Add your first testimonial!</p>
-              ) : (
-                <div className="space-y-4">
-                  {testimonials.map((testimonial) => (
-                    <div
-                      key={testimonial.id}
-                      className={`border rounded-lg p-4 ${
-                        testimonial.is_featured ? 'border-blue-300 bg-blue-50' : 'border-gray-200'
-                      }`}
-                    >
-                      {testimonial.is_featured && (
-                        <span className="inline-block bg-blue-600 text-white px-2 py-1 rounded text-xs font-semibold mb-2">
-                          Featured
-                        </span>
-                      )}
-                      <p className="text-gray-700 italic">"{testimonial.testimonial_text}"</p>
-                      <div className="mt-2 flex justify-between items-center">
-                        <p className="text-sm text-gray-600">
-                          — {testimonial.author_name}
-                          {testimonial.author_affiliation && `, ${testimonial.author_affiliation}`}
-                        </p>
-                        <button
-                          onClick={() => handleDeleteTestimonial(testimonial.id)}
-                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Stats Tab */}
-          {activeTab === 'stats' && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Highlight Statistics</h2>
-                <button
-                  onClick={() => setShowStatsModal(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Edit Statistics
-                </button>
-              </div>
-
-              {event.highlight_stats && Object.keys(event.highlight_stats).length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {Object.entries(event.highlight_stats).map(([key, value]) => (
-                    <div key={key} className="bg-gray-50 p-4 rounded-lg">
-                      <div className="text-3xl font-bold text-gray-900">{String(value)}</div>
-                      <div className="text-sm text-gray-600 capitalize mt-1">
-                        {key.replace(/_/g, ' ')}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-600">
-                  No statistics yet. Click "Edit Statistics" to add some!
-                </p>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'venue' && (
-            <form onSubmit={handleSaveEventContent} className="space-y-6 max-w-4xl">
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold text-gray-900">Venue Information</h2>
-                <p className="text-gray-600">Manage venue information displayed on the event page.</p>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Venue Name</label>
-                  <input
-                    type="text"
-                    value={contentForm.venue_info?.name || ''}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      venue_info: {
-                        ...contentForm.venue_info,
-                        name: e.target.value
-                      }
-                    })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                    placeholder="e.g., Hanyang University Business School"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
-                  <textarea
-                    value={contentForm.venue_info?.address || ''}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      venue_info: {
-                        ...contentForm.venue_info,
-                        address: e.target.value
-                      }
-                    })}
-                    rows={3}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                    placeholder="Full address"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Accessibility Info (one per line)
-                  </label>
-                  <textarea
-                    value={(contentForm.venue_info?.accessibility || []).join('\n')}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      venue_info: {
-                        ...contentForm.venue_info,
-                        accessibility: e.target.value.split('\n').filter(line => line.trim())
-                      }
-                    })}
-                    rows={4}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                    placeholder="e.g.,&#10;Incheon International Airport: 60 minutes by AREX&#10;Hanyang University Station: Seoul Metro Line 2"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Contact Information (one per line)
-                  </label>
-                  <textarea
-                    value={(contentForm.venue_info?.contact || []).join('\n')}
-                    onChange={(e) => setContentForm({
-                      ...contentForm,
-                      venue_info: {
-                        ...contentForm.venue_info,
-                        contact: e.target.value.split('\n').filter(line => line.trim())
-                      }
-                    })}
-                    rows={4}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                    placeholder="e.g.,&#10;Website: www.hanyanghars.com&#10;Email: contact@hanyanghars.com"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-4 border-t border-gray-200">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Save Venue Info
-                </button>
-              </div>
-            </form>
+          {/* Display Tab */}
+          {activeTab === 'display' && event && (
+            <DisplayTab
+              event={event}
+              onEditStats={() => setShowStatsModal(true)}
+            />
           )}
         </div>
       </div>

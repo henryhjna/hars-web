@@ -99,6 +99,24 @@ resource "aws_security_group" "hars_sg" {
     description = "HTTPS"
   }
 
+  # Client App (React)
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "React Client"
+  }
+
+  # Backend API (Express)
+  ingress {
+    from_port   = 5000
+    to_port     = 5000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Express API"
+  }
+
   # Outbound - Allow all
   egress {
     from_port   = 0
