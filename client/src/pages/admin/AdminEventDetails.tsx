@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import eventService from '../../services/event.service';
 import pastEventsService from '../../services/pastEvents.service';
-import type { Event, EventPhoto, KeynoteSpeaker, Testimonial } from '../../types';
+import type { Event, EventPhoto, KeynoteSpeaker, Testimonial, EventContent, CommitteeMember } from '../../types';
 
-type ContentTab = 'basic' | 'photos' | 'speakers' | 'testimonials' | 'stats';
+type ContentTab = 'basic' | 'content' | 'photos' | 'speakers' | 'testimonials' | 'stats';
 
 export default function AdminEventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -53,6 +53,16 @@ export default function AdminEventDetails() {
   });
 
   const [statsForm, setStatsForm] = useState<Record<string, string>>({});
+
+  // Event content form
+  const [contentForm, setContentForm] = useState<EventContent>({
+    overview: '',
+    practitioner_sessions: '',
+    submission_guidelines: '',
+    awards: '',
+    academic_committee: [],
+    organizing_committee: [],
+  });
 
   // Basic event info form
   const [basicForm, setBasicForm] = useState<{
@@ -143,6 +153,18 @@ export default function AdminEventDetails() {
           statsObj[key] = String(value);
         });
         setStatsForm(statsObj);
+      }
+
+      // Initialize content form with existing content
+      if (eventData.event_content) {
+        setContentForm({
+          overview: eventData.event_content.overview || '',
+          practitioner_sessions: eventData.event_content.practitioner_sessions || '',
+          submission_guidelines: eventData.event_content.submission_guidelines || '',
+          awards: eventData.event_content.awards || '',
+          academic_committee: eventData.event_content.academic_committee || [],
+          organizing_committee: eventData.event_content.organizing_committee || [],
+        });
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load event');
@@ -371,6 +393,65 @@ export default function AdminEventDetails() {
     setStatsForm(newStats);
   };
 
+  // Event content handlers
+  const handleSaveEventContent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    try {
+      await eventService.updateEvent(eventId!, { event_content: contentForm });
+      setSuccess('Event content updated successfully');
+      await loadEvent();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update event content');
+    }
+  };
+
+  const handleContentInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setContentForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddCommitteeMember = (type: 'academic_committee' | 'organizing_committee') => {
+    const member: CommitteeMember = {
+      name: '',
+      affiliation: '',
+      area: type === 'academic_committee' ? '' : undefined,
+      role: type === 'organizing_committee' ? '' : undefined,
+    };
+
+    setContentForm((prev) => ({
+      ...prev,
+      [type]: [...(prev[type] || []), member],
+    }));
+  };
+
+  const handleUpdateCommitteeMember = (
+    type: 'academic_committee' | 'organizing_committee',
+    index: number,
+    field: keyof CommitteeMember,
+    value: string
+  ) => {
+    setContentForm((prev) => {
+      const committee = [...(prev[type] || [])];
+      committee[index] = { ...committee[index], [field]: value };
+      return { ...prev, [type]: committee };
+    });
+  };
+
+  const handleRemoveCommitteeMember = (
+    type: 'academic_committee' | 'organizing_committee',
+    index: number
+  ) => {
+    setContentForm((prev) => ({
+      ...prev,
+      [type]: (prev[type] || []).filter((_, i) => i !== index),
+    }));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -431,6 +512,7 @@ export default function AdminEventDetails() {
           <nav className="-mb-px flex">
             {[
               { key: 'basic' as ContentTab, label: 'Basic Info' },
+              { key: 'content' as ContentTab, label: 'Event Content', hide: isNewEvent },
               { key: 'photos' as ContentTab, label: `Photos (${photos.length})`, hide: isNewEvent },
               { key: 'speakers' as ContentTab, label: `Speakers (${speakers.length})`, hide: isNewEvent },
               { key: 'testimonials' as ContentTab, label: `Testimonials (${testimonials.length})`, hide: isNewEvent },
@@ -645,6 +727,208 @@ export default function AdminEventDetails() {
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
                   {isNewEvent ? 'Create Event' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Event Content Tab */}
+          {activeTab === 'content' && (
+            <form onSubmit={handleSaveEventContent} className="space-y-8 max-w-4xl">
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-gray-900">Event Content Sections</h2>
+                <p className="text-gray-600">Manage dynamic content sections displayed on the event page.</p>
+
+                {/* Conference Overview */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Conference Overview
+                  </label>
+                  <textarea
+                    name="overview"
+                    value={contentForm.overview}
+                    onChange={handleContentInputChange}
+                    rows={6}
+                    placeholder="Enter the conference overview..."
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+
+                {/* Special Practitioner Sessions */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Special Practitioner Sessions
+                  </label>
+                  <textarea
+                    name="practitioner_sessions"
+                    value={contentForm.practitioner_sessions}
+                    onChange={handleContentInputChange}
+                    rows={6}
+                    placeholder="Enter information about practitioner sessions..."
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+
+                {/* Submission Guidelines */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Submission Guidelines
+                  </label>
+                  <textarea
+                    name="submission_guidelines"
+                    value={contentForm.submission_guidelines}
+                    onChange={handleContentInputChange}
+                    rows={8}
+                    placeholder="Enter submission guidelines..."
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+
+                {/* Awards */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Awards Information
+                  </label>
+                  <textarea
+                    name="awards"
+                    value={contentForm.awards}
+                    onChange={handleContentInputChange}
+                    rows={4}
+                    placeholder="Enter information about awards..."
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                  />
+                </div>
+
+                {/* Academic Committee */}
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Academic Committee
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => handleAddCommitteeMember('academic_committee')}
+                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                    >
+                      Add Member
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {contentForm.academic_committee?.map((member, index) => (
+                      <div key={index} className="p-4 border border-gray-300 rounded-md space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <input
+                            type="text"
+                            placeholder="Name"
+                            value={member.name}
+                            onChange={(e) =>
+                              handleUpdateCommitteeMember('academic_committee', index, 'name', e.target.value)
+                            }
+                            className="px-3 py-2 border border-gray-300 rounded-md"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Affiliation"
+                            value={member.affiliation}
+                            onChange={(e) =>
+                              handleUpdateCommitteeMember('academic_committee', index, 'affiliation', e.target.value)
+                            }
+                            className="px-3 py-2 border border-gray-300 rounded-md"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Research Area"
+                            value={member.area || ''}
+                            onChange={(e) =>
+                              handleUpdateCommitteeMember('academic_committee', index, 'area', e.target.value)
+                            }
+                            className="px-3 py-2 border border-gray-300 rounded-md"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCommitteeMember('academic_committee', index)}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Remove Member
+                        </button>
+                      </div>
+                    ))}
+                    {(!contentForm.academic_committee || contentForm.academic_committee.length === 0) && (
+                      <p className="text-gray-500 text-sm">No academic committee members added yet.</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Organizing Committee */}
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Organizing Committee
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => handleAddCommitteeMember('organizing_committee')}
+                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                    >
+                      Add Member
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    {contentForm.organizing_committee?.map((member, index) => (
+                      <div key={index} className="p-4 border border-gray-300 rounded-md space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <input
+                            type="text"
+                            placeholder="Name"
+                            value={member.name}
+                            onChange={(e) =>
+                              handleUpdateCommitteeMember('organizing_committee', index, 'name', e.target.value)
+                            }
+                            className="px-3 py-2 border border-gray-300 rounded-md"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Affiliation"
+                            value={member.affiliation}
+                            onChange={(e) =>
+                              handleUpdateCommitteeMember('organizing_committee', index, 'affiliation', e.target.value)
+                            }
+                            className="px-3 py-2 border border-gray-300 rounded-md"
+                          />
+                          <input
+                            type="text"
+                            placeholder="Role"
+                            value={member.role || ''}
+                            onChange={(e) =>
+                              handleUpdateCommitteeMember('organizing_committee', index, 'role', e.target.value)
+                            }
+                            className="px-3 py-2 border border-gray-300 rounded-md"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCommitteeMember('organizing_committee', index)}
+                          className="text-red-600 hover:text-red-800 text-sm"
+                        >
+                          Remove Member
+                        </button>
+                      </div>
+                    ))}
+                    {(!contentForm.organizing_committee || contentForm.organizing_committee.length === 0) && (
+                      <p className="text-gray-500 text-sm">No organizing committee members added yet.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Button */}
+              <div className="flex justify-end pt-4 border-t">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Save Event Content
                 </button>
               </div>
             </form>

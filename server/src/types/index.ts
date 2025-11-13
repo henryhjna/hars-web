@@ -64,6 +64,22 @@ export interface JWTPayload {
 // Event Types
 export type EventStatus = 'upcoming' | 'ongoing' | 'past';
 
+export interface CommitteeMember {
+  name: string;
+  affiliation: string;
+  area?: string;
+  role?: string;
+}
+
+export interface EventContent {
+  overview?: string;
+  practitioner_sessions?: string;
+  submission_guidelines?: string;
+  awards?: string;
+  academic_committee?: CommitteeMember[];
+  organizing_committee?: CommitteeMember[];
+}
+
 export interface Event {
   id: string;
   title: string;
@@ -80,6 +96,7 @@ export interface Event {
   theme_color: string;
   banner_image_url?: string;
   highlight_stats?: Record<string, any>;
+  event_content?: EventContent;
   show_keynote: boolean;
   show_program: boolean;
   show_testimonials: boolean;

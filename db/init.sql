@@ -59,6 +59,16 @@ CREATE TABLE events (
     banner_image_url TEXT,
     highlight_stats JSONB DEFAULT '{}',
 
+    -- Event content sections (dynamic content)
+    event_content JSONB DEFAULT '{
+        "overview": "",
+        "practitioner_sessions": "",
+        "submission_guidelines": "",
+        "awards": "",
+        "academic_committee": [],
+        "organizing_committee": []
+    }'::jsonb,
+
     -- UI customization (what sections to show)
     show_keynote BOOLEAN DEFAULT TRUE,
     show_program BOOLEAN DEFAULT TRUE,
@@ -297,7 +307,7 @@ INSERT INTO events (
     'Annual symposium for accounting research and innovation',
     '2025-06-15',
     'Seoul, South Korea',
-    'Hanyang University, ERICA Campus, Business School Building',
+    'Hanyang University, Business School Building',
     '2025-01-01 00:00:00',
     '2025-04-30 23:59:59',
     '2025-05-15 23:59:59',

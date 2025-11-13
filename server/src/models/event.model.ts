@@ -55,6 +55,7 @@ export class EventModel {
       theme_color,
       banner_image_url,
       highlight_stats,
+      event_content,
       show_keynote,
       show_program,
       show_testimonials,
@@ -68,10 +69,10 @@ export class EventModel {
         title, description, event_date, location, venue_details,
         submission_start_date, submission_end_date, review_deadline,
         notification_date, program_announcement_date, registration_deadline,
-        theme_color, banner_image_url, highlight_stats,
+        theme_color, banner_image_url, highlight_stats, event_content,
         show_keynote, show_program, show_testimonials, show_photos, show_best_paper,
         status, created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
       RETURNING *
     `;
 
@@ -90,6 +91,7 @@ export class EventModel {
       theme_color || '#1a73e8',
       banner_image_url || null,
       highlight_stats ? JSON.stringify(highlight_stats) : null,
+      event_content ? JSON.stringify(event_content) : null,
       show_keynote !== undefined ? show_keynote : true,
       show_program !== undefined ? show_program : true,
       show_testimonials !== undefined ? show_testimonials : false,
@@ -119,6 +121,7 @@ export class EventModel {
       theme_color,
       banner_image_url,
       highlight_stats,
+      event_content,
       show_keynote,
       show_program,
       show_testimonials,
@@ -143,14 +146,15 @@ export class EventModel {
         theme_color = COALESCE($12, theme_color),
         banner_image_url = COALESCE($13, banner_image_url),
         highlight_stats = COALESCE($14, highlight_stats),
-        show_keynote = COALESCE($15, show_keynote),
-        show_program = COALESCE($16, show_program),
-        show_testimonials = COALESCE($17, show_testimonials),
-        show_photos = COALESCE($18, show_photos),
-        show_best_paper = COALESCE($19, show_best_paper),
-        status = COALESCE($20, status),
+        event_content = COALESCE($15, event_content),
+        show_keynote = COALESCE($16, show_keynote),
+        show_program = COALESCE($17, show_program),
+        show_testimonials = COALESCE($18, show_testimonials),
+        show_photos = COALESCE($19, show_photos),
+        show_best_paper = COALESCE($20, show_best_paper),
+        status = COALESCE($21, status),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $21
+      WHERE id = $22
       RETURNING *
     `;
 
@@ -169,6 +173,7 @@ export class EventModel {
       theme_color,
       banner_image_url,
       highlight_stats ? JSON.stringify(highlight_stats) : undefined,
+      event_content ? JSON.stringify(event_content) : undefined,
       show_keynote,
       show_program,
       show_testimonials,
