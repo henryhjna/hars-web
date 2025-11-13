@@ -1,5 +1,5 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION || 'ap-northeast-2',
@@ -24,7 +24,8 @@ export const uploadPhotoToS3 = async (
   }
 
   const fileExt = file.originalname.split('.').pop();
-  const fileName = `${folder}/${uuidv4()}.${fileExt}`;
+  const randomId = crypto.randomUUID();
+  const fileName = `${folder}/${randomId}.${fileExt}`;
 
   const command = new PutObjectCommand({
     Bucket: BUCKET_NAME,

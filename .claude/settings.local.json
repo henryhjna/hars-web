@@ -34,7 +34,8 @@
       "Bash(echo:*)",
       "Bash(printenv:*)",
       "Bash(unset VITE_API_BASE_URL)",
-      "Bash(env -u VITE_API_BASE_URL bash -c \"cd c:/projects/hars-web/client && npm run dev\")"
+      "Bash(env -u VITE_API_BASE_URL bash -c \"cd c:/projects/hars-web/client && npm run dev\")",
+      "Bash(ssh:*)"
     ],
     "deny": [],
     "ask": []
