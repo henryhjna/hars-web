@@ -92,6 +92,7 @@ export default function AdminEventDetails() {
     show_awards: boolean;
     show_committees: boolean;
     show_venue: boolean;
+    show_program: boolean;
     show_keynote: boolean;
     show_photos: boolean;
     show_testimonials: boolean;
@@ -115,6 +116,7 @@ export default function AdminEventDetails() {
     show_awards: true,
     show_committees: true,
     show_venue: true,
+    show_program: true,
     show_keynote: true,
     show_photos: true,
     show_testimonials: true,
@@ -157,6 +159,7 @@ export default function AdminEventDetails() {
         show_awards: eventData.show_awards,
         show_committees: eventData.show_committees,
         show_venue: eventData.show_venue,
+        show_program: eventData.show_program,
         show_keynote: eventData.show_keynote,
         show_photos: eventData.show_photos,
         show_testimonials: eventData.show_testimonials,

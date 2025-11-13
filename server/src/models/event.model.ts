@@ -62,6 +62,7 @@ export class EventModel {
       show_awards,
       show_committees,
       show_venue,
+      show_program,
       show_keynote,
       show_photos,
       show_testimonials,
@@ -75,9 +76,9 @@ export class EventModel {
         notification_date, program_announcement_date, registration_deadline,
         theme_color, banner_image_url, highlight_stats, event_content,
         show_overview, show_practitioner_sessions, show_submission_guidelines,
-        show_awards, show_committees, show_venue, show_keynote, show_photos, show_testimonials,
+        show_awards, show_committees, show_venue, show_program, show_keynote, show_photos, show_testimonials,
         status, created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
       RETURNING *
     `;
 
@@ -103,6 +104,7 @@ export class EventModel {
       show_awards !== undefined ? show_awards : true,
       show_committees !== undefined ? show_committees : true,
       show_venue !== undefined ? show_venue : true,
+      show_program !== undefined ? show_program : true,
       show_keynote !== undefined ? show_keynote : true,
       show_photos !== undefined ? show_photos : true,
       show_testimonials !== undefined ? show_testimonials : false,
@@ -137,6 +139,7 @@ export class EventModel {
       show_awards,
       show_committees,
       show_venue,
+      show_program,
       show_keynote,
       show_photos,
       show_testimonials,
@@ -166,12 +169,13 @@ export class EventModel {
         show_awards = COALESCE($19, show_awards),
         show_committees = COALESCE($20, show_committees),
         show_venue = COALESCE($21, show_venue),
-        show_keynote = COALESCE($22, show_keynote),
-        show_photos = COALESCE($23, show_photos),
-        show_testimonials = COALESCE($24, show_testimonials),
-        status = COALESCE($25, status),
+        show_program = COALESCE($22, show_program),
+        show_keynote = COALESCE($23, show_keynote),
+        show_photos = COALESCE($24, show_photos),
+        show_testimonials = COALESCE($25, show_testimonials),
+        status = COALESCE($26, status),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $26
+      WHERE id = $27
       RETURNING *
     `;
 
@@ -197,6 +201,7 @@ export class EventModel {
       show_awards,
       show_committees,
       show_venue,
+      show_program,
       show_keynote,
       show_photos,
       show_testimonials,

@@ -13,6 +13,7 @@ interface DisplayTabProps {
     show_awards: boolean;
     show_committees: boolean;
     show_venue: boolean;
+    show_program: boolean;
     show_keynote: boolean;
     show_photos: boolean;
     show_testimonials: boolean;
@@ -138,6 +139,7 @@ export default function DisplayTab({ event, basicForm, onInputChange, onSubmit, 
               { name: 'show_awards', label: 'Show Awards' },
               { name: 'show_committees', label: 'Show Committees' },
               { name: 'show_venue', label: 'Show Venue Information' },
+              { name: 'show_program', label: 'Show Program Schedule' },
               { name: 'show_keynote', label: 'Show Keynote Speakers' },
               { name: 'show_photos', label: 'Show Photos' },
               { name: 'show_testimonials', label: 'Show Testimonials' },
