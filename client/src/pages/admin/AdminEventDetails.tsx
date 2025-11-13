@@ -1119,102 +1119,93 @@ export default function AdminEventDetails() {
           )}
 
           {activeTab === 'venue' && (
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Venue Information</h2>
-              <div className="space-y-4">
+            <form onSubmit={handleSaveEventContent} className="space-y-6 max-w-4xl">
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold text-gray-900">Venue Information</h2>
+                <p className="text-gray-600">Manage venue information displayed on the event page.</p>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Venue Name</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Venue Name</label>
                   <input
                     type="text"
-                    value={event.event_content?.venue_info?.name || ''}
-                    onChange={(e) => setEvent({
-                      ...event,
-                      event_content: {
-                        ...event.event_content,
-                        venue_info: {
-                          ...event.event_content?.venue_info,
-                          name: e.target.value
-                        }
+                    value={contentForm.venue_info?.name || ''}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      venue_info: {
+                        ...contentForm.venue_info,
+                        name: e.target.value
                       }
                     })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                     placeholder="e.g., Hanyang University Business School"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
                   <textarea
-                    value={event.event_content?.venue_info?.address || ''}
-                    onChange={(e) => setEvent({
-                      ...event,
-                      event_content: {
-                        ...event.event_content,
-                        venue_info: {
-                          ...event.event_content?.venue_info,
-                          address: e.target.value
-                        }
+                    value={contentForm.venue_info?.address || ''}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      venue_info: {
+                        ...contentForm.venue_info,
+                        address: e.target.value
                       }
                     })}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                     placeholder="Full address"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Accessibility Info (one per line)
                   </label>
                   <textarea
-                    value={(event.event_content?.venue_info?.accessibility || []).join('\n')}
-                    onChange={(e) => setEvent({
-                      ...event,
-                      event_content: {
-                        ...event.event_content,
-                        venue_info: {
-                          ...event.event_content?.venue_info,
-                          accessibility: e.target.value.split('\n').filter(line => line.trim())
-                        }
+                    value={(contentForm.venue_info?.accessibility || []).join('\n')}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      venue_info: {
+                        ...contentForm.venue_info,
+                        accessibility: e.target.value.split('\n').filter(line => line.trim())
                       }
                     })}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                     placeholder="e.g.,&#10;Incheon International Airport: 60 minutes by AREX&#10;Hanyang University Station: Seoul Metro Line 2"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Contact Information (one per line)
                   </label>
                   <textarea
-                    value={(event.event_content?.venue_info?.contact || []).join('\n')}
-                    onChange={(e) => setEvent({
-                      ...event,
-                      event_content: {
-                        ...event.event_content,
-                        venue_info: {
-                          ...event.event_content?.venue_info,
-                          contact: e.target.value.split('\n').filter(line => line.trim())
-                        }
+                    value={(contentForm.venue_info?.contact || []).join('\n')}
+                    onChange={(e) => setContentForm({
+                      ...contentForm,
+                      venue_info: {
+                        ...contentForm.venue_info,
+                        contact: e.target.value.split('\n').filter(line => line.trim())
                       }
                     })}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
                     placeholder="e.g.,&#10;Website: www.hanyanghars.com&#10;Email: contact@hanyanghars.com"
                   />
                 </div>
+              </div>
 
+              <div className="flex justify-end pt-4 border-t border-gray-200">
                 <button
-                  onClick={handleUpdateEvent}
-                  disabled={saving}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
-                  {saving ? 'Saving...' : 'Save Venue Info'}
+                  Save Venue Info
                 </button>
               </div>
-            </div>
+            </form>
           )}
         </div>
       </div>
