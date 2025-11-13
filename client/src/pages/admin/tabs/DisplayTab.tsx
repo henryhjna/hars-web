@@ -69,7 +69,7 @@ export default function DisplayTab({ event, basicForm, onInputChange, onSubmit, 
 
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/events/${event.id}/banner`,
+        `/api/events/${event.id}/banner`,
         formData,
         {
           headers: {

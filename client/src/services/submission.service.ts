@@ -86,12 +86,20 @@ class SubmissionService {
 
   // Get PDF URL
   getPdfUrl(pdfUrl: string): string {
-    // If pdfUrl starts with http, return as is, otherwise prepend API base URL
+    // If pdfUrl starts with http, return as is
     if (pdfUrl.startsWith('http')) {
       return pdfUrl;
     }
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
-    return baseUrl.replace('/api', '') + pdfUrl;
+    // In development: /api/uploads/file.pdf (goes through Vite proxy)
+    // In production: /uploads/file.pdf (served by nginx)
+    const isDevelopment = import.meta.env.DEV;
+    if (isDevelopment) {
+      // Vite dev server - use /api prefix for proxy
+      return `/api${pdfUrl}`;
+    } else {
+      // Production - uploads are served directly
+      return pdfUrl;
+    }
   }
 }
 
