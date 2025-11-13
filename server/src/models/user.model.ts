@@ -155,6 +155,16 @@ export class UserModel {
     );
   }
 
+  static async updateRoles(userId: string, roles: UserRole[]): Promise<void> {
+    await query(
+      `UPDATE users
+       SET roles = $1,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2`,
+      [roles, userId]
+    );
+  }
+
   static async list(params: {
     page?: number;
     limit?: number;

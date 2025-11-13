@@ -209,40 +209,69 @@ export class UserController {
       }
 
       const { id } = req.params;
-      const { action, role } = req.body;
+      const { action, role, roles } = req.body;
 
-      if (!action || !role) {
-        throw new ApiError('Action and role are required', 400);
-      }
+      // Support two formats:
+      // 1. { action: 'add/remove', role: 'user' } - add/remove single role
+      // 2. { roles: ['user', 'admin'] } - replace all roles
 
-      if (!['add', 'remove'].includes(action)) {
-        throw new ApiError('Action must be either add or remove', 400);
-      }
+      if (roles) {
+        // Format 2: Replace all roles
+        if (!Array.isArray(roles)) {
+          throw new ApiError('Roles must be an array', 400);
+        }
 
-      if (!['user', 'admin', 'reviewer'].includes(role)) {
-        throw new ApiError('Invalid role', 400);
-      }
-
-      const user = await UserModel.findById(id);
-      if (!user) {
-        throw new ApiError('User not found', 404);
-      }
-
-      if (action === 'add') {
-        await UserModel.addRole(id, role);
-      } else {
-        // Ensure user has at least one role
-        if (user.roles.length === 1 && user.roles[0] === role) {
+        if (roles.length === 0) {
           throw new ApiError('User must have at least one role', 400);
         }
-        await UserModel.removeRole(id, role);
+
+        const validRoles = ['user', 'admin', 'reviewer'];
+        const invalidRoles = roles.filter((r: string) => !validRoles.includes(r));
+        if (invalidRoles.length > 0) {
+          throw new ApiError(`Invalid roles: ${invalidRoles.join(', ')}`, 400);
+        }
+
+        const user = await UserModel.findById(id);
+        if (!user) {
+          throw new ApiError('User not found', 404);
+        }
+
+        await UserModel.updateRoles(id, roles);
+      } else {
+        // Format 1: Add/remove single role
+        if (!action || !role) {
+          throw new ApiError('Action and role are required', 400);
+        }
+
+        if (!['add', 'remove'].includes(action)) {
+          throw new ApiError('Action must be either add or remove', 400);
+        }
+
+        if (!['user', 'admin', 'reviewer'].includes(role)) {
+          throw new ApiError('Invalid role', 400);
+        }
+
+        const user = await UserModel.findById(id);
+        if (!user) {
+          throw new ApiError('User not found', 404);
+        }
+
+        if (action === 'add') {
+          await UserModel.addRole(id, role);
+        } else {
+          // Ensure user has at least one role
+          if (user.roles.length === 1 && user.roles[0] === role) {
+            throw new ApiError('User must have at least one role', 400);
+          }
+          await UserModel.removeRole(id, role);
+        }
       }
 
       const updatedUser = await UserModel.findById(id);
 
       res.json({
         success: true,
-        message: `Role ${action === 'add' ? 'added' : 'removed'} successfully`,
+        message: roles ? 'Roles updated successfully' : `Role ${action === 'add' ? 'added' : 'removed'} successfully`,
         data: UserModel.sanitize(updatedUser!),
       });
     } catch (error) {
