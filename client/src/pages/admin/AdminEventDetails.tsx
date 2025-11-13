@@ -54,7 +54,27 @@ export default function AdminEventDetails() {
   const [statsForm, setStatsForm] = useState<Record<string, string>>({});
 
   // Basic event info form
-  const [basicForm, setBasicForm] = useState({
+  const [basicForm, setBasicForm] = useState<{
+    title: string;
+    description: string;
+    event_date: string;
+    location: string;
+    venue_details: string;
+    submission_start_date: string;
+    submission_end_date: string;
+    review_deadline: string;
+    notification_date: string;
+    program_announcement_date: string;
+    registration_deadline: string;
+    theme_color: string;
+    banner_image_url: string;
+    show_keynote: boolean;
+    show_program: boolean;
+    show_testimonials: boolean;
+    show_photos: boolean;
+    show_best_paper: boolean;
+    status: Event['status'];
+  }>({
     title: '',
     description: '',
     event_date: '',
@@ -73,7 +93,7 @@ export default function AdminEventDetails() {
     show_testimonials: true,
     show_photos: true,
     show_best_paper: true,
-    status: 'upcoming' as const,
+    status: 'upcoming',
   });
 
   useEffect(() => {

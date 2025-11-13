@@ -91,6 +91,36 @@ export interface Event {
   updated_at: Date;
 }
 
+export interface EventSession {
+  id: string;
+  event_id: string;
+  session_title: string;
+  session_time: string;
+  session_description?: string;
+  speaker_name?: string;
+  session_type?: string;
+  session_date?: string;
+  start_time?: string;
+  end_time?: string;
+  location?: string;
+  description?: string;
+  created_at: Date;
+}
+
+export interface KeynoteSpeaker {
+  id: string;
+  event_id: string;
+  name: string;
+  title?: string;
+  affiliation?: string;
+  bio?: string;
+  photo_url?: string;
+  topic?: string;
+  presentation_time?: string;
+  display_order: number;
+  created_at: Date;
+}
+
 // Submission Types
 export type SubmissionStatus =
   | 'draft'

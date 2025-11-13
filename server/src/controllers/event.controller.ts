@@ -42,7 +42,7 @@ export class EventController {
       const event = await EventModel.findById(idOrSlug);
 
       if (!event) {
-        throw new ApiError(404, 'Event not found');
+        throw new ApiError('Event not found', 404);
       }
 
       // Get sessions and speakers
@@ -73,7 +73,7 @@ export class EventController {
 
       // Validate required fields
       if (!eventData.title || !eventData.event_date || !eventData.submission_start_date || !eventData.submission_end_date) {
-        throw new ApiError(400, 'Missing required fields: title, event_date, submission_start_date, submission_end_date');
+        throw new ApiError('Missing required fields: title, event_date, submission_start_date, submission_end_date', 400);
       }
 
       const event = await EventModel.create(eventData, req.user!.id);
@@ -97,7 +97,7 @@ export class EventController {
       // Check if event exists
       const existingEvent = await EventModel.findById(id);
       if (!existingEvent) {
-        throw new ApiError(404, 'Event not found');
+        throw new ApiError('Event not found', 404);
       }
 
       const updatedEvent = await EventModel.update(id, eventData);
@@ -120,7 +120,7 @@ export class EventController {
 
       const event = await EventModel.findById(id);
       if (!event) {
-        throw new ApiError(404, 'Event not found');
+        throw new ApiError('Event not found', 404);
       }
 
       if (hardDelete) {
@@ -146,7 +146,7 @@ export class EventController {
 
       const event = await EventModel.findById(id);
       if (!event) {
-        throw new ApiError(404, 'Event not found');
+        throw new ApiError('Event not found', 404);
       }
 
       const session = await EventModel.addSession({
@@ -172,7 +172,7 @@ export class EventController {
 
       const event = await EventModel.findById(id);
       if (!event) {
-        throw new ApiError(404, 'Event not found');
+        throw new ApiError('Event not found', 404);
       }
 
       const speaker = await EventModel.addKeynoteSpeaker({
@@ -197,7 +197,7 @@ export class EventController {
 
       const event = await EventModel.findById(id);
       if (!event) {
-        throw new ApiError(404, 'Event not found');
+        throw new ApiError('Event not found', 404);
       }
 
       const [sessions, speakers, submissionCount] = await Promise.all([

@@ -47,7 +47,7 @@ export class SubmissionController {
       const submission = await SubmissionModel.findByIdWithDetails(id);
 
       if (!submission) {
-        throw new ApiError(404, 'Submission not found');
+        throw new ApiError('Submission not found', 404);
       }
 
       // Check permissions: owner, admin, or reviewer can view
@@ -56,7 +56,7 @@ export class SubmissionController {
       const isReviewer = req.user!.roles.includes('reviewer');
 
       if (!isOwner && !isAdmin && !isReviewer) {
-        throw new ApiError(403, 'You do not have permission to view this submission');
+        throw new ApiError('You do not have permission to view this submission', 403);
       }
 
       res.json({ success: true, data: submission });
@@ -80,18 +80,18 @@ export class SubmissionController {
 
       // Validate required fields
       if (!event_id || !title || !abstract || !corresponding_author) {
-        throw new ApiError(400, 'Missing required fields');
+        throw new ApiError('Missing required fields', 400);
       }
 
       // Check if file was uploaded
       if (!req.file) {
-        throw new ApiError(400, 'PDF file is required');
+        throw new ApiError('PDF file is required', 400);
       }
 
       // Check if event exists and is accepting submissions
       const event = await EventModel.findById(event_id);
       if (!event) {
-        throw new ApiError(404, 'Event not found');
+        throw new ApiError('Event not found', 404);
       }
 
       // Check if user can submit
@@ -99,7 +99,7 @@ export class SubmissionController {
       if (!canSubmit) {
         // Delete uploaded file
         deleteFile(req.file.path);
-        throw new ApiError(400, 'You cannot submit to this event at this time');
+        throw new ApiError('You cannot submit to this event at this time', 400);
       }
 
       // Parse keywords if it's a string
@@ -156,7 +156,7 @@ export class SubmissionController {
         if (req.file) {
           deleteFile(req.file.path);
         }
-        throw new ApiError(404, 'Submission not found');
+        throw new ApiError('Submission not found', 404);
       }
 
       // Check permissions: only owner can update (unless admin)
@@ -167,7 +167,7 @@ export class SubmissionController {
         if (req.file) {
           deleteFile(req.file.path);
         }
-        throw new ApiError(403, 'You do not have permission to update this submission');
+        throw new ApiError('You do not have permission to update this submission', 403);
       }
 
       // Prepare update data
@@ -213,12 +213,12 @@ export class SubmissionController {
       const { status } = req.body;
 
       if (!status) {
-        throw new ApiError(400, 'Status is required');
+        throw new ApiError('Status is required', 400);
       }
 
       const submission = await SubmissionModel.findById(id);
       if (!submission) {
-        throw new ApiError(404, 'Submission not found');
+        throw new ApiError('Submission not found', 404);
       }
 
       const updatedSubmission = await SubmissionModel.updateStatus(id, status);
@@ -240,7 +240,7 @@ export class SubmissionController {
 
       const submission = await SubmissionModel.findById(id);
       if (!submission) {
-        throw new ApiError(404, 'Submission not found');
+        throw new ApiError('Submission not found', 404);
       }
 
       // Check permissions
@@ -248,7 +248,7 @@ export class SubmissionController {
       const isAdmin = req.user!.roles.includes('admin');
 
       if (!isOwner && !isAdmin) {
-        throw new ApiError(403, 'You do not have permission to delete this submission');
+        throw new ApiError('You do not have permission to delete this submission', 403);
       }
 
       // Delete file
@@ -274,7 +274,7 @@ export class SubmissionController {
 
       const event = await EventModel.findById(eventId);
       if (!event) {
-        throw new ApiError(404, 'Event not found');
+        throw new ApiError('Event not found', 404);
       }
 
       const counts = await SubmissionModel.getCountByStatus(eventId);

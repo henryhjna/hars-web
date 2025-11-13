@@ -1,7 +1,8 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../types';
 import EventPhotoModel from '../models/eventPhoto.model';
 
-export const createPhoto = async (req: Request, res: Response): Promise<void> => {
+export const createPhoto = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { event_id, photo_url, caption, is_highlight, photo_order } = req.body;
     const uploaded_by = req.user?.id;
@@ -36,7 +37,7 @@ export const createPhoto = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-export const getEventPhotos = async (req: Request, res: Response): Promise<void> => {
+export const getEventPhotos = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { eventId } = req.params;
     const photos = await EventPhotoModel.findByEventId(eventId);
@@ -54,7 +55,7 @@ export const getEventPhotos = async (req: Request, res: Response): Promise<void>
   }
 };
 
-export const getHighlightPhotos = async (req: Request, res: Response): Promise<void> => {
+export const getHighlightPhotos = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { eventId } = req.params;
     const photos = await EventPhotoModel.getHighlights(eventId);
@@ -72,7 +73,7 @@ export const getHighlightPhotos = async (req: Request, res: Response): Promise<v
   }
 };
 
-export const updatePhoto = async (req: Request, res: Response): Promise<void> => {
+export const updatePhoto = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const { photo_url, caption, is_highlight, photo_order } = req.body;
@@ -105,7 +106,7 @@ export const updatePhoto = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-export const deletePhoto = async (req: Request, res: Response): Promise<void> => {
+export const deletePhoto = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
     const deleted = await EventPhotoModel.delete(id);
