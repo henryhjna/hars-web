@@ -31,7 +31,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 overflow-x-hidden">
       {/* Top Navigation */}
       <nav className="bg-white shadow-sm border-b border-gray-200">
         <div className="px-4 sm:px-6 lg:px-8">
@@ -72,9 +72,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </nav>
 
-      <div className="flex">
+      <div className="flex overflow-x-hidden">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-sm min-h-screen">
+        <aside className="w-64 bg-white shadow-sm min-h-screen flex-shrink-0">
           <nav className="mt-5 px-2 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon;
@@ -100,7 +100,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-8 overflow-x-hidden min-w-0">
           {children}
         </main>
       </div>
