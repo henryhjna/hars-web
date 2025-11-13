@@ -82,6 +82,7 @@ CREATE TABLE events (
     show_awards BOOLEAN DEFAULT TRUE,
     show_committees BOOLEAN DEFAULT TRUE,
     show_venue BOOLEAN DEFAULT TRUE,
+    show_program BOOLEAN DEFAULT TRUE,
     show_keynote BOOLEAN DEFAULT TRUE,
     show_photos BOOLEAN DEFAULT TRUE,
     show_testimonials BOOLEAN DEFAULT FALSE,

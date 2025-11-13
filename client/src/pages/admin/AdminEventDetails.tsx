@@ -546,6 +546,7 @@ export default function AdminEventDetails() {
             {[
               { key: 'basic' as ContentTab, label: 'Basic Info' },
               { key: 'content' as ContentTab, label: 'Content & Venue', hide: isNewEvent },
+              { key: 'program' as ContentTab, label: `Program (${sessions.length})`, hide: isNewEvent },
               { key: 'media' as ContentTab, label: `Media, People & Stats (${photos.length + speakers.length + testimonials.length})`, hide: isNewEvent },
               { key: 'display' as ContentTab, label: 'Display Settings', hide: isNewEvent },
             ].filter(tab => !tab.hide).map((tab) => (
@@ -585,6 +586,15 @@ export default function AdminEventDetails() {
               onRemoveCommitteeMember={handleRemoveCommitteeMember}
               onSubmit={handleSaveEventContent}
               onContentFormChange={handleContentFormChange}
+            />
+          )}
+
+          {/* Program Tab */}
+          {activeTab === 'program' && event && (
+            <ProgramTab
+              eventId={eventId!}
+              sessions={sessions}
+              onReload={loadEventData}
             />
           )}
 

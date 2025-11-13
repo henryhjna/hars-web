@@ -1,23 +1,22 @@
 import { useState } from 'react';
+import eventService from '../../../services/event.service';
 import type { EventSession } from '../../../types';
 
 interface ProgramTabProps {
   eventId: string;
   sessions: EventSession[];
-  onSessionAdded: () => void;
-  onSessionUpdated: () => void;
-  onSessionDeleted: () => void;
+  onReload: () => void;
 }
 
 export default function ProgramTab({
   eventId,
   sessions,
-  onSessionAdded,
-  onSessionUpdated,
-  onSessionDeleted,
+  onReload,
 }: ProgramTabProps) {
   const [showModal, setShowModal] = useState(false);
   const [editingSession, setEditingSession] = useState<EventSession | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState<Partial<EventSession>>({
     session_title: '',
     session_type: '',
@@ -31,6 +30,7 @@ export default function ProgramTab({
 
   const handleAdd = () => {
     setEditingSession(null);
+    setError('');
     setFormData({
       session_title: '',
       session_type: '',
@@ -46,10 +46,11 @@ export default function ProgramTab({
 
   const handleEdit = (session: EventSession) => {
     setEditingSession(session);
+    setError('');
     setFormData({
       session_title: session.session_title,
       session_type: session.session_type || '',
-      session_date: session.session_date || '',
+      session_date: session.session_date?.split('T')[0] || '',
       start_time: session.start_time || '',
       end_time: session.end_time || '',
       location: session.location || '',
@@ -61,17 +62,37 @@ export default function ProgramTab({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingSession) {
-      onSessionUpdated();
-    } else {
-      onSessionAdded();
+    setLoading(true);
+    setError('');
+
+    try {
+      if (editingSession) {
+        await eventService.updateSession(eventId, editingSession.id, formData);
+      } else {
+        await eventService.addSession(eventId, formData);
+      }
+      setShowModal(false);
+      onReload();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to save session');
+    } finally {
+      setLoading(false);
     }
-    setShowModal(false);
   };
 
   const handleDelete = async (sessionId: string) => {
-    if (confirm('Are you sure you want to delete this session?')) {
-      onSessionDeleted();
+    if (!confirm('Are you sure you want to delete this session?')) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await eventService.deleteSession(eventId, sessionId);
+      onReload();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to delete session');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -173,6 +194,12 @@ export default function ProgramTab({
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
                 {editingSession ? 'Edit Session' : 'Add New Session'}
               </h3>
+
+              {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded text-red-700">
+                  {error}
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -298,9 +325,10 @@ export default function ProgramTab({
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    disabled={loading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
                   >
-                    {editingSession ? 'Update Session' : 'Add Session'}
+                    {loading ? 'Saving...' : (editingSession ? 'Update Session' : 'Add Session')}
                   </button>
                 </div>
               </form>

@@ -93,6 +93,7 @@ export interface Event {
   show_awards: boolean;
   show_committees: boolean;
   show_venue: boolean;
+  show_program: boolean;
   show_keynote: boolean;
   show_photos: boolean;
   show_testimonials: boolean;
@@ -124,6 +125,7 @@ export interface EventCreateData {
   show_awards?: boolean;
   show_committees?: boolean;
   show_venue?: boolean;
+  show_program?: boolean;
   show_keynote?: boolean;
   show_photos?: boolean;
   show_testimonials?: boolean;
