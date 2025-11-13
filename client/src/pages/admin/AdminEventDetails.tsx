@@ -2,15 +2,16 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import eventService from '../../services/event.service';
 import pastEventsService from '../../services/pastEvents.service';
-import type { Event, EventPhoto, KeynoteSpeaker, Testimonial, EventContent, CommitteeMember } from '../../types';
+import type { Event, EventPhoto, KeynoteSpeaker, Testimonial, EventContent, CommitteeMember, EventSession } from '../../types';
 
 // Import tab components
 import BasicInfoTab from './tabs/BasicInfoTab';
 import ContentTab from './tabs/ContentTab';
+import ProgramTab from './tabs/ProgramTab';
 import MediaTab from './tabs/MediaTab';
 import DisplayTab from './tabs/DisplayTab';
 
-type ContentTab = 'basic' | 'content' | 'media' | 'display';
+type ContentTab = 'basic' | 'content' | 'program' | 'media' | 'display';
 
 export default function AdminEventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -25,6 +26,7 @@ export default function AdminEventDetails() {
   const [photos, setPhotos] = useState<EventPhoto[]>([]);
   const [speakers, setSpeakers] = useState<KeynoteSpeaker[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [sessions, setSessions] = useState<EventSession[]>([]);
 
   // Modal states
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -193,15 +195,19 @@ export default function AdminEventDetails() {
     if (!eventId) return;
 
     try {
-      const [photosData, speakersData, testimonialsData] = await Promise.all([
+      const [photosData, speakersData, testimonialsData, sessionsResponse] = await Promise.all([
         pastEventsService.getEventPhotos(eventId),
         pastEventsService.getEventSpeakers(eventId),
         pastEventsService.getEventTestimonials(eventId),
+        eventService.getSessions(eventId),
       ]);
 
       setPhotos(photosData);
       setSpeakers(speakersData);
       setTestimonials(testimonialsData);
+      if (sessionsResponse.success && sessionsResponse.data) {
+        setSessions(sessionsResponse.data);
+      }
     } catch (err) {
       console.error('Failed to load event data:', err);
     }

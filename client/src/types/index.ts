@@ -130,6 +130,24 @@ export interface EventCreateData {
   status?: EventStatus;
 }
 
+// Event Session Types
+export interface EventSession {
+  id: string;
+  event_id: string;
+  session_title: string;
+  session_time: string;
+  session_description?: string;
+  speaker_name?: string;
+  session_type?: string;
+  session_date?: string;
+  start_time?: string;
+  end_time?: string;
+  location?: string;
+  description?: string;
+  session_order?: number;
+  created_at: string;
+}
+
 // Submission Types
 export type SubmissionStatus =
   | 'draft'

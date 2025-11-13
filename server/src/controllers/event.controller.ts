@@ -139,6 +139,27 @@ export class EventController {
     }
   }
 
+  // Get sessions for an event (public)
+  static async getSessions(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+
+      const event = await EventModel.findById(id);
+      if (!event) {
+        throw new ApiError('Event not found', 404);
+      }
+
+      const sessions = await EventModel.getSessions(id);
+
+      res.json({
+        success: true,
+        data: sessions,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Add session to event (admin only)
   static async addSession(req: AuthRequest, res: Response, next: NextFunction) {
     try {
@@ -159,6 +180,50 @@ export class EventController {
         success: true,
         message: 'Session added successfully',
         data: session,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Update session (admin only)
+  static async updateSession(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { id, sessionId } = req.params;
+      const sessionData = req.body;
+
+      const event = await EventModel.findById(id);
+      if (!event) {
+        throw new ApiError('Event not found', 404);
+      }
+
+      const session = await EventModel.updateSession(sessionId, sessionData);
+
+      res.json({
+        success: true,
+        message: 'Session updated successfully',
+        data: session,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Delete session (admin only)
+  static async deleteSession(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { id, sessionId } = req.params;
+
+      const event = await EventModel.findById(id);
+      if (!event) {
+        throw new ApiError('Event not found', 404);
+      }
+
+      await EventModel.deleteSession(sessionId);
+
+      res.json({
+        success: true,
+        message: 'Session deleted successfully',
       });
     } catch (error) {
       next(error);

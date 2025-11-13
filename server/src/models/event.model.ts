@@ -278,6 +278,54 @@ export class EventModel {
     return result.rows[0];
   }
 
+  // Update session
+  static async updateSession(sessionId: string, sessionData: Partial<EventSession>): Promise<EventSession> {
+    const {
+      session_title,
+      session_type,
+      session_date,
+      start_time,
+      end_time,
+      location,
+      description,
+      session_order,
+    } = sessionData;
+
+    const sql = `
+      UPDATE event_sessions SET
+        session_title = COALESCE($1, session_title),
+        session_type = COALESCE($2, session_type),
+        session_date = COALESCE($3, session_date),
+        start_time = COALESCE($4, start_time),
+        end_time = COALESCE($5, end_time),
+        location = COALESCE($6, location),
+        description = COALESCE($7, description),
+        session_order = COALESCE($8, session_order)
+      WHERE id = $9
+      RETURNING *
+    `;
+
+    const result = await query(sql, [
+      session_title,
+      session_type,
+      session_date,
+      start_time,
+      end_time,
+      location,
+      description,
+      session_order,
+      sessionId,
+    ]);
+
+    return result.rows[0];
+  }
+
+  // Delete session
+  static async deleteSession(sessionId: string): Promise<void> {
+    const sql = 'DELETE FROM event_sessions WHERE id = $1';
+    await query(sql, [sessionId]);
+  }
+
   // Add keynote speaker to event
   static async addKeynoteSpeaker(speakerData: Partial<KeynoteSpeaker>): Promise<KeynoteSpeaker> {
     const {

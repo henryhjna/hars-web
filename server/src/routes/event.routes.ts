@@ -34,7 +34,10 @@ router.put('/:id', authenticate, authorize('admin'), EventController.updateEvent
 router.delete('/:id', authenticate, authorize('admin'), EventController.deleteEvent);
 
 // Admin routes - sessions and speakers
+router.get('/:id/sessions', EventController.getSessions);
 router.post('/:id/sessions', authenticate, authorize('admin'), EventController.addSession);
+router.put('/:id/sessions/:sessionId', authenticate, authorize('admin'), EventController.updateSession);
+router.delete('/:id/sessions/:sessionId', authenticate, authorize('admin'), EventController.deleteSession);
 router.post('/:id/speakers', authenticate, authorize('admin'), EventController.addKeynoteSpeaker);
 
 // Admin routes - statistics
