@@ -76,7 +76,6 @@ export default function AdminEventDetails() {
     description: string;
     event_date: string;
     location: string;
-    venue_details: string;
     submission_start_date: string;
     submission_end_date: string;
     review_deadline: string;
@@ -100,7 +99,6 @@ export default function AdminEventDetails() {
     description: '',
     event_date: '',
     location: '',
-    venue_details: '',
     submission_start_date: '',
     submission_end_date: '',
     review_deadline: '',
@@ -143,7 +141,6 @@ export default function AdminEventDetails() {
         description: eventData.description || '',
         event_date: eventData.event_date.split('T')[0],
         location: eventData.location || '',
-        venue_details: eventData.venue_details || '',
         submission_start_date: eventData.submission_start_date.split('T')[0],
         submission_end_date: eventData.submission_end_date.split('T')[0],
         review_deadline: eventData.review_deadline?.split('T')[0] || '',

@@ -8,7 +8,6 @@ interface BasicInfoTabProps {
     description: string;
     event_date: string;
     location: string;
-    venue_details: string;
     submission_start_date: string;
     submission_end_date: string;
     review_deadline: string;
@@ -17,11 +16,15 @@ interface BasicInfoTabProps {
     registration_deadline: string;
     theme_color: string;
     banner_image_url: string;
+    show_overview: boolean;
+    show_practitioner_sessions: boolean;
+    show_submission_guidelines: boolean;
+    show_awards: boolean;
+    show_committees: boolean;
+    show_venue: boolean;
     show_keynote: boolean;
-    show_program: boolean;
-    show_testimonials: boolean;
     show_photos: boolean;
-    show_best_paper: boolean;
+    show_testimonials: boolean;
     status: Event['status'];
   };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
@@ -93,17 +96,6 @@ export default function BasicInfoTab({
             type="text"
             name="location"
             value={basicForm.location}
-            onChange={onInputChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Venue Details</label>
-          <input
-            type="text"
-            name="venue_details"
-            value={basicForm.venue_details}
             onChange={onInputChange}
             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
           />
