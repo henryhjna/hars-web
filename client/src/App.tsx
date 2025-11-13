@@ -15,6 +15,7 @@ import MySubmissions from './pages/MySubmissions';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminSubmissions from './pages/admin/AdminSubmissions';
 import AdminEvents from './pages/admin/AdminEvents';
+import AdminEventDetails from './pages/admin/AdminEventDetails';
 import AdminUsers from './pages/admin/AdminUsers';
 import ReviewerDashboard from './pages/reviewer/ReviewerDashboard';
 import ReviewForm from './pages/reviewer/ReviewForm';
@@ -130,6 +131,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/admin/events/:eventId"
+        element={
+          <AdminRoute>
+            <AdminLayout><AdminEventDetails /></AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
         path="/admin/users"
         element={
           <AdminRoute>
@@ -137,7 +146,6 @@ function AppRoutes() {
           </AdminRoute>
         }
       />
-
       {/* 404 */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

@@ -50,8 +50,16 @@ export class EventModel {
       submission_end_date,
       review_deadline,
       notification_date,
+      program_announcement_date,
+      registration_deadline,
       theme_color,
       banner_image_url,
+      highlight_stats,
+      show_keynote,
+      show_program,
+      show_testimonials,
+      show_photos,
+      show_best_paper,
       status,
     } = eventData;
 
@@ -59,8 +67,11 @@ export class EventModel {
       INSERT INTO events (
         title, description, event_date, location, venue_details,
         submission_start_date, submission_end_date, review_deadline,
-        notification_date, theme_color, banner_image_url, status, created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        notification_date, program_announcement_date, registration_deadline,
+        theme_color, banner_image_url, highlight_stats,
+        show_keynote, show_program, show_testimonials, show_photos, show_best_paper,
+        status, created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
       RETURNING *
     `;
 
@@ -74,8 +85,16 @@ export class EventModel {
       submission_end_date,
       review_deadline || null,
       notification_date || null,
+      program_announcement_date || null,
+      registration_deadline || null,
       theme_color || '#1a73e8',
       banner_image_url || null,
+      highlight_stats ? JSON.stringify(highlight_stats) : null,
+      show_keynote !== undefined ? show_keynote : true,
+      show_program !== undefined ? show_program : true,
+      show_testimonials !== undefined ? show_testimonials : false,
+      show_photos !== undefined ? show_photos : true,
+      show_best_paper !== undefined ? show_best_paper : false,
       status || 'upcoming',
       createdBy,
     ]);
@@ -95,8 +114,16 @@ export class EventModel {
       submission_end_date,
       review_deadline,
       notification_date,
+      program_announcement_date,
+      registration_deadline,
       theme_color,
       banner_image_url,
+      highlight_stats,
+      show_keynote,
+      show_program,
+      show_testimonials,
+      show_photos,
+      show_best_paper,
       status,
     } = eventData;
 
@@ -111,11 +138,19 @@ export class EventModel {
         submission_end_date = COALESCE($7, submission_end_date),
         review_deadline = COALESCE($8, review_deadline),
         notification_date = COALESCE($9, notification_date),
-        theme_color = COALESCE($10, theme_color),
-        banner_image_url = COALESCE($11, banner_image_url),
-        status = COALESCE($12, status),
+        program_announcement_date = COALESCE($10, program_announcement_date),
+        registration_deadline = COALESCE($11, registration_deadline),
+        theme_color = COALESCE($12, theme_color),
+        banner_image_url = COALESCE($13, banner_image_url),
+        highlight_stats = COALESCE($14, highlight_stats),
+        show_keynote = COALESCE($15, show_keynote),
+        show_program = COALESCE($16, show_program),
+        show_testimonials = COALESCE($17, show_testimonials),
+        show_photos = COALESCE($18, show_photos),
+        show_best_paper = COALESCE($19, show_best_paper),
+        status = COALESCE($20, status),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $13
+      WHERE id = $21
       RETURNING *
     `;
 
@@ -129,8 +164,16 @@ export class EventModel {
       submission_end_date,
       review_deadline,
       notification_date,
+      program_announcement_date,
+      registration_deadline,
       theme_color,
       banner_image_url,
+      highlight_stats ? JSON.stringify(highlight_stats) : undefined,
+      show_keynote,
+      show_program,
+      show_testimonials,
+      show_photos,
+      show_best_paper,
       status,
       id,
     ]);

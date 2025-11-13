@@ -56,8 +56,16 @@ export interface Event {
   submission_end_date: string;
   review_deadline?: string;
   notification_date?: string;
+  program_announcement_date?: string;
+  registration_deadline?: string;
   theme_color: string;
   banner_image_url?: string;
+  highlight_stats?: Record<string, string | number>;
+  show_keynote: boolean;
+  show_program: boolean;
+  show_testimonials: boolean;
+  show_photos: boolean;
+  show_best_paper: boolean;
   status: EventStatus;
   created_by: string;
   created_at: string;
@@ -74,8 +82,16 @@ export interface EventCreateData {
   submission_end_date: string;
   review_deadline?: string;
   notification_date?: string;
+  program_announcement_date?: string;
+  registration_deadline?: string;
   theme_color?: string;
   banner_image_url?: string;
+  highlight_stats?: Record<string, string | number>;
+  show_keynote?: boolean;
+  show_program?: boolean;
+  show_testimonials?: boolean;
+  show_photos?: boolean;
+  show_best_paper?: boolean;
   status?: EventStatus;
 }
 
@@ -181,4 +197,78 @@ export interface ReviewSubmitData {
   comments_to_committee?: string;
   recommendation?: ReviewRecommendation;
   is_completed: boolean;
+}
+
+// Past Events Types
+export interface EventPhoto {
+  id: string;
+  event_id: string;
+  photo_url: string;
+  caption?: string;
+  is_highlight: boolean;
+  photo_order: number;
+  uploaded_by?: string;
+  uploaded_at: string;
+}
+
+export interface EventPhotoCreateData {
+  event_id: string;
+  photo_url: string;
+  caption?: string;
+  is_highlight?: boolean;
+  photo_order?: number;
+}
+
+export interface KeynoteSpeaker {
+  id: string;
+  event_id: string;
+  name: string;
+  title?: string;
+  affiliation?: string;
+  bio?: string;
+  photo_url?: string;
+  presentation_title?: string;
+  speaker_order: number;
+  created_at: string;
+}
+
+export interface KeynoteSpeakerCreateData {
+  event_id: string;
+  name: string;
+  title?: string;
+  affiliation?: string;
+  bio?: string;
+  photo_url?: string;
+  presentation_title?: string;
+  speaker_order?: number;
+}
+
+export interface Testimonial {
+  id: string;
+  event_id: string;
+  author_name: string;
+  author_affiliation?: string;
+  testimonial_text: string;
+  is_featured: boolean;
+  created_at: string;
+}
+
+export interface TestimonialCreateData {
+  event_id: string;
+  author_name: string;
+  author_affiliation?: string;
+  testimonial_text: string;
+  is_featured?: boolean;
+}
+
+// Conference Topics Types
+export interface ConferenceTopic {
+  id: string;
+  event_id: string;
+  topic_name: string;
+  description?: string;
+  is_active: boolean;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
 }

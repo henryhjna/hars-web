@@ -8,6 +8,10 @@ import userRoutes from './routes/user.routes';
 import eventRoutes from './routes/event.routes';
 import submissionRoutes from './routes/submission.routes';
 import reviewRoutes from './routes/review.routes';
+import eventPhotoRoutes from './routes/eventPhoto.routes';
+import keynoteSpeakerRoutes from './routes/keynoteSpeaker.routes';
+import testimonialRoutes from './routes/testimonial.routes';
+import conferenceTopicRoutes from './routes/conferenceTopic.routes';
 import { errorHandler, notFound } from './middleware/errorHandler';
 
 dotenv.config();
@@ -15,8 +19,35 @@ dotenv.config();
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+// CORS Middleware - MUST be before routes
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+const allowedOrigins = [
+  frontendUrl,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://www.hanyanghars.com',
+  'https://hanyanghars.com'
+].filter((v, i, a) => a.indexOf(v) === i); // Remove duplicates
+
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    // Allow requests with no origin (like mobile apps, curl, or same-origin)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log(`CORS blocked origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -51,6 +82,10 @@ app.get('/', (req, res) => {
       events: '/api/events',
       submissions: '/api/submissions',
       reviews: '/api/reviews',
+      photos: '/api/photos',
+      speakers: '/api/speakers',
+      testimonials: '/api/testimonials',
+      topics: '/api/conference-topics',
       health: '/health'
     }
   });
@@ -62,6 +97,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/photos', eventPhotoRoutes);
+app.use('/api/speakers', keynoteSpeakerRoutes);
+app.use('/api/testimonials', testimonialRoutes);
+app.use('/api/conference-topics', conferenceTopicRoutes);
 
 // Error handling
 app.use(notFound);

@@ -75,6 +75,8 @@ export interface Event {
   submission_end_date: Date;
   review_deadline?: Date;
   notification_date?: Date;
+  program_announcement_date?: Date;
+  registration_deadline?: Date;
   theme_color: string;
   banner_image_url?: string;
   highlight_stats?: Record<string, any>;

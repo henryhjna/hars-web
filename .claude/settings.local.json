@@ -21,7 +21,20 @@
       "Bash(findstr:*)",
       "Bash(node -e:*)",
       "Bash(git rebase:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(git commit:*)",
+      "Bash(git reflog expire:*)",
+      "Bash(git gc:*)",
+      "Bash(taskkill:*)",
+      "Bash(nul)",
+      "Bash(if exist node_modules.vite rmdir /s /q node_modules.vite)",
+      "Bash(powershell -Command \"Stop-Process -Id 29656 -Force; Stop-Process -Id 4360 -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 35628 -Force\")",
+      "Bash(powershell -Command \"Stop-Process -Id 3200 -Force\")",
+      "Bash(echo:*)",
+      "Bash(printenv:*)",
+      "Bash(unset VITE_API_BASE_URL)",
+      "Bash(env -u VITE_API_BASE_URL bash -c \"cd c:/projects/hars-web/client && npm run dev\")"
     ],
     "deny": [],
     "ask": []

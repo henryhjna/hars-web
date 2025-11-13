@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, FileText, Calendar, Users } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface AdminLayoutProps {
@@ -16,10 +17,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   const navigation = [
-    { name: 'Dashboard', href: '/admin', icon: '📊' },
-    { name: 'Submissions', href: '/admin/submissions', icon: '📝' },
-    { name: 'Events', href: '/admin/events', icon: '📅' },
-    { name: 'Users', href: '/admin/users', icon: '👥' },
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { name: 'Submissions', href: '/admin/submissions', icon: FileText },
+    { name: 'Events', href: '/admin/events', icon: Calendar },
+    { name: 'Users', href: '/admin/users', icon: Users },
   ];
 
   const isActive = (href: string) => {
@@ -36,10 +37,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link to="/" className="flex items-center">
-                <span className="text-xl font-bold text-blue-600">Hanyang ARS</span>
+              <Link to="/" className="flex items-center gap-3">
+                <img
+                  src="/images/경영대학_국영문2.jpg"
+                  alt="Hanyang University School of Business"
+                  className="h-10"
+                />
+                <span className="text-xl font-bold text-primary-600 hidden sm:inline">
+                  ARS
+                </span>
               </Link>
-              <span className="ml-4 px-3 py-1 bg-red-100 text-red-800 text-xs font-semibold rounded-full">
+              <span className="ml-4 px-3 py-1 bg-primary-100 text-primary-800 text-xs font-semibold rounded-full">
                 Admin
               </span>
             </div>
@@ -68,23 +76,26 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* Sidebar */}
         <aside className="w-64 bg-white shadow-sm min-h-screen">
           <nav className="mt-5 px-2 space-y-1">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`
-                  group flex items-center px-3 py-2 text-sm font-medium rounded-md
-                  ${
-                    isActive(item.href)
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                  }
-                `}
-              >
-                <span className="mr-3 text-xl">{item.icon}</span>
-                {item.name}
-              </Link>
-            ))}
+            {navigation.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`
+                    group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors
+                    ${
+                      isActive(item.href)
+                        ? 'bg-primary-50 text-primary-700'
+                        : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                    }
+                  `}
+                >
+                  <Icon className="mr-3 h-5 w-5" aria-hidden="true" />
+                  {item.name}
+                </Link>
+              );
+            })}
           </nav>
         </aside>
 

@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { UserPlus, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import Card from '../components/ui/Card';
+import Input from '../components/ui/Input';
+import Button from '../components/ui/Button';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -54,178 +58,142 @@ export default function Register() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-100 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full">
-          <div className="rounded-md bg-green-50 p-4">
-            <div className="flex">
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-green-800">
-                  Registration successful!
-                </h3>
-                <div className="mt-2 text-sm text-green-700">
-                  <p>
-                    Please check your email to verify your account. You will be
-                    redirected to the login page...
-                  </p>
-                </div>
+          <Card variant="elevated" padding="lg">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-success-100 rounded-full mb-4">
+                <CheckCircle2 className="w-8 h-8 text-success-600" />
               </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                Registration successful!
+              </h3>
+              <p className="text-base text-gray-600">
+                Please check your email to verify your account. You will be
+                redirected to the login page...
+              </p>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-primary-100 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4 shadow-lg">
+            <UserPlus className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link
-              to="/login"
-              className="font-medium text-primary-600 hover:text-primary-500"
-            >
-              Sign in
-            </Link>
+          <p className="text-base text-gray-600">
+            Join Hanyang Accounting Research Symposium
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                </div>
-              </div>
-            </div>
-          )}
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  htmlFor="first_name"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  First Name
-                </label>
-                <input
-                  id="first_name"
-                  name="first_name"
-                  type="text"
-                  required
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  value={formData.first_name}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="last_name"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Last Name
-                </label>
-                <input
-                  id="last_name"
-                  name="last_name"
-                  type="text"
-                  required
-                  className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                  value={formData.last_name}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="affiliation"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Affiliation (Optional)
-              </label>
-              <input
-                id="affiliation"
-                name="affiliation"
-                type="text"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                placeholder="University or Organization"
-                value={formData.affiliation}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                value={formData.password}
-                onChange={handleChange}
-              />
-              <p className="mt-1 text-sm text-gray-500">
-                Must be at least 8 characters with uppercase, lowercase, and a number
-              </p>
-            </div>
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                required
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
 
-          <div>
-            <button
+        <Card variant="elevated" padding="lg">
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            {error && (
+              <div className="flex items-start gap-3 p-4 bg-danger-50 border border-danger-200 rounded-lg">
+                <AlertCircle className="w-5 h-5 text-danger-600 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-danger-800">{error}</p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="First Name"
+                name="first_name"
+                type="text"
+                required
+                fullWidth
+                value={formData.first_name}
+                onChange={handleChange}
+                placeholder="John"
+              />
+              <Input
+                label="Last Name"
+                name="last_name"
+                type="text"
+                required
+                fullWidth
+                value={formData.last_name}
+                onChange={handleChange}
+                placeholder="Doe"
+              />
+            </div>
+
+            <Input
+              label="Email address"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              fullWidth
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="john.doe@university.edu"
+            />
+
+            <Input
+              label="Affiliation"
+              name="affiliation"
+              type="text"
+              fullWidth
+              value={formData.affiliation}
+              onChange={handleChange}
+              placeholder="University or Organization (Optional)"
+            />
+
+            <Input
+              label="Password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              required
+              fullWidth
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
+              helperText="Must be at least 8 characters with uppercase, lowercase, and a number"
+            />
+
+            <Input
+              label="Confirm Password"
+              name="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              required
+              fullWidth
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Re-enter your password"
+            />
+
+            <Button
               type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={loading}
             >
-              {loading ? 'Creating account...' : 'Create account'}
-            </button>
-          </div>
-        </form>
+              Create account
+            </Button>
+          </form>
+        </Card>
+
+        <p className="mt-6 text-center text-sm text-gray-600">
+          Already have an account?{' '}
+          <Link
+            to="/login"
+            className="font-semibold text-primary-600 hover:text-primary-700 transition-colors"
+          >
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );
