@@ -134,6 +134,7 @@ export interface EventSession {
   end_time?: string;
   location?: string;
   description?: string;
+  session_order?: number;
   created_at: Date;
 }
 
