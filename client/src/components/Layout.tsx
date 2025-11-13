@@ -24,12 +24,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="flex">
               <Link to="/" className="flex items-center gap-3">
                 <img
-                  src="/images/경영대학_국영문2.jpg"
+                  src="/images/2023-1.png"
                   alt="Hanyang University School of Business"
                   className="h-10"
                 />
                 <span className="text-xl font-bold text-primary-600 hidden sm:inline">
-                  ARS
+                  HARS
                 </span>
               </Link>
               <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
