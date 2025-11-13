@@ -166,8 +166,6 @@ export default function AdminSubmissions() {
         return 'bg-green-100 text-green-800';
       case 'rejected':
         return 'bg-red-100 text-red-800';
-      case 'revision_requested':
-        return 'bg-orange-100 text-orange-800';
       case 'draft':
         return 'bg-gray-100 text-gray-800';
       default:
@@ -253,7 +251,6 @@ export default function AdminSubmissions() {
               <option value="under_review">Under Review</option>
               <option value="accepted">Accepted</option>
               <option value="rejected">Rejected</option>
-              <option value="revision_requested">Revision Requested</option>
             </select>
           </div>
         </div>
@@ -319,7 +316,6 @@ export default function AdminSubmissions() {
                       <option value="under_review">Under Review</option>
                       <option value="accepted">Accepted</option>
                       <option value="rejected">Rejected</option>
-                      <option value="revision_requested">Revision Requested</option>
                     </select>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

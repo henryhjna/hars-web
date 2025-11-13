@@ -231,7 +231,7 @@ export default function ReviewerDashboard() {
                         </span>
                         {assignment.review_score && (
                           <span className="text-sm text-gray-600">
-                            Score: {assignment.review_score.toFixed(2)}/5
+                            Score: {Number(assignment.review_score).toFixed(2)}/5
                           </span>
                         )}
                       </div>
