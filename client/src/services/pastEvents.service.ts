@@ -27,13 +27,22 @@ class PastEventsService {
 
   async createEventPhoto(
     eventId: string,
-    data: Omit<EventPhotoCreateData, 'event_id'>
+    data: FormData | Omit<EventPhotoCreateData, 'event_id'>
   ): Promise<EventPhoto> {
-    const response = await api.post<ApiResponse<EventPhoto>>('/photos', {
-      ...data,
-      event_id: eventId,
-    });
-    return response.data.data!;
+    if (data instanceof FormData) {
+      const response = await api.post<ApiResponse<EventPhoto>>('/photos', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data.data!;
+    } else {
+      const response = await api.post<ApiResponse<EventPhoto>>('/photos', {
+        ...data,
+        event_id: eventId,
+      });
+      return response.data.data!;
+    }
   }
 
   async updateEventPhoto(

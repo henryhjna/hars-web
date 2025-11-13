@@ -10,8 +10,9 @@ export const createSpeaker = async (req: Request, res: Response): Promise<void> 
       affiliation,
       bio,
       photo_url,
-      presentation_title,
-      speaker_order,
+      topic,
+      presentation_time,
+      display_order,
     } = req.body;
 
     if (!event_id || !name) {
@@ -29,8 +30,9 @@ export const createSpeaker = async (req: Request, res: Response): Promise<void> 
       affiliation,
       bio,
       photo_url,
-      presentation_title,
-      speaker_order,
+      topic,
+      presentation_time,
+      display_order,
     });
 
     res.status(201).json({
@@ -73,8 +75,9 @@ export const updateSpeaker = async (req: Request, res: Response): Promise<void> 
       affiliation,
       bio,
       photo_url,
-      presentation_title,
-      speaker_order,
+      topic,
+      presentation_time,
+      display_order,
     } = req.body;
 
     const speaker = await KeynoteSpeakerModel.update(id, {
@@ -83,8 +86,9 @@ export const updateSpeaker = async (req: Request, res: Response): Promise<void> 
       affiliation,
       bio,
       photo_url,
-      presentation_title,
-      speaker_order,
+      topic,
+      presentation_time,
+      display_order,
     });
 
     if (!speaker) {

@@ -9,8 +9,9 @@ export interface KeynoteSpeaker {
   affiliation?: string;
   bio?: string;
   photo_url?: string;
-  presentation_title?: string;
-  speaker_order: number;
+  topic?: string;
+  presentation_time?: string;
+  display_order: number;
   created_at: Date;
 }
 
@@ -21,17 +22,18 @@ export interface CreateKeynoteSpeakerDTO {
   affiliation?: string;
   bio?: string;
   photo_url?: string;
-  presentation_title?: string;
-  speaker_order?: number;
+  topic?: string;
+  presentation_time?: string;
+  display_order?: number;
 }
 
 class KeynoteSpeakerModel {
   async create(data: CreateKeynoteSpeakerDTO): Promise<KeynoteSpeaker> {
     const query = `
       INSERT INTO keynote_speakers (
-        event_id, name, title, affiliation, bio, photo_url, presentation_title, speaker_order
+        event_id, name, title, affiliation, bio, photo_url, topic, presentation_time, display_order
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
     const values = [
@@ -41,8 +43,9 @@ class KeynoteSpeakerModel {
       data.affiliation || null,
       data.bio || null,
       data.photo_url || null,
-      data.presentation_title || null,
-      data.speaker_order || 0,
+      data.topic || null,
+      data.presentation_time || null,
+      data.display_order || 0,
     ];
 
     const result: QueryResult<KeynoteSpeaker> = await pool.query(query, values);
@@ -53,7 +56,7 @@ class KeynoteSpeakerModel {
     const query = `
       SELECT * FROM keynote_speakers
       WHERE event_id = $1
-      ORDER BY speaker_order ASC, created_at ASC
+      ORDER BY display_order ASC, created_at ASC
     `;
     const result: QueryResult<KeynoteSpeaker> = await pool.query(query, [eventId]);
     return result.rows;
@@ -90,13 +93,17 @@ class KeynoteSpeakerModel {
       updates.push(`photo_url = $${paramCount++}`);
       values.push(data.photo_url);
     }
-    if (data.presentation_title !== undefined) {
-      updates.push(`presentation_title = $${paramCount++}`);
-      values.push(data.presentation_title);
+    if (data.topic !== undefined) {
+      updates.push(`topic = $${paramCount++}`);
+      values.push(data.topic);
     }
-    if (data.speaker_order !== undefined) {
-      updates.push(`speaker_order = $${paramCount++}`);
-      values.push(data.speaker_order);
+    if (data.presentation_time !== undefined) {
+      updates.push(`presentation_time = $${paramCount++}`);
+      values.push(data.presentation_time);
+    }
+    if (data.display_order !== undefined) {
+      updates.push(`display_order = $${paramCount++}`);
+      values.push(data.display_order);
     }
 
     if (updates.length === 0) {

@@ -28,7 +28,7 @@ export default function AdminEventDetails() {
 
   // Form states
   const [photoForm, setPhotoForm] = useState({
-    photo_url: '',
+    photo_file: null as File | null,
     caption: '',
     is_highlight: false,
     photo_order: 0,
@@ -175,8 +175,20 @@ export default function AdminEventDetails() {
     setError('');
     setSuccess('');
 
+    if (!photoForm.photo_file) {
+      setError('Please select a photo file');
+      return;
+    }
+
     try {
-      await pastEventsService.createEventPhoto(eventId!, photoForm);
+      const formData = new FormData();
+      formData.append('event_id', eventId!);
+      formData.append('photo', photoForm.photo_file);
+      formData.append('caption', photoForm.caption);
+      formData.append('is_highlight', photoForm.is_highlight.toString());
+      formData.append('photo_order', photoForm.photo_order.toString());
+
+      await pastEventsService.createEventPhoto(eventId!, formData);
       setSuccess('Photo added successfully');
       setShowPhotoModal(false);
       resetPhotoForm();
@@ -200,7 +212,7 @@ export default function AdminEventDetails() {
 
   const resetPhotoForm = () => {
     setPhotoForm({
-      photo_url: '',
+      photo_file: null,
       caption: '',
       is_highlight: false,
       photo_order: 0,
@@ -832,15 +844,25 @@ export default function AdminEventDetails() {
             </div>
             <form onSubmit={handleCreatePhoto} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Photo URL *</label>
+                <label className="block text-sm font-medium text-gray-700">Photo File *</label>
                 <input
-                  type="url"
-                  value={photoForm.photo_url}
-                  onChange={(e) => setPhotoForm({ ...photoForm, photo_url: e.target.value })}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 2 * 1024 * 1024) {
+                        alert('File size must be less than 2MB');
+                        e.target.value = '';
+                        return;
+                      }
+                      setPhotoForm({ ...photoForm, photo_file: file });
+                    }
+                  }}
                   required
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  placeholder="https://example.com/photo.jpg"
                 />
+                <p className="mt-1 text-xs text-gray-500">Max size: 2MB. Formats: JPEG, PNG, WebP</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Caption</label>
