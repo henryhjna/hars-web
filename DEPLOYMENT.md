@@ -1,334 +1,283 @@
-# HARS Web Deployment Guide
+# HARS Web - AWS Deployment Guide
 
-## Overview
-This guide covers deploying the HARS Web Platform to AWS EC2 using Docker Compose.
+**Last Updated**: 2024-11-13 (검증 완료)
 
-## Prerequisites
-- AWS Account with credentials
-- Terraform installed (optional, for automated infrastructure)
-- SSH client
+---
 
-## Deployment Options
+## ⚠️ CRITICAL: 배포 규칙 (MUST FOLLOW!)
 
-### Option 1: Terraform (Recommended)
-Automated infrastructure setup with Terraform.
+**절대 규칙**:
+1. **인프라 변경은 반드시 Terraform으로만 수행**
+2. **애플리케이션 코드 배포는 Git + Docker Compose로 수행**
+3. **절대 AWS 콘솔에서 수동으로 변경하지 말 것**
+4. **Terraform과 수동 변경을 섞으면 충돌 발생!**
 
-See [terraform/README.md](terraform/README.md) for detailed instructions.
+---
 
-**Quick Start:**
+## 🔴 표준 배포 프로세스 (2024-11-13 검증 완료)
+
+### 📋 배포 전 체크리스트
+- [ ] 로컬에서 코드 변경 완료
+- [ ] Git commit & push to main 완료
+- [ ] 인프라 변경 여부 확인 (terraform/main.tf, docker-compose.yml)
+
+---
+
+## 1️⃣ 코드만 변경한 경우 (가장 일반적)
+
+### 단일 명령어로 배포
 ```bash
-cd terraform
-terraform init
-terraform plan
-terraform apply
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "cd hars-web && git pull origin main && docker-compose down && docker-compose up -d --build"
 ```
 
-**What gets created:**
-- VPC with public subnet
-- EC2 t2.micro instance (free tier)
-- Security groups (ports 22, 80, 443)
-- Elastic IP
-- S3 bucket for PDF uploads
-- IAM roles for EC2-S3 access
+### 단계별 설명
+1. `git pull origin main` - 최신 코드 가져오기
+2. `docker-compose down` - 기존 컨테이너 중지 및 제거
+3. `docker-compose up -d --build` - 새 이미지 빌드 및 컨테이너 시작
 
-### Option 2: Manual AWS Setup
-If you prefer manual setup or don't have Terraform:
+### 언제 사용
+- ✅ React/TypeScript 코드 수정
+- ✅ Express API 코드 수정
+- ✅ 데이터베이스 스키마 변경 (db/init.sql)
+- ✅ Dockerfile 변경
+- ✅ nginx.conf 변경
+- ✅ package.json 의존성 변경
 
-1. **Create EC2 Instance:**
-   - Type: t2.micro (free tier)
-   - AMI: Ubuntu 22.04 LTS
-   - Storage: 30GB gp2
-   - Security Group: Allow ports 22, 80, 443
+### 주의사항
+- `--build` 플래그는 항상 포함 (코드 변경사항 반영)
+- 데이터베이스 데이터는 볼륨으로 유지됨 (postgres_data)
+- `-v` 플래그는 절대 사용하지 말 것 (데이터 삭제됨!)
 
-2. **Create S3 Bucket:**
-   - Name: `hars-submissions-henryhjna`
-   - Region: ap-northeast-2
-   - Block public access
+---
 
-3. **Create IAM Role:**
-   - Service: EC2
-   - Policy: S3 read/write for your bucket
-   - Attach to EC2 instance
+## 2️⃣ 인프라 변경이 있는 경우
 
-4. **Allocate Elastic IP:**
-   - Associate with EC2 instance
-
-## Post-Deployment Setup
-
-### 1. Connect to EC2
+### Step 1: Terraform 변경사항 확인
 ```bash
-ssh -i terraform/hars-key ubuntu@<EC2_PUBLIC_IP>
+cd c:/projects/hars-web/terraform
+cmd.exe /c "C:\terraform\terraform.exe plan"
 ```
 
-### 2. Install Docker & Docker Compose
+**확인 사항**:
+- 변경될 리소스 확인 (보안 그룹, EC2 설정 등)
+- 삭제될 리소스가 있는지 확인 (⚠️ 주의!)
+
+### Step 2: Terraform 적용 (변경사항이 있을 때만)
 ```bash
-# Update system
-sudo apt-get update && sudo apt-get upgrade -y
+cmd.exe /c "C:\terraform\terraform.exe apply"
+```
+- `-auto-approve` 플래그는 신중하게 사용
+- 변경사항을 한 번 더 확인 후 `yes` 입력
 
-# Install Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker ubuntu
-
-# Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# Verify installation
-docker --version
-docker-compose --version
+### Step 3: 인프라 적용 확인
+```bash
+cmd.exe /c "C:\terraform\terraform.exe state show aws_security_group.hars_sg"
 ```
 
-### 3. Clone Repository
+### Step 4: 코드 배포
 ```bash
-cd /home/ubuntu
-git clone https://github.com/henryhjna/hars-web.git
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "cd hars-web && git pull origin main && docker-compose down && docker-compose up -d --build"
+```
+
+### 인프라 변경 예시
+- ✅ 보안 그룹 포트 추가/제거 (terraform/main.tf)
+- ✅ EC2 인스턴스 타입 변경
+- ✅ VPC, 서브넷 설정 변경
+- ✅ S3 버킷 생성/삭제
+- ✅ IAM Role/Policy 변경
+
+---
+
+## 3️⃣ 배포 검증
+
+### 컨테이너 상태 확인
+```bash
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "docker ps"
+```
+
+**예상 출력**:
+```
+CONTAINER ID   IMAGE             COMMAND                  STATUS                   PORTS
+xxxxxxxxx      hars-web-client   "/docker-entrypoint.…"   Up X seconds             0.0.0.0:80->80/tcp
+xxxxxxxxx      hars-web-server   "docker-entrypoint.s…"   Up X seconds (healthy)   0.0.0.0:5000->5000/tcp
+xxxxxxxxx      postgres:15       "docker-entrypoint.s…"   Up X seconds (healthy)   0.0.0.0:5432->5432/tcp
+```
+
+### 웹사이트 접속 확인
+```bash
+curl -s -o /dev/null -w "%{http_code}" http://52.78.232.37
+```
+- 예상 결과: `200`
+
+### API 확인
+```bash
+curl -s http://52.78.232.37:5000/api/events | python -m json.tool | head -20
+```
+- 예상 결과: JSON 데이터 반환
+
+---
+
+## 🚫 절대 하지 말 것
+
+1. ❌ AWS 콘솔에서 보안 그룹 수정
+2. ❌ EC2 인스턴스 수동 재시작/변경
+3. ❌ S3 버킷 수동 생성/삭제
+4. ❌ `docker-compose down -v` 사용 (데이터베이스 데이터 삭제됨!)
+5. ❌ EC2에서 직접 코드 수정 (항상 Git으로 관리)
+6. ❌ Terraform과 AWS 콘솔 혼용
+
+---
+
+## 📂 중요 파일 위치
+
+- **Terraform 실행 파일**: `C:\terraform\terraform.exe`
+- **Terraform 설정**: `terraform/main.tf`
+- **SSH 키**: `terraform/hars-key` (gitignore됨)
+- **환경 변수**: `terraform/terraform.tfvars` (gitignore됨)
+- **EC2 IP**: `52.78.232.37` (Elastic IP, 고정됨)
+
+---
+
+## 🏗️ Terraform이 관리하는 인프라
+
+- ✅ AWS EC2 인스턴스 (t2.micro, ap-northeast-2a)
+- ✅ 보안 그룹 (포트: 22, 80, 443, 3000, 5000)
+- ✅ SSH 키 페어 (hars-key)
+- ✅ VPC, 서브넷, Internet Gateway, Route Table
+- ✅ Elastic IP (52.78.232.37)
+- ✅ S3 버킷 (hars-submissions-henryhjna)
+- ✅ IAM Role & Instance Profile (EC2 → S3 접근)
+
+---
+
+## 🌐 접속 정보
+
+- **웹사이트**: http://52.78.232.37 (포트 80, 기본)
+- **API**: http://52.78.232.37:5000/api
+- **SSH**: `ssh -i "terraform/hars-key" ubuntu@52.78.232.37`
+
+---
+
+## 🔧 트러블슈팅
+
+### 컨테이너가 시작되지 않는 경우
+
+```bash
+# 로그 확인
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "docker logs hars-server"
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "docker logs hars-client"
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "docker logs hars-db"
+
+# 전체 로그 확인
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "cd hars-web && docker-compose logs"
+```
+
+### 데이터베이스 초기화가 필요한 경우 (⚠️ 데이터 삭제됨!)
+
+```bash
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "cd hars-web && docker-compose down -v && docker-compose up -d"
+```
+
+### 환경 변수 업데이트
+
+```bash
+# EC2 서버에 SSH 접속
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37
+
+# .env 파일 수정 (없으면 생성)
 cd hars-web
+nano .env
+
+# 수정 후 컨테이너 재시작
+docker-compose restart
 ```
 
-### 4. Create Production Environment File
+### 특정 컨테이너만 재시작
+
 ```bash
-cat > .env.production <<EOF
-# Database
-DB_PASSWORD=YOUR_SECURE_DB_PASSWORD
-
-# JWT
-JWT_SECRET=YOUR_SECURE_JWT_SECRET
-
-# AWS
-AWS_REGION=ap-northeast-2
-S3_BUCKET_NAME=hars-submissions-henryhjna
-
-# SMTP (configure with your email service)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-EMAIL_FROM=noreply@hanyanghars.com
-
-# Frontend URL
-FRONTEND_URL=http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-VITE_API_BASE_URL=http://$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)/api
-EOF
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "cd hars-web && docker-compose restart server"
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "cd hars-web && docker-compose restart client"
 ```
 
-### 5. Start Application
+---
+
+## 📊 배포 체크리스트
+
+### 배포 전
+- [ ] 코드 변경사항 Git commit 완료
+- [ ] Git push to main 완료
+- [ ] 인프라 변경 여부 확인
+
+### 배포 중
+- [ ] Terraform plan 확인 (인프라 변경 시)
+- [ ] Terraform apply 실행 (인프라 변경 시)
+- [ ] 코드 배포 명령어 실행
+- [ ] 컨테이너 시작 완료 확인
+
+### 배포 후
+- [ ] `docker ps` 로 컨테이너 상태 확인
+- [ ] 웹사이트 접속 확인 (http://52.78.232.37)
+- [ ] API 엔드포인트 테스트
+- [ ] 로그에 에러 없는지 확인
+
+---
+
+## 🎯 배포 예시
+
+### 예시 1: 프론트엔드 코드 수정 후 배포
+
 ```bash
-# Use production docker-compose file
-docker-compose -f docker-compose.prod.yml --env-file .env.production up -d
+# 로컬에서
+git add .
+git commit -m "Update homepage UI"
+git push origin main
 
-# Check status
-docker ps
-docker-compose -f docker-compose.prod.yml logs -f
+# 배포
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "cd hars-web && git pull origin main && docker-compose down && docker-compose up -d --build"
+
+# 검증
+curl -s -o /dev/null -w "%{http_code}" http://52.78.232.37
+# 200 확인
 ```
 
-### 6. Verify Deployment
+### 예시 2: 보안 그룹 포트 추가 후 배포
+
 ```bash
-# Check if containers are running
-docker ps
+# 로컬에서 terraform/main.tf 수정
+git add terraform/main.tf
+git commit -m "Add port 8080 to security group"
+git push origin main
 
-# Check application health
-curl http://localhost/api/health
+# Terraform 적용
+cd c:/projects/hars-web/terraform
+cmd.exe /c "C:\terraform\terraform.exe plan"
+# 변경사항 확인 후
+cmd.exe /c "C:\terraform\terraform.exe apply"
 
-# Access from browser
-# http://<EC2_PUBLIC_IP>
+# 코드 배포
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37 "cd hars-web && git pull origin main && docker-compose down && docker-compose up -d --build"
 ```
 
-## Domain Setup (Optional)
+### 예시 3: 환경 변수만 업데이트
 
-### 1. Configure DNS
-1. Go to AWS Route 53
-2. Create hosted zone for `hanyanghars.com`
-3. Note the nameservers
-4. Update nameservers at Gabia (your domain registrar)
-5. Create A record pointing to Elastic IP
-
-### 2. Setup SSL Certificate (Let's Encrypt)
 ```bash
-# SSH into EC2
-ssh -i terraform/hars-key ubuntu@<EC2_PUBLIC_IP>
+# EC2 접속
+ssh -i "c:/projects/hars-web/terraform/hars-key" ubuntu@52.78.232.37
 
-# Stop containers
-cd /home/ubuntu/hars-web
-docker-compose -f docker-compose.prod.yml down
+# .env 수정
+cd hars-web
+nano .env
+# AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY 등 수정
 
-# Install Certbot
-sudo apt-get install -y certbot
-
-# Get certificate
-sudo certbot certonly --standalone \
-  -d hanyanghars.com \
-  -d www.hanyanghars.com \
-  --email your-email@example.com \
-  --agree-tos \
-  --no-eff-email
-
-# Copy certificates
-sudo mkdir -p nginx/ssl
-sudo cp /etc/letsencrypt/live/hanyanghars.com/fullchain.pem nginx/ssl/
-sudo cp /etc/letsencrypt/live/hanyanghars.com/privkey.pem nginx/ssl/
-sudo chown -R ubuntu:ubuntu nginx/ssl
-
-# Update nginx/nginx.conf to enable HTTPS (uncomment HTTPS section)
-
-# Restart with SSL
-docker-compose -f docker-compose.prod.yml --env-file .env.production up -d
+# 컨테이너 재시작 (빌드 불필요)
+docker-compose restart
 ```
 
-### 3. Auto-renew SSL Certificate
-```bash
-# Create renewal script
-cat > /home/ubuntu/renew-cert.sh <<'EOF'
-#!/bin/bash
-docker-compose -f /home/ubuntu/hars-web/docker-compose.prod.yml down
-certbot renew
-cp /etc/letsencrypt/live/hanyanghars.com/fullchain.pem /home/ubuntu/hars-web/nginx/ssl/
-cp /etc/letsencrypt/live/hanyanghars.com/privkey.pem /home/ubuntu/hars-web/nginx/ssl/
-docker-compose -f /home/ubuntu/hars-web/docker-compose.prod.yml --env-file /home/ubuntu/hars-web/.env.production up -d
-EOF
+---
 
-chmod +x /home/ubuntu/renew-cert.sh
+## 📝 배포 성공 기록
 
-# Add to crontab (runs monthly)
-sudo crontab -e
-# Add: 0 0 1 * * /home/ubuntu/renew-cert.sh
-```
-
-## Maintenance
-
-### Update Application
-```bash
-cd /home/ubuntu/hars-web
-
-# Pull latest code
-git pull origin main
-
-# Rebuild and restart
-docker-compose -f docker-compose.prod.yml --env-file .env.production down
-docker-compose -f docker-compose.prod.yml --env-file .env.production up -d --build
-
-# Check logs
-docker-compose -f docker-compose.prod.yml logs -f
-```
-
-### Backup Database
-```bash
-# Backup
-docker exec hars-db pg_dump -U postgres hars_db > backup_$(date +%Y%m%d).sql
-
-# Restore
-cat backup_20241113.sql | docker exec -i hars-db psql -U postgres hars_db
-```
-
-### View Logs
-```bash
-# All services
-docker-compose -f docker-compose.prod.yml logs -f
-
-# Specific service
-docker-compose -f docker-compose.prod.yml logs -f server
-docker-compose -f docker-compose.prod.yml logs -f client
-docker-compose -f docker-compose.prod.yml logs -f db
-```
-
-### Restart Services
-```bash
-# Restart all
-docker-compose -f docker-compose.prod.yml restart
-
-# Restart specific service
-docker-compose -f docker-compose.prod.yml restart server
-```
-
-## Monitoring
-
-### Check Resource Usage
-```bash
-# Container stats
-docker stats
-
-# Disk usage
-df -h
-
-# Memory usage
-free -m
-```
-
-### AWS CloudWatch (Optional)
-Set up CloudWatch agent for EC2 monitoring.
-
-## Troubleshooting
-
-### Application not accessible
-```bash
-# Check if containers are running
-docker ps
-
-# Check nginx logs
-docker logs hars-client
-
-# Check server logs
-docker logs hars-server
-
-# Check database
-docker logs hars-db
-```
-
-### Database connection issues
-```bash
-# Check database is healthy
-docker exec hars-db pg_isready -U postgres
-
-# Check connection from server
-docker exec hars-server nc -zv db 5432
-```
-
-### File upload issues
-```bash
-# Check S3 bucket permissions
-aws s3 ls s3://hars-submissions-henryhjna/
-
-# Check EC2 IAM role
-aws sts get-caller-identity
-```
-
-## Security Checklist
-
-- [ ] Change default database password
-- [ ] Generate strong JWT secret
-- [ ] Configure SMTP with app-specific password
-- [ ] Enable HTTPS with SSL certificate
-- [ ] Set up AWS budget alerts
-- [ ] Enable CloudWatch monitoring
-- [ ] Configure automated backups
-- [ ] Review security group rules
-- [ ] Keep system and Docker images updated
-
-## Cost Management
-
-### Free Tier Limits
-- EC2 t2.micro: 750 hours/month (first 12 months)
-- EBS: 30GB storage
-- S3: 5GB storage, 20,000 GET, 2,000 PUT requests/month
-- Data Transfer: 15GB/month outbound
-
-### Cost Optimization
-1. Stop EC2 when not needed (development)
-2. Clean up old S3 files periodically
-3. Use S3 lifecycle policies for old files
-4. Monitor with AWS Cost Explorer
-5. Set up billing alerts
-
-### Estimated Costs
-- **First 12 months**: $0 (free tier)
-- **After free tier**: ~$10-15/month
-  - EC2 t2.micro: ~$8.5/month
-  - EBS 30GB: ~$3/month
-  - S3: ~$0.50/month (assuming low usage)
-
-## Support
-
-For issues or questions:
-- GitHub: https://github.com/henryhjna/hars-web/issues
-- Email: henryhjna@gmail.com
+- **2024-11-13**: 포트 80 배포 성공 (docker-compose.yml 수정)
+  - Git commit: `8c71dc7`
+  - 변경사항: client 포트 3000 → 80
+  - 검증: curl http://52.78.232.37 → 200 OK
