@@ -68,7 +68,7 @@ export default function AdminEvents() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div>
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold text-gray-900">Manage Events</h1>
         <button

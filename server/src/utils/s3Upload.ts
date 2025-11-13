@@ -6,15 +6,18 @@ const s3Client = new S3Client({
 });
 
 const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'hars-submissions-henryhjna';
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_PHOTO_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_BANNER_SIZE = 20 * 1024 * 1024; // 20MB
 
 export const uploadPhotoToS3 = async (
   file: Express.Multer.File,
-  folder: string = 'photos'
+  folder: string = 'photos',
+  maxSize: number = MAX_PHOTO_SIZE
 ): Promise<string> => {
   // Validate file size
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error(`File size exceeds 2MB limit. File size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+  if (file.size > maxSize) {
+    const limitMB = maxSize / 1024 / 1024;
+    throw new Error(`File size exceeds ${limitMB}MB limit. File size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
   }
 
   // Validate file type
@@ -39,6 +42,12 @@ export const uploadPhotoToS3 = async (
 
   // Return the S3 URL
   return `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+};
+
+export const uploadBannerToS3 = async (
+  file: Express.Multer.File
+): Promise<string> => {
+  return uploadPhotoToS3(file, 'banners', MAX_BANNER_SIZE);
 };
 
 export const deletePhotoFromS3 = async (photoUrl: string): Promise<void> => {

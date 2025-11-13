@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { EventModel } from '../models/event.model';
 import { AuthRequest } from '../types';
 import { ApiError } from '../types';
+import { uploadBannerToS3, deletePhotoFromS3 } from '../utils/s3Upload';
 
 export class EventController {
   // Get all events (public)
@@ -216,6 +217,43 @@ export class EventController {
           total_submissions: submissionCount,
           submission_end_date: event.submission_end_date,
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Upload banner image (admin only)
+  static async uploadBanner(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+
+      // Check if event exists
+      const event = await EventModel.findById(id);
+      if (!event) {
+        throw new ApiError('Event not found', 404);
+      }
+
+      // Check if file was uploaded
+      if (!req.file) {
+        throw new ApiError('Banner image file is required', 400);
+      }
+
+      // Upload to S3
+      const bannerUrl = await uploadBannerToS3(req.file);
+
+      // Delete old banner if exists
+      if (event.banner_image_url) {
+        await deletePhotoFromS3(event.banner_image_url);
+      }
+
+      // Update event with new banner URL
+      const updatedEvent = await EventModel.update(id, { banner_image_url: bannerUrl });
+
+      res.json({
+        success: true,
+        message: 'Banner uploaded successfully',
+        data: { banner_image_url: bannerUrl },
       });
     } catch (error) {
       next(error);

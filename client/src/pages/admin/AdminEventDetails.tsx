@@ -350,6 +350,13 @@ export default function AdminEventDetails() {
     }
   };
 
+  const handleBannerUploaded = (url: string) => {
+    setBasicForm({ ...basicForm, banner_image_url: url });
+    if (event) {
+      setEvent({ ...event, banner_image_url: url });
+    }
+  };
+
   const handleBasicInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
@@ -590,6 +597,7 @@ export default function AdminEventDetails() {
               basicForm={basicForm}
               onInputChange={handleBasicInputChange}
               onSubmit={handleSaveBasicInfo}
+              onBannerUploaded={handleBannerUploaded}
             />
           )}
         </div>

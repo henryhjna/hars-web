@@ -1,8 +1,26 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { EventController } from '../controllers/event.controller';
 import { authenticate, authorize } from '../middleware/auth';
 
 const router = Router();
+
+// Multer configuration for banner uploads (20MB limit)
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 20 * 1024 * 1024, // 20MB
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed.'));
+    }
+  },
+});
 
 // Public routes
 router.get('/', EventController.getAllEvents);
@@ -21,5 +39,8 @@ router.post('/:id/speakers', authenticate, authorize('admin'), EventController.a
 
 // Admin routes - statistics
 router.get('/:id/stats', authenticate, authorize('admin'), EventController.getEventStats);
+
+// Admin routes - banner upload
+router.post('/:id/banner', authenticate, authorize('admin'), upload.single('banner'), EventController.uploadBanner);
 
 export default router;

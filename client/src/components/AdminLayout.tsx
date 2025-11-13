@@ -72,7 +72,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </nav>
 
-      <div className="flex overflow-x-hidden">
+      <div className="flex">
         {/* Sidebar */}
         <aside className="w-64 bg-white shadow-sm min-h-screen flex-shrink-0">
           <nav className="mt-5 px-2 space-y-1">
@@ -100,8 +100,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-8 overflow-x-hidden min-w-0">
-          {children}
+        <main className="flex-1 overflow-hidden">
+          <div className="h-full overflow-y-auto">
+            <div className="max-w-full p-8">
+              {children}
+            </div>
+          </div>
         </main>
       </div>
     </div>
