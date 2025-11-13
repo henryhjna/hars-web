@@ -52,6 +52,14 @@ export interface CommitteeMember {
   role?: string;
 }
 
+export interface VenueInfo {
+  name?: string;
+  address?: string;
+  accessibility?: string[];
+  contact?: string[];
+}
+
+
 export interface EventContent {
   overview?: string;
   practitioner_sessions?: string;
@@ -59,6 +67,7 @@ export interface EventContent {
   awards?: string;
   academic_committee?: CommitteeMember[];
   organizing_committee?: CommitteeMember[];
+  venue_info?: VenueInfo;
 }
 
 export interface Event {

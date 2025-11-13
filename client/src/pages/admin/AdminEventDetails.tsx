@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import eventService from '../../services/event.service';
 import pastEventsService from '../../services/pastEvents.service';
-import type { Event, EventPhoto, KeynoteSpeaker, Testimonial, EventContent, CommitteeMember } from '../../types';
+import type { Event, EventPhoto, KeynoteSpeaker, Testimonial, EventContent, CommitteeMember, VenueInfo } from '../../types';
 
-type ContentTab = 'basic' | 'content' | 'photos' | 'speakers' | 'testimonials' | 'stats';
+type ContentTab = 'basic' | 'content' | 'photos' | 'speakers' | 'testimonials' | 'stats' | 'venue';
 
 export default function AdminEventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -517,6 +517,7 @@ export default function AdminEventDetails() {
               { key: 'speakers' as ContentTab, label: `Speakers (${speakers.length})`, hide: isNewEvent },
               { key: 'testimonials' as ContentTab, label: `Testimonials (${testimonials.length})`, hide: isNewEvent },
               { key: 'stats' as ContentTab, label: 'Highlight Stats', hide: isNewEvent },
+              { key: 'venue' as ContentTab, label: 'Venue Info', hide: isNewEvent },
             ].filter(tab => !tab.hide).map((tab) => (
               <button
                 key={tab.key}
@@ -1114,6 +1115,105 @@ export default function AdminEventDetails() {
                   No statistics yet. Click "Edit Statistics" to add some!
                 </p>
               )}
+            </div>
+          )}
+
+          {activeTab === 'venue' && (
+            <div>
+              <h2 className="text-xl font-semibold mb-4">Venue Information</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Venue Name</label>
+                  <input
+                    type="text"
+                    value={event.event_content?.venue_info?.name || ''}
+                    onChange={(e) => setEvent({
+                      ...event,
+                      event_content: {
+                        ...event.event_content,
+                        venue_info: {
+                          ...event.event_content?.venue_info,
+                          name: e.target.value
+                        }
+                      }
+                    })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="e.g., Hanyang University Business School"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                  <textarea
+                    value={event.event_content?.venue_info?.address || ''}
+                    onChange={(e) => setEvent({
+                      ...event,
+                      event_content: {
+                        ...event.event_content,
+                        venue_info: {
+                          ...event.event_content?.venue_info,
+                          address: e.target.value
+                        }
+                      }
+                    })}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="Full address"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Accessibility Info (one per line)
+                  </label>
+                  <textarea
+                    value={(event.event_content?.venue_info?.accessibility || []).join('\n')}
+                    onChange={(e) => setEvent({
+                      ...event,
+                      event_content: {
+                        ...event.event_content,
+                        venue_info: {
+                          ...event.event_content?.venue_info,
+                          accessibility: e.target.value.split('\n').filter(line => line.trim())
+                        }
+                      }
+                    })}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="e.g.,&#10;Incheon International Airport: 60 minutes by AREX&#10;Hanyang University Station: Seoul Metro Line 2"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Contact Information (one per line)
+                  </label>
+                  <textarea
+                    value={(event.event_content?.venue_info?.contact || []).join('\n')}
+                    onChange={(e) => setEvent({
+                      ...event,
+                      event_content: {
+                        ...event.event_content,
+                        venue_info: {
+                          ...event.event_content?.venue_info,
+                          contact: e.target.value.split('\n').filter(line => line.trim())
+                        }
+                      }
+                    })}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                    placeholder="e.g.,&#10;Website: www.hanyanghars.com&#10;Email: contact@hanyanghars.com"
+                  />
+                </div>
+
+                <button
+                  onClick={handleUpdateEvent}
+                  disabled={saving}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Save Venue Info'}
+                </button>
+              </div>
             </div>
           )}
         </div>

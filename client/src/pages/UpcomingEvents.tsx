@@ -375,44 +375,56 @@ export default function UpcomingEvents() {
       )}
 
       {/* Venue Information */}
-      <section className="bg-gray-100 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Venue Information</h2>
-          <div className="bg-white p-8 rounded-lg shadow-md">
-            <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                {event.location || 'Hanyang University Business School'}
-              </h3>
-              {event.venue_details ? (
-                <div className="text-gray-600 text-lg whitespace-pre-line">{event.venue_details}</div>
-              ) : (
-                <>
-                  <p className="text-gray-600 text-lg">222 Wangsimni-ro, Seongdong-gu</p>
-                  <p className="text-gray-600 text-lg">Seoul 04763, Korea</p>
-                </>
+      {(event.event_content?.venue_info?.name || event.event_content?.venue_info?.address ||
+        (event.event_content?.venue_info?.accessibility && event.event_content.venue_info.accessibility.length > 0) ||
+        (event.event_content?.venue_info?.contact && event.event_content.venue_info.contact.length > 0)) && (
+        <section className="bg-gray-100 py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Venue Information</h2>
+            <div className="bg-white p-8 rounded-lg shadow-md">
+              {(event.event_content?.venue_info?.name || event.event_content?.venue_info?.address) && (
+                <div className="text-center mb-8">
+                  {event.event_content?.venue_info?.name && (
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                      {event.event_content.venue_info.name}
+                    </h3>
+                  )}
+                  {event.event_content?.venue_info?.address && (
+                    <div className="text-gray-600 text-lg whitespace-pre-line">
+                      {event.event_content.venue_info.address}
+                    </div>
+                  )}
+                </div>
               )}
-            </div>
 
-            <div className="grid md:grid-cols-2 gap-8 mt-8">
-              <div className="p-6 bg-primary-50 rounded-lg">
-                <h4 className="font-bold text-lg text-gray-900 mb-4">Accessibility</h4>
-                <ul className="space-y-2 text-gray-700">
-                  <li>• Incheon International Airport: 60 minutes by AREX</li>
-                  <li>• Hanyang University Station: Seoul Metro Line 2</li>
-                </ul>
-              </div>
-              <div className="p-6 bg-accent-50 rounded-lg">
-                <h4 className="font-bold text-lg text-gray-900 mb-4">Contact Information</h4>
-                <ul className="space-y-2 text-gray-700">
-                  <li>• Website: www.hanyanghars.com</li>
-                  <li>• Henry Na: henryhjna@hanyang.ac.kr</li>
-                  <li>• Taejin Jung: taejinjung@hanyang.ac.kr</li>
-                </ul>
+              <div className="grid md:grid-cols-2 gap-8 mt-8">
+                {event.event_content?.venue_info?.accessibility &&
+                 event.event_content.venue_info.accessibility.length > 0 && (
+                  <div className="p-6 bg-primary-50 rounded-lg">
+                    <h4 className="font-bold text-lg text-gray-900 mb-4">Accessibility</h4>
+                    <ul className="space-y-2 text-gray-700">
+                      {event.event_content.venue_info.accessibility.map((item, idx) => (
+                        <li key={idx}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {event.event_content?.venue_info?.contact &&
+                 event.event_content.venue_info.contact.length > 0 && (
+                  <div className="p-6 bg-accent-50 rounded-lg">
+                    <h4 className="font-bold text-lg text-gray-900 mb-4">Contact Information</h4>
+                    <ul className="space-y-2 text-gray-700">
+                      {event.event_content.venue_info.contact.map((item, idx) => (
+                        <li key={idx}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* CTA Section */}
       <section className="bg-gradient-to-r from-primary-600 to-accent-600 text-white py-16">

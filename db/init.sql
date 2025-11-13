@@ -67,6 +67,12 @@ CREATE TABLE events (
         "awards": "",
         "academic_committee": [],
         "organizing_committee": []
+        ,"venue_info": {
+            "name": "",
+            "address": "",
+            "accessibility": [],
+            "contact": []
+        }
     }'::jsonb,
 
     -- UI customization (what sections to show)
