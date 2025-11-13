@@ -3,8 +3,7 @@ import { SubmissionModel } from '../models/submission.model';
 import { EventModel } from '../models/event.model';
 import { AuthRequest } from '../types';
 import { ApiError } from '../types';
-import path from 'path';
-import { deleteFile } from '../config/upload';
+import { uploadPdfToS3, deletePhotoFromS3 } from '../utils/s3Upload';
 
 export class SubmissionController {
   // Get all submissions (admin/reviewer only)
@@ -97,8 +96,6 @@ export class SubmissionController {
       // Check if user can submit
       const canSubmit = await SubmissionModel.canUserSubmit(req.user!.id, event_id);
       if (!canSubmit) {
-        // Delete uploaded file
-        deleteFile(req.file.path);
         throw new ApiError('You cannot submit to this event at this time', 400);
       }
 
@@ -107,6 +104,9 @@ export class SubmissionController {
       if (typeof keywords === 'string') {
         keywordsArray = keywords.split(',').map((k: string) => k.trim());
       }
+
+      // Upload PDF to S3
+      const pdfUrl = await uploadPdfToS3(req.file);
 
       // Create submission
       const submission = await SubmissionModel.create({
@@ -117,7 +117,7 @@ export class SubmissionController {
         keywords: keywordsArray,
         corresponding_author,
         co_authors: co_authors || null,
-        pdf_url: `/uploads/${req.file.filename}`,
+        pdf_url: pdfUrl,
         pdf_filename: req.file.originalname,
         pdf_size: req.file.size,
         status: status || 'submitted',
@@ -129,10 +129,6 @@ export class SubmissionController {
         data: submission,
       });
     } catch (error) {
-      // Delete uploaded file if submission creation failed
-      if (req.file) {
-        deleteFile(req.file.path);
-      }
       next(error);
     }
   }
@@ -153,9 +149,6 @@ export class SubmissionController {
       // Check if submission exists
       const existingSubmission = await SubmissionModel.findById(id);
       if (!existingSubmission) {
-        if (req.file) {
-          deleteFile(req.file.path);
-        }
         throw new ApiError('Submission not found', 404);
       }
 
@@ -164,9 +157,6 @@ export class SubmissionController {
       const isAdmin = req.user!.roles.includes('admin');
 
       if (!isOwner && !isAdmin) {
-        if (req.file) {
-          deleteFile(req.file.path);
-        }
         throw new ApiError('You do not have permission to update this submission', 403);
       }
 
@@ -182,11 +172,14 @@ export class SubmissionController {
 
       // If new file uploaded, update file info
       if (req.file) {
-        // Delete old file
-        const oldFilePath = path.join(__dirname, '../../', existingSubmission.pdf_url);
-        deleteFile(oldFilePath);
+        // Delete old PDF from S3
+        if (existingSubmission.pdf_url.startsWith('https://')) {
+          await deletePhotoFromS3(existingSubmission.pdf_url);
+        }
 
-        updateData.pdf_url = `/uploads/${req.file.filename}`;
+        // Upload new PDF to S3
+        const pdfUrl = await uploadPdfToS3(req.file);
+        updateData.pdf_url = pdfUrl;
         updateData.pdf_filename = req.file.originalname;
         updateData.pdf_size = req.file.size;
       }
@@ -199,9 +192,6 @@ export class SubmissionController {
         data: updatedSubmission,
       });
     } catch (error) {
-      if (req.file) {
-        deleteFile(req.file.path);
-      }
       next(error);
     }
   }
@@ -251,9 +241,10 @@ export class SubmissionController {
         throw new ApiError('You do not have permission to delete this submission', 403);
       }
 
-      // Delete file
-      const filePath = path.join(__dirname, '../../', submission.pdf_url);
-      deleteFile(filePath);
+      // Delete PDF from S3
+      if (submission.pdf_url.startsWith('https://')) {
+        await deletePhotoFromS3(submission.pdf_url);
+      }
 
       // Delete submission
       await SubmissionModel.delete(id);

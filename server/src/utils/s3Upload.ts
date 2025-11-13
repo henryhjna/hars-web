@@ -50,6 +50,39 @@ export const uploadBannerToS3 = async (
   return uploadPhotoToS3(file, 'banners', MAX_BANNER_SIZE);
 };
 
+export const uploadPdfToS3 = async (
+  file: Express.Multer.File
+): Promise<string> => {
+  const MAX_PDF_SIZE = 10 * 1024 * 1024; // 10MB
+
+  // Validate file size
+  if (file.size > MAX_PDF_SIZE) {
+    throw new Error(`File size exceeds 10MB limit. File size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+  }
+
+  // Validate file type
+  if (file.mimetype !== 'application/pdf') {
+    throw new Error(`Invalid file type. Only PDF files are allowed`);
+  }
+
+  const fileExt = file.originalname.split('.').pop();
+  const randomId = crypto.randomUUID();
+  const fileName = `submissions/${randomId}.${fileExt}`;
+
+  const command = new PutObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: fileName,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+    ACL: 'public-read',
+  });
+
+  await s3Client.send(command);
+
+  // Return the S3 URL
+  return `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+};
+
 export const deletePhotoFromS3 = async (photoUrl: string): Promise<void> => {
   try {
     // Extract key from URL
