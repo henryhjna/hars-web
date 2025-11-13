@@ -9,6 +9,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 DROP TABLE IF EXISTS activity_logs CASCADE;
 DROP TABLE IF EXISTS event_testimonials CASCADE;
 DROP TABLE IF EXISTS event_photos CASCADE;
+DROP TABLE IF EXISTS conference_topics CASCADE;
 DROP TABLE IF EXISTS review_assignments CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS submissions CASCADE;
@@ -50,6 +51,8 @@ CREATE TABLE events (
     submission_end_date TIMESTAMP NOT NULL,
     review_deadline TIMESTAMP,
     notification_date TIMESTAMP,
+    program_announcement_date TIMESTAMP,
+    registration_deadline TIMESTAMP,
 
     -- Event customization
     theme_color VARCHAR(7) DEFAULT '#1a73e8',
@@ -74,11 +77,15 @@ CREATE TABLE event_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     event_id UUID REFERENCES events(id) ON DELETE CASCADE,
     session_title VARCHAR(255) NOT NULL,
-    session_date DATE NOT NULL,
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
+    session_date DATE,
+    start_time TIME,
+    end_time TIME,
+    session_time VARCHAR(255),
     location VARCHAR(255),
     description TEXT,
+    session_description TEXT,
+    speaker_name VARCHAR(255),
+    session_type VARCHAR(100),
     session_order INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -92,8 +99,9 @@ CREATE TABLE keynote_speakers (
     affiliation VARCHAR(255),
     bio TEXT,
     photo_url TEXT,
-    presentation_title VARCHAR(255),
-    speaker_order INTEGER DEFAULT 0,
+    topic VARCHAR(500),
+    presentation_time VARCHAR(255),
+    display_order INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -192,6 +200,18 @@ CREATE TABLE event_testimonials (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Conference Topics
+CREATE TABLE conference_topics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID REFERENCES events(id) ON DELETE CASCADE,
+    topic_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    display_order INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Activity Logs
 CREATE TABLE activity_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -216,6 +236,8 @@ CREATE INDEX idx_reviews_submission ON reviews(submission_id);
 CREATE INDEX idx_reviews_reviewer ON reviews(reviewer_id);
 CREATE INDEX idx_review_assignments_reviewer ON review_assignments(reviewer_id);
 CREATE INDEX idx_event_photos_event ON event_photos(event_id);
+CREATE INDEX idx_conference_topics_event ON conference_topics(event_id);
+CREATE INDEX idx_conference_topics_active ON conference_topics(is_active);
 CREATE INDEX idx_activity_logs_user ON activity_logs(user_id);
 CREATE INDEX idx_activity_logs_created ON activity_logs(created_at DESC);
 
@@ -238,6 +260,9 @@ CREATE TRIGGER update_submissions_updated_at BEFORE UPDATE ON submissions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_reviews_updated_at BEFORE UPDATE ON reviews
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_conference_topics_updated_at BEFORE UPDATE ON conference_topics
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert default admin user (password: Admin123!)

@@ -40,7 +40,8 @@ export default function AdminEventDetails() {
     affiliation: '',
     bio: '',
     photo_url: '',
-    presentation_title: '',
+    topic: '',
+    presentation_time: '',
     display_order: 0,
   });
 
@@ -242,7 +243,8 @@ export default function AdminEventDetails() {
       affiliation: '',
       bio: '',
       photo_url: '',
-      presentation_title: '',
+      topic: '',
+      presentation_time: '',
       display_order: 0,
     });
   };
@@ -368,7 +370,7 @@ export default function AdminEventDetails() {
     );
   }
 
-  if (!event) {
+  if (!event && !isNewEvent) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-600">Event not found</p>
@@ -715,10 +717,13 @@ export default function AdminEventDetails() {
                         {speaker.affiliation && (
                           <p className="text-sm text-gray-600">{speaker.affiliation}</p>
                         )}
-                        {speaker.presentation_title && (
+                        {speaker.topic && (
                           <p className="mt-2 text-sm font-medium">
-                            Presentation: {speaker.presentation_title}
+                            Topic: {speaker.topic}
                           </p>
+                        )}
+                        {speaker.presentation_time && (
+                          <p className="text-sm text-gray-600">Time: {speaker.presentation_time}</p>
                         )}
                         {speaker.bio && <p className="mt-2 text-sm text-gray-700">{speaker.bio}</p>}
                       </div>
@@ -938,15 +943,29 @@ export default function AdminEventDetails() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Presentation Title
+                  Presentation Topic
                 </label>
                 <input
                   type="text"
-                  value={speakerForm.presentation_title}
+                  value={speakerForm.topic}
                   onChange={(e) =>
-                    setSpeakerForm({ ...speakerForm, presentation_title: e.target.value })
+                    setSpeakerForm({ ...speakerForm, topic: e.target.value })
                   }
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Presentation Time
+                </label>
+                <input
+                  type="text"
+                  value={speakerForm.presentation_time}
+                  onChange={(e) =>
+                    setSpeakerForm({ ...speakerForm, presentation_time: e.target.value })
+                  }
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="e.g., 10:00 AM - 11:00 AM"
                 />
               </div>
               <div>

@@ -267,10 +267,13 @@ export default function PastEvents() {
                             {speaker.affiliation && (
                               <p className="text-sm text-gray-600">{speaker.affiliation}</p>
                             )}
-                            {speaker.presentation_title && (
+                            {speaker.topic && (
                               <p className="mt-2 text-sm font-medium text-gray-900">
-                                Presentation: {speaker.presentation_title}
+                                Topic: {speaker.topic}
                               </p>
+                            )}
+                            {speaker.presentation_time && (
+                              <p className="text-sm text-gray-600">Time: {speaker.presentation_time}</p>
                             )}
                             {speaker.bio && (
                               <p className="mt-2 text-gray-700">{speaker.bio}</p>
