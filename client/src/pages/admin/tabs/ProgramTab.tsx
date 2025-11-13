@@ -119,7 +119,7 @@ export default function ProgramTab({
       {sessions.length === 0 ? (
         <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
           <p className="text-gray-500">No sessions added yet. Click "Add Session" to create your first session.</p>
-        </button>
+        </div>
       ) : (
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
