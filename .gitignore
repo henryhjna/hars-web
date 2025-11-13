@@ -60,8 +60,9 @@ coverage/
 tmp/
 temp/
 
-# Uploaded files
-server/uploads/
+# Uploaded files (but keep the directory structure)
+server/uploads/*
+!server/uploads/.gitkeep
 
 # Documentation (internal use only)
 PROJECT_STRUCTURE.md
