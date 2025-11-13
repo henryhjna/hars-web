@@ -4,7 +4,7 @@ import eventService from '../../services/event.service';
 import pastEventsService from '../../services/pastEvents.service';
 import type { Event, EventPhoto, KeynoteSpeaker, Testimonial, EventContent, CommitteeMember, VenueInfo } from '../../types';
 
-type ContentTab = 'basic' | 'content' | 'media' | 'display';
+type ContentTab = 'basic' | 'content' | 'photos' | 'speakers' | 'testimonials' | 'stats' | 'venue';
 
 export default function AdminEventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
