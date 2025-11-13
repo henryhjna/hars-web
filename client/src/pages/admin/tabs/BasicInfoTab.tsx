@@ -177,41 +177,6 @@ export default function BasicInfoTab({
           />
         </div>
 
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700">Banner Image URL</label>
-          <input
-            type="text"
-            name="banner_image_url"
-            value={basicForm.banner_image_url}
-            onChange={onInputChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-            placeholder="https://example.com/banner.jpg"
-          />
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-3">Display Options</label>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              { name: 'show_keynote', label: 'Show Keynote Speakers' },
-              { name: 'show_program', label: 'Show Program' },
-              { name: 'show_testimonials', label: 'Show Testimonials' },
-              { name: 'show_photos', label: 'Show Photos' },
-              { name: 'show_best_paper', label: 'Show Best Paper' },
-            ].map((option) => (
-              <div key={option.name} className="flex items-center">
-                <input
-                  type="checkbox"
-                  name={option.name}
-                  checked={basicForm[option.name as keyof typeof basicForm] as boolean}
-                  onChange={onInputChange}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                />
-                <label className="ml-2 text-sm text-gray-700">{option.label}</label>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       <div className="flex justify-end space-x-3 pt-4 border-t">

@@ -1,6 +1,7 @@
-import type { EventPhoto, KeynoteSpeaker, Testimonial } from '../../../types';
+import type { Event, EventPhoto, KeynoteSpeaker, Testimonial } from '../../../types';
 
 interface MediaTabProps {
+  event: Event;
   photos: EventPhoto[];
   speakers: KeynoteSpeaker[];
   testimonials: Testimonial[];
@@ -10,9 +11,11 @@ interface MediaTabProps {
   onDeleteSpeaker: (speakerId: string) => void;
   onAddTestimonial: () => void;
   onDeleteTestimonial: (testimonialId: string) => void;
+  onEditStats: () => void;
 }
 
 export default function MediaTab({
+  event,
   photos,
   speakers,
   testimonials,
@@ -22,6 +25,7 @@ export default function MediaTab({
   onDeleteSpeaker,
   onAddTestimonial,
   onDeleteTestimonial,
+  onEditStats,
 }: MediaTabProps) {
   return (
     <div className="space-y-12">
@@ -167,6 +171,36 @@ export default function MediaTab({
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* Highlight Statistics Section */}
+      <div className="pt-12 border-t border-gray-200">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900">Highlight Statistics</h2>
+          <button
+            onClick={onEditStats}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Edit Statistics
+          </button>
+        </div>
+
+        {event.highlight_stats && Object.keys(event.highlight_stats).length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {Object.entries(event.highlight_stats).map(([key, value]) => (
+              <div key={key} className="bg-gray-50 p-4 rounded-lg">
+                <div className="text-3xl font-bold text-gray-900">{String(value)}</div>
+                <div className="text-sm text-gray-600 capitalize mt-1">
+                  {key.replace(/_/g, ' ')}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-600">
+            No statistics yet. Click "Edit Statistics" to add some!
+          </p>
         )}
       </div>
     </div>

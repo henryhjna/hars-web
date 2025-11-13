@@ -524,7 +524,7 @@ export default function AdminEventDetails() {
             {[
               { key: 'basic' as ContentTab, label: 'Basic Info' },
               { key: 'content' as ContentTab, label: 'Content & Venue', hide: isNewEvent },
-              { key: 'media' as ContentTab, label: `Media & People (${photos.length + speakers.length + testimonials.length})`, hide: isNewEvent },
+              { key: 'media' as ContentTab, label: `Media, People & Stats (${photos.length + speakers.length + testimonials.length})`, hide: isNewEvent },
               { key: 'display' as ContentTab, label: 'Display Settings', hide: isNewEvent },
             ].filter(tab => !tab.hide).map((tab) => (
               <button
@@ -567,8 +567,9 @@ export default function AdminEventDetails() {
           )}
 
           {/* Media Tab */}
-          {activeTab === 'media' && (
+          {activeTab === 'media' && event && (
             <MediaTab
+              event={event}
               photos={photos}
               speakers={speakers}
               testimonials={testimonials}
@@ -578,6 +579,7 @@ export default function AdminEventDetails() {
               onDeleteSpeaker={handleDeleteSpeaker}
               onAddTestimonial={() => setShowTestimonialModal(true)}
               onDeleteTestimonial={handleDeleteTestimonial}
+              onEditStats={() => setShowStatsModal(true)}
             />
           )}
 
@@ -585,7 +587,9 @@ export default function AdminEventDetails() {
           {activeTab === 'display' && event && (
             <DisplayTab
               event={event}
-              onEditStats={() => setShowStatsModal(true)}
+              basicForm={basicForm}
+              onInputChange={handleBasicInputChange}
+              onSubmit={handleSaveBasicInfo}
             />
           )}
         </div>
