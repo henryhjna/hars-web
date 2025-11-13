@@ -4,7 +4,7 @@ import eventService from '../../services/event.service';
 import pastEventsService from '../../services/pastEvents.service';
 import type { Event, EventPhoto, KeynoteSpeaker, Testimonial, EventContent, CommitteeMember, VenueInfo } from '../../types';
 
-type ContentTab = 'basic' | 'content' | 'photos' | 'speakers' | 'testimonials' | 'stats' | 'venue';
+type ContentTab = 'basic' | 'content' | 'media' | 'display';
 
 export default function AdminEventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -511,13 +511,13 @@ export default function AdminEventDetails() {
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex">
             {[
-              { key: 'basic' as ContentTab, label: 'Basic Info' },
-              { key: 'content' as ContentTab, label: 'Event Content', hide: isNewEvent },
-              { key: 'photos' as ContentTab, label: `Photos (${photos.length})`, hide: isNewEvent },
-              { key: 'speakers' as ContentTab, label: `Speakers (${speakers.length})`, hide: isNewEvent },
-              { key: 'testimonials' as ContentTab, label: `Testimonials (${testimonials.length})`, hide: isNewEvent },
-              { key: 'stats' as ContentTab, label: 'Highlight Stats', hide: isNewEvent },
-              { key: 'venue' as ContentTab, label: 'Venue Info', hide: isNewEvent },
+              { key: 'basic' as ContentTab, label: '📝 Basic Info' },
+              { key: 'content' as ContentTab, label: '📄 Content', hide: isNewEvent },
+              { key: 'venue' as ContentTab, label: '📍 Venue', hide: isNewEvent },
+              { key: 'photos' as ContentTab, label: `📸 Photos (${photos.length})`, hide: isNewEvent },
+              { key: 'speakers' as ContentTab, label: `🎤 Speakers (${speakers.length})`, hide: isNewEvent },
+              { key: 'testimonials' as ContentTab, label: `💬 Testimonials (${testimonials.length})`, hide: isNewEvent },
+              { key: 'stats' as ContentTab, label: '📊 Display', hide: isNewEvent },
             ].filter(tab => !tab.hide).map((tab) => (
               <button
                 key={tab.key}
