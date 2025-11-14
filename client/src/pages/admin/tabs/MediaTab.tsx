@@ -1,14 +1,11 @@
-import type { Event, EventPhoto, KeynoteSpeaker, Testimonial } from '../../../types';
+import type { Event, EventPhoto, Testimonial } from '../../../types';
 
 interface MediaTabProps {
   event: Event;
   photos: EventPhoto[];
-  speakers: KeynoteSpeaker[];
   testimonials: Testimonial[];
   onAddPhoto: () => void;
   onDeletePhoto: (photoId: string) => void;
-  onAddSpeaker: () => void;
-  onDeleteSpeaker: (speakerId: string) => void;
   onAddTestimonial: () => void;
   onDeleteTestimonial: (testimonialId: string) => void;
   onEditStats: () => void;
@@ -17,12 +14,9 @@ interface MediaTabProps {
 export default function MediaTab({
   event,
   photos,
-  speakers,
   testimonials,
   onAddPhoto,
   onDeletePhoto,
-  onAddSpeaker,
-  onDeleteSpeaker,
   onAddTestimonial,
   onDeleteTestimonial,
   onEditStats,
@@ -68,59 +62,6 @@ export default function MediaTab({
                 {photo.caption && (
                   <p className="mt-2 text-sm text-gray-600">{photo.caption}</p>
                 )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Speakers Section */}
-      <div className="pt-12 border-t border-gray-200">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold text-gray-900">Keynote Speakers</h2>
-          <button
-            onClick={onAddSpeaker}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Add Speaker
-          </button>
-        </div>
-
-        {speakers.length === 0 ? (
-          <p className="text-gray-600">No speakers yet. Add your first speaker!</p>
-        ) : (
-          <div className="space-y-4">
-            {speakers.map((speaker) => (
-              <div key={speaker.id} className="border border-gray-200 rounded-lg p-4 flex gap-4">
-                {speaker.photo_url && (
-                  <img
-                    src={speaker.photo_url}
-                    alt={speaker.name}
-                    className="w-24 h-24 rounded-full object-cover"
-                  />
-                )}
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold">{speaker.name}</h3>
-                  {speaker.title && <p className="text-sm text-gray-600">{speaker.title}</p>}
-                  {speaker.affiliation && (
-                    <p className="text-sm text-gray-600">{speaker.affiliation}</p>
-                  )}
-                  {speaker.topic && (
-                    <p className="mt-2 text-sm font-medium">
-                      Topic: {speaker.topic}
-                    </p>
-                  )}
-                  {speaker.presentation_time && (
-                    <p className="text-sm text-gray-600">Time: {speaker.presentation_time}</p>
-                  )}
-                  {speaker.bio && <p className="mt-2 text-sm text-gray-700">{speaker.bio}</p>}
-                </div>
-                <button
-                  onClick={() => onDeleteSpeaker(speaker.id)}
-                  className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 self-start"
-                >
-                  Delete
-                </button>
               </div>
             ))}
           </div>

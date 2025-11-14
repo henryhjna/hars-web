@@ -4,13 +4,14 @@ import Button from '../components/ui/Button';
 import { Link } from 'react-router-dom';
 import eventService from '../services/event.service';
 import conferenceTopicService from '../services/conferenceTopic.service';
-import type { Event, ConferenceTopic, CommitteeMember } from '../types';
+import type { Event, ConferenceTopic, CommitteeMember, EventSession } from '../types';
 
 export default function UpcomingEvents() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [event, setEvent] = useState<Event | null>(null);
   const [topics, setTopics] = useState<ConferenceTopic[]>([]);
+  const [sessions, setSessions] = useState<EventSession[]>([]);
   const [academicSort, setAcademicSort] = useState<'name' | 'affiliation' | 'area'>('name');
   const [organizingSort, setOrganizingSort] = useState<'name' | 'affiliation' | 'role'>('name');
 
@@ -27,12 +28,20 @@ export default function UpcomingEvents() {
           const upcomingEvent = eventsResponse.data[0];
           setEvent(upcomingEvent);
 
-          // Fetch conference topics for this event
-          const topicsResponse = await conferenceTopicService.getByEventId(upcomingEvent.id);
+          // Fetch conference topics and sessions for this event
+          const [topicsResponse, sessionsResponse] = await Promise.all([
+            conferenceTopicService.getByEventId(upcomingEvent.id),
+            eventService.getSessions(upcomingEvent.id),
+          ]);
+
           if (topicsResponse.success && topicsResponse.data) {
             // Sort by display_order
             const sortedTopics = topicsResponse.data.sort((a, b) => a.display_order - b.display_order);
             setTopics(sortedTopics);
+          }
+
+          if (sessionsResponse.success && sessionsResponse.data) {
+            setSessions(sessionsResponse.data);
           }
         } else {
           setEvent(null);
@@ -303,6 +312,66 @@ export default function UpcomingEvents() {
                   )
                 )}
               </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Program Schedule */}
+      {event.show_program && sessions.length > 0 && (
+        <section className="bg-gray-50 py-12 md:py-16">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-center gap-3 mb-8">
+              <Calendar className="h-8 w-8 text-primary-600" />
+              <h2 className="text-3xl font-bold text-gray-900">Program Schedule</h2>
+            </div>
+
+            <div className="space-y-4 max-w-4xl mx-auto">
+              {sessions.map((session) => (
+                <div key={session.id} className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-primary-500 hover:shadow-md transition-shadow">
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-3">
+                    <h3 className="text-lg md:text-xl font-semibold text-gray-900">{session.session_title}</h3>
+                    {session.session_type && (
+                      <span className="px-3 py-1 bg-primary-100 text-primary-800 text-xs font-medium rounded-full self-start">
+                        {session.session_type}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                    {session.session_date && (
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-400" />
+                        <span>{new Date(session.session_date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}</span>
+                      </div>
+                    )}
+                    {(session.start_time || session.end_time) && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">Time:</span>
+                        <span>
+                          {session.start_time && session.start_time.substring(0, 5)}
+                          {session.start_time && session.end_time && ' - '}
+                          {session.end_time && session.end_time.substring(0, 5)}
+                        </span>
+                      </div>
+                    )}
+                    {session.location && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-gray-400" />
+                        <span>{session.location}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {session.description && (
+                    <p className="mt-4 text-gray-700 whitespace-pre-line">{session.description}</p>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </section>

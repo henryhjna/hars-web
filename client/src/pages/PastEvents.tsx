@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import eventService from '../services/event.service';
 import pastEventsService from '../services/pastEvents.service';
-import type { Event, EventPhoto, KeynoteSpeaker, Testimonial } from '../types';
+import type { Event, EventPhoto, EventSession, Testimonial } from '../types';
 
 type ViewTab = 'overview' | 'program' | 'photos' | 'highlights';
 
@@ -16,7 +16,7 @@ export default function PastEvents() {
   // Data for each tab
   const [photos, setPhotos] = useState<EventPhoto[]>([]);
   const [highlightPhotos, setHighlightPhotos] = useState<EventPhoto[]>([]);
-  const [speakers, setSpeakers] = useState<KeynoteSpeaker[]>([]);
+  const [sessions, setSessions] = useState<EventSession[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [featuredTestimonials, setFeaturedTestimonials] = useState<Testimonial[]>([]);
 
@@ -58,17 +58,17 @@ export default function PastEvents() {
     if (!selectedEvent) return;
 
     try {
-      const [photosData, highlightPhotosData, speakersData, testimonialsData, featuredTestimonialsData] = await Promise.all([
+      const [photosData, highlightPhotosData, sessionsResponse, testimonialsData, featuredTestimonialsData] = await Promise.all([
         pastEventsService.getEventPhotos(selectedEvent.id),
         pastEventsService.getHighlightPhotos(selectedEvent.id),
-        pastEventsService.getEventSpeakers(selectedEvent.id),
+        eventService.getSessions(selectedEvent.id),
         pastEventsService.getEventTestimonials(selectedEvent.id),
         pastEventsService.getFeaturedTestimonials(selectedEvent.id),
       ]);
 
       setPhotos(photosData);
       setHighlightPhotos(highlightPhotosData);
-      setSpeakers(speakersData);
+      setSessions(sessionsResponse.success && sessionsResponse.data ? sessionsResponse.data : []);
       setTestimonials(testimonialsData);
       setFeaturedTestimonials(featuredTestimonialsData);
     } catch (error) {
@@ -144,7 +144,7 @@ export default function PastEvents() {
                 <nav className="-mb-px flex flex-wrap">
                   {[
                     { key: 'overview' as ViewTab, label: 'Overview', show: true },
-                    { key: 'program' as ViewTab, label: `Program (${speakers.length})`, show: selectedEvent.show_keynote && speakers.length > 0 },
+                    { key: 'program' as ViewTab, label: `Program (${sessions.length})`, show: selectedEvent.show_program && sessions.length > 0 },
                     { key: 'photos' as ViewTab, label: `Photos (${photos.length})`, show: selectedEvent.show_photos && photos.length > 0 },
                     { key: 'highlights' as ViewTab, label: 'Highlights', show: (highlightPhotos.length > 0 || featuredTestimonials.length > 0 || (selectedEvent.highlight_stats && Object.keys(selectedEvent.highlight_stats).length > 0)) },
                   ].filter(tab => tab.show).map((tab) => (
@@ -267,44 +267,60 @@ export default function PastEvents() {
                   </div>
                 )}
 
-                {/* Program Tab - Keynote Speakers */}
+                {/* Program Tab - Event Schedule */}
                 {activeTab === 'program' && (
                   <div className="space-y-6">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Keynote Speakers</h3>
-                    {speakers.length === 0 ? (
-                      <p className="text-gray-600">No speaker information available.</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Program Schedule</h3>
+                    {sessions.length === 0 ? (
+                      <p className="text-gray-600">No program information available.</p>
                     ) : (
-                      speakers.map((speaker) => (
-                        <div key={speaker.id} className="flex gap-6 bg-gray-50 p-6 rounded-lg">
-                          {speaker.photo_url && (
-                            <img
-                              src={speaker.photo_url}
-                              alt={speaker.name}
-                              className="w-32 h-32 rounded-full object-cover flex-shrink-0"
-                            />
-                          )}
-                          <div className="flex-1">
-                            <h3 className="text-xl font-semibold text-gray-900">{speaker.name}</h3>
-                            {speaker.title && (
-                              <p className="text-sm text-gray-600">{speaker.title}</p>
-                            )}
-                            {speaker.affiliation && (
-                              <p className="text-sm text-gray-600">{speaker.affiliation}</p>
-                            )}
-                            {speaker.topic && (
-                              <p className="mt-2 text-sm font-medium text-gray-900">
-                                Topic: {speaker.topic}
-                              </p>
-                            )}
-                            {speaker.presentation_time && (
-                              <p className="text-sm text-gray-600">Time: {speaker.presentation_time}</p>
-                            )}
-                            {speaker.bio && (
-                              <p className="mt-2 text-gray-700">{speaker.bio}</p>
+                      <div className="space-y-4">
+                        {sessions.map((session) => (
+                          <div key={session.id} className="bg-gray-50 p-6 rounded-lg border-l-4 border-primary-500">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="text-lg font-semibold text-gray-900">{session.session_title}</h4>
+                              {session.session_type && (
+                                <span className="px-3 py-1 bg-primary-100 text-primary-800 text-xs font-medium rounded-full">
+                                  {session.session_type}
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">
+                              {session.session_date && (
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium">Date:</span>
+                                  <span>{new Date(session.session_date).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })}</span>
+                                </div>
+                              )}
+                              {(session.start_time || session.end_time) && (
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium">Time:</span>
+                                  <span>
+                                    {session.start_time && session.start_time.substring(0, 5)}
+                                    {session.start_time && session.end_time && ' - '}
+                                    {session.end_time && session.end_time.substring(0, 5)}
+                                  </span>
+                                </div>
+                              )}
+                              {session.location && (
+                                <div className="flex items-center gap-1">
+                                  <span className="font-medium">Location:</span>
+                                  <span>{session.location}</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {session.description && (
+                              <p className="text-gray-700 whitespace-pre-line">{session.description}</p>
                             )}
                           </div>
-                        </div>
-                      ))
+                        ))}
+                      </div>
                     )}
                   </div>
                 )}

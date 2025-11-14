@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import eventService from '../../services/event.service';
 import pastEventsService from '../../services/pastEvents.service';
-import type { Event, EventPhoto, KeynoteSpeaker, Testimonial, EventContent, CommitteeMember, EventSession } from '../../types';
+import type { Event, EventPhoto, Testimonial, EventContent, CommitteeMember, EventSession } from '../../types';
 
 // Import tab components
 import BasicInfoTab from './tabs/BasicInfoTab';
@@ -24,13 +24,11 @@ export default function AdminEventDetails() {
 
   // Data for each tab
   const [photos, setPhotos] = useState<EventPhoto[]>([]);
-  const [speakers, setSpeakers] = useState<KeynoteSpeaker[]>([]);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [sessions, setSessions] = useState<EventSession[]>([]);
 
   // Modal states
   const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const [showSpeakerModal, setShowSpeakerModal] = useState(false);
   const [showTestimonialModal, setShowTestimonialModal] = useState(false);
   const [showStatsModal, setShowStatsModal] = useState(false);
 
@@ -40,17 +38,6 @@ export default function AdminEventDetails() {
     caption: '',
     is_highlight: false,
     photo_order: 0,
-  });
-
-  const [speakerForm, setSpeakerForm] = useState({
-    name: '',
-    title: '',
-    affiliation: '',
-    bio: '',
-    photo_url: '',
-    topic: '',
-    presentation_time: '',
-    display_order: 0,
   });
 
   const [testimonialForm, setTestimonialForm] = useState({
@@ -198,15 +185,13 @@ export default function AdminEventDetails() {
     if (!eventId) return;
 
     try {
-      const [photosData, speakersData, testimonialsData, sessionsResponse] = await Promise.all([
+      const [photosData, testimonialsData, sessionsResponse] = await Promise.all([
         pastEventsService.getEventPhotos(eventId),
-        pastEventsService.getEventSpeakers(eventId),
         pastEventsService.getEventTestimonials(eventId),
         eventService.getSessions(eventId),
       ]);
 
       setPhotos(photosData);
-      setSpeakers(speakersData);
       setTestimonials(testimonialsData);
       if (sessionsResponse.success && sessionsResponse.data) {
         setSessions(sessionsResponse.data);
@@ -263,48 +248,6 @@ export default function AdminEventDetails() {
       caption: '',
       is_highlight: false,
       photo_order: 0,
-    });
-  };
-
-  // Speaker handlers
-  const handleCreateSpeaker = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    try {
-      await pastEventsService.createEventSpeaker(eventId!, speakerForm);
-      setSuccess('Speaker added successfully');
-      setShowSpeakerModal(false);
-      resetSpeakerForm();
-      await loadEventData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to add speaker');
-    }
-  };
-
-  const handleDeleteSpeaker = async (speakerId: string) => {
-    if (!confirm('Are you sure you want to delete this speaker?')) return;
-
-    try {
-      await pastEventsService.deleteEventSpeaker(speakerId);
-      setSuccess('Speaker deleted successfully');
-      await loadEventData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete speaker');
-    }
-  };
-
-  const resetSpeakerForm = () => {
-    setSpeakerForm({
-      name: '',
-      title: '',
-      affiliation: '',
-      bio: '',
-      photo_url: '',
-      topic: '',
-      presentation_time: '',
-      display_order: 0,
     });
   };
 
@@ -550,7 +493,7 @@ export default function AdminEventDetails() {
               { key: 'basic' as ContentTab, label: 'Basic Info' },
               { key: 'content' as ContentTab, label: 'Content & Venue', hide: isNewEvent },
               { key: 'program' as ContentTab, label: `Program (${sessions.length})`, hide: isNewEvent },
-              { key: 'media' as ContentTab, label: `Media, People & Stats (${photos.length + speakers.length + testimonials.length})`, hide: isNewEvent },
+              { key: 'media' as ContentTab, label: `Media & Stats (${photos.length + testimonials.length})`, hide: isNewEvent },
               { key: 'display' as ContentTab, label: 'Display Settings', hide: isNewEvent },
             ].filter(tab => !tab.hide).map((tab) => (
               <button
@@ -606,12 +549,9 @@ export default function AdminEventDetails() {
             <MediaTab
               event={event}
               photos={photos}
-              speakers={speakers}
               testimonials={testimonials}
               onAddPhoto={() => setShowPhotoModal(true)}
               onDeletePhoto={handleDeletePhoto}
-              onAddSpeaker={() => setShowSpeakerModal(true)}
-              onDeleteSpeaker={handleDeleteSpeaker}
               onAddTestimonial={() => setShowTestimonialModal(true)}
               onDeleteTestimonial={handleDeleteTestimonial}
               onEditStats={() => setShowStatsModal(true)}
@@ -705,123 +645,6 @@ export default function AdminEventDetails() {
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                 >
                   Add Photo
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Speaker Modal */}
-      {showSpeakerModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">Add Speaker</h2>
-            </div>
-            <form onSubmit={handleCreateSpeaker} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Name *</label>
-                <input
-                  type="text"
-                  value={speakerForm.name}
-                  onChange={(e) => setSpeakerForm({ ...speakerForm, name: e.target.value })}
-                  required
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Title</label>
-                <input
-                  type="text"
-                  value={speakerForm.title}
-                  onChange={(e) => setSpeakerForm({ ...speakerForm, title: e.target.value })}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  placeholder="e.g., Professor"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Affiliation</label>
-                <input
-                  type="text"
-                  value={speakerForm.affiliation}
-                  onChange={(e) => setSpeakerForm({ ...speakerForm, affiliation: e.target.value })}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  placeholder="e.g., Hanyang University"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Photo URL</label>
-                <input
-                  type="url"
-                  value={speakerForm.photo_url}
-                  onChange={(e) => setSpeakerForm({ ...speakerForm, photo_url: e.target.value })}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Presentation Topic
-                </label>
-                <input
-                  type="text"
-                  value={speakerForm.topic}
-                  onChange={(e) =>
-                    setSpeakerForm({ ...speakerForm, topic: e.target.value })
-                  }
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Presentation Time
-                </label>
-                <input
-                  type="text"
-                  value={speakerForm.presentation_time}
-                  onChange={(e) =>
-                    setSpeakerForm({ ...speakerForm, presentation_time: e.target.value })
-                  }
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                  placeholder="e.g., 10:00 AM - 11:00 AM"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Bio</label>
-                <textarea
-                  value={speakerForm.bio}
-                  onChange={(e) => setSpeakerForm({ ...speakerForm, bio: e.target.value })}
-                  rows={3}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Display Order</label>
-                <input
-                  type="number"
-                  value={speakerForm.display_order}
-                  onChange={(e) =>
-                    setSpeakerForm({ ...speakerForm, display_order: parseInt(e.target.value) })
-                  }
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                />
-              </div>
-              <div className="flex justify-end space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowSpeakerModal(false);
-                    resetSpeakerForm();
-                  }}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                >
-                  Add Speaker
                 </button>
               </div>
             </form>
