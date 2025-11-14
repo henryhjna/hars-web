@@ -29,8 +29,13 @@ export default function SubmitPaper() {
   const isSubmissionOpen = (event: Event | null): boolean => {
     if (!event) return false;
     const now = new Date();
+    const eventDate = new Date(event.event_date);
     const startDate = new Date(event.submission_start_date);
     const endDate = new Date(event.submission_end_date);
+
+    // Block submissions to past events
+    if (now > eventDate) return false;
+
     return now >= startDate && now <= endDate;
   };
 
@@ -38,8 +43,17 @@ export default function SubmitPaper() {
     if (!event) return { message: '', type: 'info' };
 
     const now = new Date();
+    const eventDate = new Date(event.event_date);
     const startDate = new Date(event.submission_start_date);
     const endDate = new Date(event.submission_end_date);
+
+    // Check if event has already occurred
+    if (now > eventDate) {
+      return {
+        message: `This event has already occurred. Submissions are no longer accepted.`,
+        type: 'error'
+      };
+    }
 
     if (now < startDate) {
       return {

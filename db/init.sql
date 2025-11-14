@@ -176,7 +176,7 @@ CREATE TABLE reviews (
     comments_to_committee TEXT,
 
     -- Decision
-    recommendation VARCHAR(20) CHECK (recommendation IN ('accept', 'reject', 'major_revision', 'minor_revision')),
+    recommendation VARCHAR(20) CHECK (recommendation IN ('accept', 'reject')),
     is_completed BOOLEAN DEFAULT FALSE,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

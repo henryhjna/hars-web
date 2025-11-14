@@ -35,6 +35,20 @@ export class SubmissionModel {
     return result.rows;
   }
 
+  // Get submissions assigned to a reviewer
+  static async findByReviewer(reviewerId: string): Promise<Submission[]> {
+    const sql = `
+      SELECT DISTINCT s.*, u.email, u.first_name, u.last_name
+      FROM submissions s
+      JOIN users u ON s.user_id = u.id
+      JOIN review_assignments ra ON s.id = ra.submission_id
+      WHERE ra.reviewer_id = $1
+      ORDER BY s.created_at DESC
+    `;
+    const result = await query(sql, [reviewerId]);
+    return result.rows;
+  }
+
   // Get submission by ID
   static async findById(id: string): Promise<Submission | null> {
     const sql = 'SELECT * FROM submissions WHERE id = $1';
@@ -185,7 +199,7 @@ export class SubmissionModel {
   static async canUserSubmit(userId: string, eventId: string): Promise<boolean> {
     // Check if event accepts submissions
     const eventSql = `
-      SELECT submission_start_date, submission_end_date
+      SELECT submission_start_date, submission_end_date, status, event_date
       FROM events
       WHERE id = $1
     `;
@@ -199,7 +213,14 @@ export class SubmissionModel {
     const now = new Date();
     const startDate = new Date(event.submission_start_date);
     const endDate = new Date(event.submission_end_date);
+    const eventDate = new Date(event.event_date);
 
+    // Block submissions to past events (event has already occurred)
+    if (now > eventDate) {
+      return false;
+    }
+
+    // Check submission period
     if (now < startDate || now > endDate) {
       return false;
     }

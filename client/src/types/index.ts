@@ -193,9 +193,7 @@ export interface SubmissionCreateData {
 // Review Types
 export type ReviewRecommendation =
   | 'accept'
-  | 'reject'
-  | 'major_revision'
-  | 'minor_revision';
+  | 'reject';
 
 export type ReviewAssignmentStatus = 'pending' | 'in_progress' | 'completed';
 

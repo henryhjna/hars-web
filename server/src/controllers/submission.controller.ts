@@ -9,7 +9,21 @@ export class SubmissionController {
   // Get all submissions (admin/reviewer only)
   static async getAllSubmissions(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const submissions = await SubmissionModel.findAll();
+      const isAdmin = req.user!.roles.includes('admin');
+      const isReviewer = req.user!.roles.includes('reviewer');
+
+      if (!isAdmin && !isReviewer) {
+        throw new ApiError('Unauthorized access', 403);
+      }
+
+      // Admins see all submissions
+      if (isAdmin) {
+        const submissions = await SubmissionModel.findAll();
+        return res.json({ success: true, data: submissions });
+      }
+
+      // Reviewers only see submissions they're assigned to
+      const submissions = await SubmissionModel.findByReviewer(req.user!.id);
       res.json({ success: true, data: submissions });
     } catch (error) {
       next(error);
