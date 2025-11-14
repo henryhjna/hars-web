@@ -117,22 +117,16 @@ export class EventController {
   static async deleteEvent(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const hardDelete = req.query.hard === 'true';
-
       const event = await EventModel.findById(id);
       if (!event) {
         throw new ApiError('Event not found', 404);
       }
 
-      if (hardDelete) {
-        await EventModel.delete(id);
-      } else {
-        await EventModel.softDelete(id);
-      }
+      await EventModel.delete(id);
 
       res.json({
         success: true,
-        message: hardDelete ? 'Event deleted permanently' : 'Event status changed to past',
+        message: 'Event deleted successfully',
       });
     } catch (error) {
       next(error);
