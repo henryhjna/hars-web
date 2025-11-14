@@ -148,6 +148,7 @@ resource "aws_instance" "hars_ec2" {
   key_name               = aws_key_pair.hars_key.key_name
   vpc_security_group_ids = [aws_security_group.hars_sg.id]
   subnet_id              = aws_subnet.hars_public_subnet.id
+  iam_instance_profile   = aws_iam_instance_profile.hars_instance_profile.name
 
   root_block_device {
     volume_size           = 30 # Free tier allows up to 30GB
@@ -250,10 +251,108 @@ resource "aws_iam_role_policy" "hars_s3_policy" {
   })
 }
 
+# IAM Policy for ECR access
+resource "aws_iam_role_policy" "hars_ecr_policy" {
+  name = "hars-ecr-policy"
+  role = aws_iam_role.hars_ec2_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "ecr:PutImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 # IAM Instance Profile
 resource "aws_iam_instance_profile" "hars_instance_profile" {
   name = "hars-instance-profile"
   role = aws_iam_role.hars_ec2_role.name
+}
+
+# ECR Repository for Client
+resource "aws_ecr_repository" "hars_client" {
+  name                 = "hars-client"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = false # Disable to save costs
+  }
+
+  tags = {
+    Name = "hars-client"
+  }
+}
+
+# ECR Repository for Server
+resource "aws_ecr_repository" "hars_server" {
+  name                 = "hars-server"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = false # Disable to save costs
+  }
+
+  tags = {
+    Name = "hars-server"
+  }
+}
+
+# ECR Lifecycle Policy for Client (keep last 5 images)
+resource "aws_ecr_lifecycle_policy" "hars_client_lifecycle" {
+  repository = aws_ecr_repository.hars_client.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 5 images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 5
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
+}
+
+# ECR Lifecycle Policy for Server (keep last 5 images)
+resource "aws_ecr_lifecycle_policy" "hars_server_lifecycle" {
+  repository = aws_ecr_repository.hars_server.name
+
+  policy = jsonencode({
+    rules = [
+      {
+        rulePriority = 1
+        description  = "Keep last 5 images"
+        selection = {
+          tagStatus   = "any"
+          countType   = "imageCountMoreThan"
+          countNumber = 5
+        }
+        action = {
+          type = "expire"
+        }
+      }
+    ]
+  })
 }
 
 # Outputs
@@ -270,4 +369,14 @@ output "s3_bucket_name" {
 output "ssh_command" {
   description = "SSH command to connect to EC2"
   value       = "ssh -i hars-key.pem ubuntu@${aws_eip.hars_eip.public_ip}"
+}
+
+output "ecr_client_repository_url" {
+  description = "ECR repository URL for client"
+  value       = aws_ecr_repository.hars_client.repository_url
+}
+
+output "ecr_server_repository_url" {
+  description = "ECR repository URL for server"
+  value       = aws_ecr_repository.hars_server.repository_url
 }

@@ -25,6 +25,7 @@ services:
 
   # Backend Server
   server:
+    image: 025158345480.dkr.ecr.ap-northeast-2.amazonaws.com/hars-server:latest
     build:
       context: ./server
       dockerfile: Dockerfile
@@ -68,6 +69,7 @@ services:
 
   # Frontend Client
   client:
+    image: 025158345480.dkr.ecr.ap-northeast-2.amazonaws.com/hars-client:latest
     build:
       context: ./client
       dockerfile: Dockerfile
