@@ -35,7 +35,7 @@ export const uploadPhotoToS3 = async (
     Key: fileName,
     Body: file.buffer,
     ContentType: file.mimetype,
-    ACL: 'public-read', // Make photos publicly accessible
+    // ACL removed - bucket must have public read policy or use presigned URLs
   });
 
   await s3Client.send(command);
@@ -74,7 +74,7 @@ export const uploadPdfToS3 = async (
     Key: fileName,
     Body: file.buffer,
     ContentType: file.mimetype,
-    ACL: 'public-read',
+    // ACL removed - bucket must have public read policy or use presigned URLs
   });
 
   await s3Client.send(command);
