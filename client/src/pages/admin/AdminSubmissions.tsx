@@ -15,6 +15,12 @@ export default function AdminSubmissions() {
   const [selectedEvent, setSelectedEvent] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalSubmissions, setTotalSubmissions] = useState(0);
+  const limit = 20;
+
   // Reviewer assignment modal state
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
@@ -31,21 +37,25 @@ export default function AdminSubmissions() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [currentPage]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError('');
 
-      // Use admin endpoint to get ALL submissions
+      // Use admin endpoint to get ALL submissions with pagination
       const [submissionsResponse, eventsResponse, usersResponse] = await Promise.all([
-        submissionService.getAllSubmissions(),
+        submissionService.getAllSubmissions(currentPage, limit),
         eventService.getAllEvents(),
         userService.getAllUsers(),
       ]);
 
       setSubmissions(submissionsResponse.data || []);
+      if (submissionsResponse.pagination) {
+        setTotalPages(submissionsResponse.pagination.totalPages);
+        setTotalSubmissions(submissionsResponse.pagination.total);
+      }
       setEvents(eventsResponse.data || []);
 
       // Filter users with reviewer role
@@ -328,12 +338,32 @@ export default function AdminSubmissions() {
         </div>
       )}
 
-      {/* Summary */}
-      <div className="mt-6 bg-white rounded-lg shadow p-4">
-        <p className="text-sm text-gray-600">
-          Showing {filteredSubmissions.length} of {submissions.length} submissions
-        </p>
-      </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 bg-white rounded-lg shadow p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              Page {currentPage} of {totalPages} ({totalSubmissions} total submissions)
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* View Reviews Modal */}
       {reviewsModalOpen && selectedSubmission && (

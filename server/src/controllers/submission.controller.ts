@@ -6,7 +6,7 @@ import { ApiError } from '../types';
 import { uploadPdfToS3, deletePhotoFromS3 } from '../utils/s3Upload';
 
 export class SubmissionController {
-  // Get all submissions (admin/reviewer only)
+  // Get all submissions with pagination (admin/reviewer only)
   static async getAllSubmissions(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const isAdmin = req.user!.roles.includes('admin');
@@ -16,13 +16,25 @@ export class SubmissionController {
         throw new ApiError('Unauthorized access', 403);
       }
 
-      // Admins see all submissions
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+
+      // Admins see all submissions with pagination
       if (isAdmin) {
-        const submissions = await SubmissionModel.findAll();
-        return res.json({ success: true, data: submissions });
+        const { submissions, total } = await SubmissionModel.findAll(page, limit);
+        return res.json({
+          success: true,
+          data: submissions,
+          pagination: {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit)
+          }
+        });
       }
 
-      // Reviewers only see submissions they're assigned to
+      // Reviewers only see submissions they're assigned to (no pagination for now)
       const submissions = await SubmissionModel.findByReviewer(req.user!.id);
       res.json({ success: true, data: submissions });
     } catch (error) {

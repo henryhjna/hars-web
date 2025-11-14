@@ -2,11 +2,26 @@ import { query } from '../config/database';
 import { Submission, SubmissionStatus } from '../types';
 
 export class SubmissionModel {
-  // Get all submissions (admin/reviewer)
-  static async findAll(): Promise<Submission[]> {
-    const sql = 'SELECT * FROM submissions ORDER BY created_at DESC';
-    const result = await query(sql);
-    return result.rows;
+  // Get all submissions with pagination (admin/reviewer)
+  static async findAll(page: number = 1, limit: number = 20): Promise<{ submissions: Submission[]; total: number }> {
+    const offset = (page - 1) * limit;
+
+    const countSql = 'SELECT COUNT(*) as total FROM submissions';
+    const dataSql = `
+      SELECT * FROM submissions
+      ORDER BY created_at DESC
+      LIMIT $1 OFFSET $2
+    `;
+
+    const [countResult, dataResult] = await Promise.all([
+      query(countSql),
+      query(dataSql, [limit, offset])
+    ]);
+
+    return {
+      submissions: dataResult.rows,
+      total: parseInt(countResult.rows[0].total, 10)
+    };
   }
 
   // Get submissions by event

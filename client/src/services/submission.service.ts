@@ -64,9 +64,9 @@ class SubmissionService {
     return response.data;
   }
 
-  // Admin: Get all submissions
-  async getAllSubmissions(): Promise<ApiResponse<Submission[]>> {
-    const response = await api.get<ApiResponse<Submission[]>>('/submissions');
+  // Admin: Get all submissions with pagination
+  async getAllSubmissions(page: number = 1, limit: number = 20): Promise<any> {
+    const response = await api.get<any>(`/submissions?page=${page}&limit=${limit}`);
     return response.data;
   }
 
