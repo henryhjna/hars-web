@@ -87,7 +87,6 @@ CREATE TABLE events (
     show_photos BOOLEAN DEFAULT TRUE,
     show_testimonials BOOLEAN DEFAULT FALSE,
 
-    status VARCHAR(20) DEFAULT 'upcoming' CHECK (status IN ('upcoming', 'ongoing', 'past')),
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -248,7 +247,6 @@ CREATE TABLE activity_logs (
 -- Indexes for performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_roles ON users USING GIN(roles);
-CREATE INDEX idx_events_status ON events(status);
 CREATE INDEX idx_events_date ON events(event_date DESC);
 CREATE INDEX idx_submissions_user ON submissions(user_id);
 CREATE INDEX idx_submissions_event ON submissions(event_id);
@@ -311,7 +309,6 @@ INSERT INTO events (
     review_deadline,
     notification_date,
     theme_color,
-    status,
     created_by
 ) VALUES (
     '2025 Hanyang Accounting Research Symposium',
@@ -324,7 +321,6 @@ INSERT INTO events (
     '2025-05-15 23:59:59',
     '2025-05-31 23:59:59',
     '#1a73e8',
-    'upcoming',
     (SELECT id FROM users WHERE email = 'admin@hanyanghars.com')
 );
 

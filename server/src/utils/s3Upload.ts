@@ -84,19 +84,15 @@ export const uploadPdfToS3 = async (
 };
 
 export const deletePhotoFromS3 = async (photoUrl: string): Promise<void> => {
-  try {
-    // Extract key from URL
-    const url = new URL(photoUrl);
-    const key = url.pathname.substring(1); // Remove leading slash
+  // Extract key from URL
+  const url = new URL(photoUrl);
+  const key = url.pathname.substring(1); // Remove leading slash
 
-    const command = new DeleteObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: key,
-    });
+  const command = new DeleteObjectCommand({
+    Bucket: BUCKET_NAME,
+    Key: key,
+  });
 
-    await s3Client.send(command);
-  } catch (error) {
-    console.error('Error deleting photo from S3:', error);
-    // Don't throw error, just log it
-  }
+  await s3Client.send(command);
+  // Let errors propagate to the caller
 };

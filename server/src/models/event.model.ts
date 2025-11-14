@@ -2,9 +2,18 @@ import { query } from '../config/database';
 import { Event, EventSession, KeynoteSpeaker } from '../types';
 
 export class EventModel {
-  // Get all events
+  // Get all events with computed status
   static async findAll(): Promise<Event[]> {
-    const sql = 'SELECT * FROM events ORDER BY event_date DESC';
+    const sql = `
+      SELECT *,
+        CASE
+          WHEN event_date < CURRENT_DATE THEN 'past'
+          WHEN event_date = CURRENT_DATE THEN 'ongoing'
+          ELSE 'upcoming'
+        END as status
+      FROM events
+      ORDER BY event_date DESC
+    `;
     const result = await query(sql);
     return result.rows;
   }
@@ -12,8 +21,14 @@ export class EventModel {
   // Get upcoming events (future or ongoing events)
   static async findUpcoming(): Promise<Event[]> {
     const sql = `
-      SELECT * FROM events
-      WHERE status IN ('upcoming', 'ongoing')
+      SELECT *,
+        CASE
+          WHEN event_date < CURRENT_DATE THEN 'past'
+          WHEN event_date = CURRENT_DATE THEN 'ongoing'
+          ELSE 'upcoming'
+        END as status
+      FROM events
+      WHERE event_date >= CURRENT_DATE
       ORDER BY event_date ASC
     `;
     const result = await query(sql);
@@ -23,22 +38,33 @@ export class EventModel {
   // Get past events
   static async findPast(): Promise<Event[]> {
     const sql = `
-      SELECT * FROM events
-      WHERE status = 'past'
+      SELECT *,
+        'past' as status
+      FROM events
+      WHERE event_date < CURRENT_DATE
       ORDER BY event_date DESC
     `;
     const result = await query(sql);
     return result.rows;
   }
 
-  // Get event by ID
+  // Get event by ID with computed status
   static async findById(id: string): Promise<Event | null> {
-    const sql = 'SELECT * FROM events WHERE id = $1';
+    const sql = `
+      SELECT *,
+        CASE
+          WHEN event_date < CURRENT_DATE THEN 'past'
+          WHEN event_date = CURRENT_DATE THEN 'ongoing'
+          ELSE 'upcoming'
+        END as status
+      FROM events
+      WHERE id = $1
+    `;
     const result = await query(sql, [id]);
     return result.rows[0] || null;
   }
 
-  // Create new event
+  // Create new event (status is computed, not stored)
   static async create(eventData: Partial<Event>, createdBy: string): Promise<Event> {
     const {
       title,
@@ -66,7 +92,6 @@ export class EventModel {
       show_keynote,
       show_photos,
       show_testimonials,
-      status,
     } = eventData;
 
     const sql = `
@@ -77,9 +102,14 @@ export class EventModel {
         theme_color, banner_image_url, highlight_stats, event_content,
         show_overview, show_practitioner_sessions, show_submission_guidelines,
         show_awards, show_committees, show_venue, show_program, show_keynote, show_photos, show_testimonials,
-        status, created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
-      RETURNING *
+        created_by
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+      RETURNING *,
+        CASE
+          WHEN event_date < CURRENT_DATE THEN 'past'
+          WHEN event_date = CURRENT_DATE THEN 'ongoing'
+          ELSE 'upcoming'
+        END as status
     `;
 
     const result = await query(sql, [
@@ -108,14 +138,13 @@ export class EventModel {
       show_keynote !== undefined ? show_keynote : true,
       show_photos !== undefined ? show_photos : true,
       show_testimonials !== undefined ? show_testimonials : false,
-      status || 'upcoming',
       createdBy,
     ]);
 
     return result.rows[0];
   }
 
-  // Update event
+  // Update event (status is computed, not updated)
   static async update(id: string, eventData: Partial<Event>): Promise<Event | null> {
     const {
       title,
@@ -143,7 +172,6 @@ export class EventModel {
       show_keynote,
       show_photos,
       show_testimonials,
-      status,
     } = eventData;
 
     const sql = `
@@ -173,10 +201,14 @@ export class EventModel {
         show_keynote = COALESCE($23, show_keynote),
         show_photos = COALESCE($24, show_photos),
         show_testimonials = COALESCE($25, show_testimonials),
-        status = COALESCE($26, status),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $27
-      RETURNING *
+      WHERE id = $26
+      RETURNING *,
+        CASE
+          WHEN event_date < CURRENT_DATE THEN 'past'
+          WHEN event_date = CURRENT_DATE THEN 'ongoing'
+          ELSE 'upcoming'
+        END as status
     `;
 
     const result = await query(sql, [
@@ -205,21 +237,13 @@ export class EventModel {
       show_keynote,
       show_photos,
       show_testimonials,
-      status,
       id,
     ]);
 
     return result.rows[0] || null;
   }
 
-  // Delete event (change status to 'past')
-  static async softDelete(id: string): Promise<boolean> {
-    const sql = 'UPDATE events SET status = \'past\', updated_at = CURRENT_TIMESTAMP WHERE id = $1';
-    const result = await query(sql, [id]);
-    return result.rowCount > 0;
-  }
-
-  // Hard delete event
+  // Delete event
   static async delete(id: string): Promise<boolean> {
     const sql = 'DELETE FROM events WHERE id = $1';
     const result = await query(sql, [id]);
