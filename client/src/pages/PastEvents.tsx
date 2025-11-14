@@ -4,7 +4,7 @@ import eventService from '../services/event.service';
 import pastEventsService from '../services/pastEvents.service';
 import type { Event, EventPhoto, KeynoteSpeaker, Testimonial } from '../types';
 
-type ViewTab = 'overview' | 'program' | 'speakers' | 'photos' | 'testimonials' | 'best-papers';
+type ViewTab = 'overview' | 'program' | 'photos' | 'highlights';
 
 export default function PastEvents() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -138,35 +138,15 @@ export default function PastEvents() {
 
         {selectedEvent && (
           <>
-            {/* Event Title */}
-            <div className="bg-white shadow rounded-lg p-6 mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">{selectedEvent.title}</h2>
-              <p className="mt-2 text-gray-600">{selectedEvent.description}</p>
-              <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="font-semibold">Date:</span>{' '}
-                  {new Date(selectedEvent.event_date).toLocaleDateString()}
-                </div>
-                <div>
-                  <span className="font-semibold">Location:</span> {selectedEvent.location}
-                </div>
-                {selectedEvent.venue_details && (
-                  <div>
-                    <span className="font-semibold">Venue:</span> {selectedEvent.venue_details}
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Content Tabs */}
             <div className="bg-white shadow rounded-lg">
               <div className="border-b border-gray-200">
-                <nav className="-mb-px flex">
+                <nav className="-mb-px flex flex-wrap">
                   {[
                     { key: 'overview' as ViewTab, label: 'Overview', show: true },
-                    { key: 'speakers' as ViewTab, label: `Speakers (${speakers.length})`, show: selectedEvent.show_keynote },
-                    { key: 'photos' as ViewTab, label: `Photos (${photos.length})`, show: selectedEvent.show_photos },
-                    { key: 'testimonials' as ViewTab, label: `Testimonials (${testimonials.length})`, show: selectedEvent.show_testimonials },
+                    { key: 'program' as ViewTab, label: `Program (${speakers.length})`, show: selectedEvent.show_keynote && speakers.length > 0 },
+                    { key: 'photos' as ViewTab, label: `Photos (${photos.length})`, show: selectedEvent.show_photos && photos.length > 0 },
+                    { key: 'highlights' as ViewTab, label: 'Highlights', show: (highlightPhotos.length > 0 || featuredTestimonials.length > 0 || (selectedEvent.highlight_stats && Object.keys(selectedEvent.highlight_stats).length > 0)) },
                   ].filter(tab => tab.show).map((tab) => (
                     <button
                       key={tab.key}
@@ -188,54 +168,97 @@ export default function PastEvents() {
               <div className="p-6">
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
-                  <div className="space-y-6">
-                    {/* Highlight Stats */}
-                    {selectedEvent.highlight_stats && Object.keys(selectedEvent.highlight_stats).length > 0 && (
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        {Object.entries(selectedEvent.highlight_stats).map(([key, value]) => (
-                          <div key={key} className="bg-gray-50 p-4 rounded-lg">
-                            <div className="text-2xl font-bold text-gray-900">{String(value)}</div>
-                            <div className="text-sm text-gray-600 capitalize">{key.replace(/_/g, ' ')}</div>
-                          </div>
-                        ))}
+                  <div className="space-y-8">
+                    {/* Event Title & Date */}
+                    <div>
+                      <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedEvent.title}</h2>
+                      <p className="text-lg text-gray-600">
+                        {new Date(selectedEvent.event_date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+
+                    {/* Venue Information */}
+                    {(selectedEvent.location || selectedEvent.event_content?.venue_info) && (
+                      <div className="bg-gray-50 p-6 rounded-lg">
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Venue Information</h3>
+                        {selectedEvent.event_content?.venue_info?.name && (
+                          <p className="text-lg font-semibold text-gray-900 mb-2">
+                            {selectedEvent.event_content.venue_info.name}
+                          </p>
+                        )}
+                        {selectedEvent.location && (
+                          <p className="text-gray-700 mb-2">{selectedEvent.location}</p>
+                        )}
+                        {selectedEvent.event_content?.venue_info?.address && (
+                          <p className="text-gray-600 whitespace-pre-line">
+                            {selectedEvent.event_content.venue_info.address}
+                          </p>
+                        )}
                       </div>
                     )}
 
-                    {/* Highlight Photos */}
-                    {highlightPhotos.length > 0 && (
+                    {/* Overview / Description */}
+                    {(selectedEvent.description || selectedEvent.event_content?.overview) && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Highlights</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {highlightPhotos.slice(0, 6).map((photo) => (
-                            <div key={photo.id} className="relative aspect-video rounded-lg overflow-hidden">
-                              <img
-                                src={photo.photo_url}
-                                alt={photo.caption || 'Event photo'}
-                                className="w-full h-full object-cover"
-                              />
-                              {photo.caption && (
-                                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white p-2 text-sm">
-                                  {photo.caption}
-                                </div>
-                              )}
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Overview</h3>
+                        <div className="prose max-w-none text-gray-700">
+                          {selectedEvent.event_content?.overview ? (
+                            selectedEvent.event_content.overview.split('\n').map((paragraph, idx) =>
+                              paragraph.trim() && <p key={idx} className="mb-4">{paragraph.trim()}</p>
+                            )
+                          ) : (
+                            <p>{selectedEvent.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Academic Committee */}
+                    {selectedEvent.show_committees && selectedEvent.event_content?.academic_committee && selectedEvent.event_content.academic_committee.length > 0 && (
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Academic Committee</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {selectedEvent.event_content.academic_committee.map((member, idx) => (
+                            <div key={idx} className="bg-gray-50 p-4 rounded-lg">
+                              <p className="font-semibold text-gray-900">{member.name}</p>
+                              <p className="text-sm text-gray-600">{member.affiliation}</p>
+                              {member.area && <p className="text-xs text-primary-600 mt-1">({member.area})</p>}
                             </div>
                           ))}
                         </div>
                       </div>
                     )}
 
-                    {/* Featured Testimonials */}
-                    {featuredTestimonials.length > 0 && (
+                    {/* Organizing Committee */}
+                    {selectedEvent.show_committees && selectedEvent.event_content?.organizing_committee && selectedEvent.event_content.organizing_committee.length > 0 && (
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">What Participants Said</h3>
-                        <div className="space-y-4">
-                          {featuredTestimonials.map((testimonial) => (
-                            <div key={testimonial.id} className="bg-gray-50 p-4 rounded-lg">
-                              <p className="text-gray-700 italic">"{testimonial.testimonial_text}"</p>
-                              <p className="mt-2 text-sm text-gray-600">
-                                — {testimonial.author_name}
-                                {testimonial.author_affiliation && `, ${testimonial.author_affiliation}`}
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Organizing Committee</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {selectedEvent.event_content.organizing_committee.map((member, idx) => (
+                            <div
+                              key={idx}
+                              className={`p-4 rounded-lg ${
+                                member.role === 'Chair'
+                                  ? 'bg-gradient-to-br from-primary-600 to-primary-700 text-white'
+                                  : 'bg-gray-50'
+                              }`}
+                            >
+                              {member.role === 'Chair' && (
+                                <span className="text-xs font-semibold mb-1 block text-primary-100">CHAIR</span>
+                              )}
+                              <p className={`font-semibold ${member.role === 'Chair' ? 'text-white' : 'text-gray-900'}`}>
+                                {member.name}
                               </p>
+                              <p className={`text-sm ${member.role === 'Chair' ? 'text-white opacity-90' : 'text-gray-600'}`}>
+                                {member.affiliation}
+                              </p>
+                              {member.role && member.role !== 'Chair' && (
+                                <p className="text-xs text-gray-500 mt-1">{member.role}</p>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -244,9 +267,10 @@ export default function PastEvents() {
                   </div>
                 )}
 
-                {/* Speakers Tab */}
-                {activeTab === 'speakers' && (
+                {/* Program Tab - Keynote Speakers */}
+                {activeTab === 'program' && (
                   <div className="space-y-6">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6">Keynote Speakers</h3>
                     {speakers.length === 0 ? (
                       <p className="text-gray-600">No speaker information available.</p>
                     ) : (
@@ -316,31 +340,68 @@ export default function PastEvents() {
                   </div>
                 )}
 
-                {/* Testimonials Tab */}
-                {activeTab === 'testimonials' && (
-                  <div className="space-y-4">
-                    {testimonials.length === 0 ? (
-                      <p className="text-gray-600">No testimonials available.</p>
-                    ) : (
-                      testimonials.map((testimonial) => (
-                        <div
-                          key={testimonial.id}
-                          className={`p-4 rounded-lg ${
-                            testimonial.is_featured ? 'bg-primary-50 border border-primary-200' : 'bg-gray-50'
-                          }`}
-                        >
-                          {testimonial.is_featured && (
-                            <span className="inline-block bg-gradient-to-r from-primary-500 to-accent-500 text-white px-2 py-1 rounded text-xs font-semibold mb-2">
-                              Featured
-                            </span>
-                          )}
-                          <p className="text-gray-700 italic">"{testimonial.testimonial_text}"</p>
-                          <p className="mt-2 text-sm text-gray-600">
-                            — {testimonial.author_name}
-                            {testimonial.author_affiliation && `, ${testimonial.author_affiliation}`}
-                          </p>
+                {/* Highlights Tab */}
+                {activeTab === 'highlights' && (
+                  <div className="space-y-8">
+                    {/* Highlight Stats */}
+                    {selectedEvent.highlight_stats && Object.keys(selectedEvent.highlight_stats).length > 0 && (
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Event Statistics</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {Object.entries(selectedEvent.highlight_stats).map(([key, value]) => (
+                            <div key={key} className="bg-gradient-to-br from-primary-50 to-accent-50 p-6 rounded-lg text-center">
+                              <div className="text-3xl font-bold text-primary-600">{String(value)}</div>
+                              <div className="text-sm text-gray-700 capitalize mt-2">{key.replace(/_/g, ' ')}</div>
+                            </div>
+                          ))}
                         </div>
-                      ))
+                      </div>
+                    )}
+
+                    {/* Highlight Photos */}
+                    {highlightPhotos.length > 0 && (
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Event Highlights</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {highlightPhotos.map((photo) => (
+                            <div key={photo.id} className="relative aspect-video rounded-lg overflow-hidden group">
+                              <img
+                                src={photo.photo_url}
+                                alt={photo.caption || 'Event highlight'}
+                                className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                              />
+                              {photo.caption && (
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent text-white p-3">
+                                  <p className="text-sm font-medium">{photo.caption}</p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Featured Testimonials */}
+                    {featuredTestimonials.length > 0 && (
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-6">What Participants Said</h3>
+                        <div className="space-y-4">
+                          {featuredTestimonials.map((testimonial) => (
+                            <div key={testimonial.id} className="bg-gradient-to-br from-primary-50 to-accent-50 p-6 rounded-lg border-l-4 border-primary-500">
+                              <p className="text-gray-800 italic text-lg leading-relaxed">"{testimonial.testimonial_text}"</p>
+                              <p className="mt-4 text-sm font-semibold text-gray-700">
+                                — {testimonial.author_name}
+                                {testimonial.author_affiliation && <span className="font-normal">, {testimonial.author_affiliation}</span>}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Empty state */}
+                    {!selectedEvent.highlight_stats && highlightPhotos.length === 0 && featuredTestimonials.length === 0 && (
+                      <p className="text-gray-600 text-center py-8">No highlights available.</p>
                     )}
                   </div>
                 )}

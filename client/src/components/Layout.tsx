@@ -32,7 +32,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   HARS
                 </span>
               </Link>
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
+              <div className="hidden lg:ml-8 lg:flex lg:space-x-8">
                 <Link
                   to="/"
                   className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900 hover:text-primary-600"
@@ -61,7 +61,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
             <div className="flex items-center">
               {/* Desktop Auth Buttons */}
-              <div className="hidden sm:flex sm:items-center sm:space-x-4">
+              <div className="hidden lg:flex lg:items-center lg:space-x-4">
                 {isAuthenticated ? (
                   <>
                     {user?.roles.includes('reviewer') && (
@@ -115,7 +115,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="sm:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+                className="lg:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
               >
                 <span className="sr-only">Open main menu</span>
                 {mobileMenuOpen ? (
@@ -130,7 +130,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="sm:hidden">
+          <div className="lg:hidden">
             <div className="pt-2 pb-3 space-y-1">
               <Link
                 to="/"
