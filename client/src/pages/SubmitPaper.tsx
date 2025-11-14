@@ -11,6 +11,7 @@ export default function SubmitPaper() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   const [formData, setFormData] = useState({
     event_id: '',
@@ -23,6 +24,43 @@ export default function SubmitPaper() {
 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfError, setPdfError] = useState('');
+
+  // Check if submission is open for selected event
+  const isSubmissionOpen = (event: Event | null): boolean => {
+    if (!event) return false;
+    const now = new Date();
+    const startDate = new Date(event.submission_start_date);
+    const endDate = new Date(event.submission_end_date);
+    return now >= startDate && now <= endDate;
+  };
+
+  const getSubmissionStatus = (event: Event | null): { message: string; type: 'info' | 'warning' | 'error' } => {
+    if (!event) return { message: '', type: 'info' };
+
+    const now = new Date();
+    const startDate = new Date(event.submission_start_date);
+    const endDate = new Date(event.submission_end_date);
+
+    if (now < startDate) {
+      return {
+        message: `Submission will open on ${startDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+        type: 'warning'
+      };
+    }
+
+    if (now > endDate) {
+      return {
+        message: `Submission deadline has passed (${endDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })})`,
+        type: 'error'
+      };
+    }
+
+    const daysLeft = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return {
+      message: `Submission is open! Deadline: ${endDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} (${daysLeft} days left)`,
+      type: 'info'
+    };
+  };
 
   useEffect(() => {
     loadUpcomingEvents();
@@ -47,6 +85,13 @@ export default function SubmitPaper() {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEventChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const eventId = e.target.value;
+    setFormData((prev) => ({ ...prev, event_id: eventId }));
+    const selected = events.find((ev) => ev.id === eventId) || null;
+    setSelectedEvent(selected);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,7 +228,7 @@ export default function SubmitPaper() {
                 id="event_id"
                 name="event_id"
                 value={formData.event_id}
-                onChange={handleInputChange}
+                onChange={handleEventChange}
                 required
                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
@@ -194,6 +239,19 @@ export default function SubmitPaper() {
                   </option>
                 ))}
               </select>
+              {selectedEvent && (
+                <div
+                  className={`mt-2 p-3 rounded-md ${
+                    getSubmissionStatus(selectedEvent).type === 'error'
+                      ? 'bg-red-50 text-red-700 border border-red-200'
+                      : getSubmissionStatus(selectedEvent).type === 'warning'
+                      ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                      : 'bg-blue-50 text-blue-700 border border-blue-200'
+                  }`}
+                >
+                  {getSubmissionStatus(selectedEvent).message}
+                </div>
+              )}
             </div>
 
             {/* Title */}
@@ -323,7 +381,7 @@ export default function SubmitPaper() {
               </button>
               <button
                 type="submit"
-                disabled={submitting}
+                disabled={submitting || !isSubmissionOpen(selectedEvent)}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? 'Submitting...' : 'Submit Paper'}
