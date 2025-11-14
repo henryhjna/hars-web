@@ -97,88 +97,66 @@ export default function AdminUsers() {
         </div>
       )}
 
-      {/* Users List */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Affiliation
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Roles
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Joined
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {user.first_name} {user.last_name}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{user.email}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-900">{user.affiliation || '-'}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex flex-wrap gap-1">
-                    {user.roles.map((role) => (
-                      <span
-                        key={role}
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(
-                          role
-                        )}`}
-                      >
-                        {role}
-                      </span>
-                    ))}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      user.is_email_verified
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}
-                  >
-                    {user.is_email_verified ? 'Verified' : 'Pending'}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      {/* Users List - Card View */}
+      <div className="space-y-4">
+        {users.map((user) => (
+          <div key={user.id} className="bg-white rounded-lg shadow p-4 md:p-6">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-4">
+              <div className="flex-1 mb-3 md:mb-0">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900">
+                  {user.first_name} {user.last_name}
+                </h3>
+                <p className="text-sm text-gray-500 break-words">{user.email}</p>
+              </div>
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-medium self-start ${
+                  user.is_email_verified
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-yellow-100 text-yellow-800'
+                }`}
+              >
+                {user.is_email_verified ? 'Verified' : 'Pending'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+              <div className="flex justify-between md:justify-start items-start">
+                <span className="text-sm text-gray-600 md:mr-2">Affiliation:</span>
+                <span className="text-sm text-gray-900 text-right md:text-left flex-1 break-words">
+                  {user.affiliation || '-'}
+                </span>
+              </div>
+              <div className="flex justify-between md:justify-start items-center">
+                <span className="text-sm text-gray-600 md:mr-2">Roles:</span>
+                <div className="flex flex-wrap gap-1 justify-end md:justify-start">
+                  {user.roles.map((role) => (
+                    <span
+                      key={role}
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(
+                        role
+                      )}`}
+                    >
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-between md:justify-start items-center">
+                <span className="text-sm text-gray-600 md:mr-2">Joined:</span>
+                <span className="text-sm text-gray-900">
                   {new Date(user.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleEditRoles(user)}
-                    className="text-blue-600 hover:text-blue-900"
-                  >
-                    Edit Roles
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </span>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleEditRoles(user)}
+              className="w-full md:w-auto px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded hover:bg-blue-100"
+            >
+              Edit Roles
+            </button>
+          </div>
+        ))}
       </div>
 
       {/* Summary */}
