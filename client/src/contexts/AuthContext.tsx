@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
+  updateUser: (user: User) => void;
   isAuthenticated: boolean;
   hasRole: (role: string) => boolean;
 }
@@ -48,6 +49,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+    // Update localStorage
+    const token = localStorage.getItem('token');
+    if (token) {
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
   const hasRole = (role: string): boolean => {
     return user?.roles.includes(role as any) || false;
   };
@@ -58,6 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     login,
     register,
     logout,
+    updateUser,
     isAuthenticated: !!user,
     hasRole,
   };

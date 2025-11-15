@@ -9,7 +9,11 @@ export interface User {
   password_hash: string;
   first_name: string;
   last_name: string;
+  preferred_name?: string;
+  prefix?: string;
+  academic_title?: string;
   affiliation?: string;
+  photo_url?: string;
   roles: UserRole[];
   is_email_verified: boolean;
   email_verification_token?: string;
@@ -26,7 +30,11 @@ export interface UserResponse {
   email: string;
   first_name: string;
   last_name: string;
+  preferred_name?: string;
+  prefix?: string;
+  academic_title?: string;
   affiliation?: string;
+  photo_url?: string;
   roles: UserRole[];
   is_email_verified: boolean;
   created_at: Date;
@@ -101,6 +109,9 @@ export interface RegisterInput {
   password: string;
   first_name: string;
   last_name: string;
+  preferred_name?: string;
+  prefix?: string;
+  academic_title?: string;
   affiliation?: string;
 }
 

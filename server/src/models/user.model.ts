@@ -7,19 +7,25 @@ export class UserModel {
     password_hash: string;
     first_name: string;
     last_name: string;
+    preferred_name?: string;
+    prefix?: string;
+    academic_title?: string;
     affiliation?: string;
     email_verification_token: string;
   }): Promise<User> {
     const result = await query(
-      `INSERT INTO users (email, password_hash, first_name, last_name, affiliation, email_verification_token)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO users (email, password_hash, first_name, last_name, preferred_name, prefix, academic_title, affiliation, email_verification_token)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
       [
         data.email,
         data.password_hash,
         data.first_name,
         data.last_name,
-        data.affiliation,
+        data.preferred_name || null,
+        data.prefix || null,
+        data.academic_title || null,
+        data.affiliation || null,
         data.email_verification_token,
       ]
     );
@@ -99,7 +105,11 @@ export class UserModel {
     data: {
       first_name?: string;
       last_name?: string;
+      preferred_name?: string;
+      prefix?: string;
+      academic_title?: string;
       affiliation?: string;
+      photo_url?: string;
     }
   ): Promise<User> {
     const fields = [];
@@ -118,9 +128,33 @@ export class UserModel {
       paramCount++;
     }
 
+    if (data.preferred_name !== undefined) {
+      fields.push(`preferred_name = $${paramCount}`);
+      values.push(data.preferred_name || null);
+      paramCount++;
+    }
+
+    if (data.prefix !== undefined) {
+      fields.push(`prefix = $${paramCount}`);
+      values.push(data.prefix || null);
+      paramCount++;
+    }
+
+    if (data.academic_title !== undefined) {
+      fields.push(`academic_title = $${paramCount}`);
+      values.push(data.academic_title || null);
+      paramCount++;
+    }
+
     if (data.affiliation !== undefined) {
       fields.push(`affiliation = $${paramCount}`);
-      values.push(data.affiliation);
+      values.push(data.affiliation || null);
+      paramCount++;
+    }
+
+    if (data.photo_url !== undefined) {
+      fields.push(`photo_url = $${paramCount}`);
+      values.push(data.photo_url || null);
       paramCount++;
     }
 
@@ -188,7 +222,7 @@ export class UserModel {
     );
 
     const usersResult = await query(
-      `SELECT id, email, first_name, last_name, affiliation, roles, is_email_verified, created_at
+      `SELECT id, email, first_name, last_name, preferred_name, prefix, academic_title, affiliation, photo_url, roles, is_email_verified, created_at
        FROM users ${whereClause}
        ORDER BY created_at DESC
        LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
@@ -207,7 +241,11 @@ export class UserModel {
       email: user.email,
       first_name: user.first_name,
       last_name: user.last_name,
+      preferred_name: user.preferred_name,
+      prefix: user.prefix,
+      academic_title: user.academic_title,
       affiliation: user.affiliation,
+      photo_url: user.photo_url,
       roles: user.roles,
       is_email_verified: user.is_email_verified,
       created_at: user.created_at,

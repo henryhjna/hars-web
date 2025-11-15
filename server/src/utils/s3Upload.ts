@@ -83,6 +83,12 @@ export const uploadPdfToS3 = async (
   return `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
 };
 
+export const uploadProfilePhotoToS3 = async (
+  file: Express.Multer.File
+): Promise<string> => {
+  return uploadPhotoToS3(file, 'profile-photos', MAX_PHOTO_SIZE);
+};
+
 export const deletePhotoFromS3 = async (photoUrl: string): Promise<void> => {
   // Extract key from URL
   const url = new URL(photoUrl);

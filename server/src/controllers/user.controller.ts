@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest, ApiError } from '../types';
 import { UserModel } from '../models/user.model';
 import { hashPassword, validatePassword } from '../utils/password';
+import { uploadProfilePhotoToS3, deletePhotoFromS3 } from '../utils/s3Upload';
 
 export class UserController {
   // GET /api/users/me - Get current user profile
@@ -43,12 +44,24 @@ export class UserController {
         throw new ApiError('Authentication required', 401);
       }
 
-      const { first_name, last_name, affiliation } = req.body;
+      const {
+        first_name,
+        last_name,
+        preferred_name,
+        prefix,
+        academic_title,
+        affiliation,
+        photo_url
+      } = req.body;
 
       const updatedUser = await UserModel.updateProfile(req.user.id, {
         first_name,
         last_name,
+        preferred_name,
+        prefix,
+        academic_title,
         affiliation,
+        photo_url,
       });
 
       res.json({
@@ -67,6 +80,116 @@ export class UserController {
         res.status(500).json({
           success: false,
           error: 'Failed to update profile',
+        });
+      }
+    }
+  }
+
+  // POST /api/users/me/photo - Upload profile photo
+  static async uploadPhoto(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new ApiError('Authentication required', 401);
+      }
+
+      if (!req.file) {
+        throw new ApiError('No file uploaded', 400);
+      }
+
+      // Get current user
+      const user = await UserModel.findById(req.user.id);
+      if (!user) {
+        throw new ApiError('User not found', 404);
+      }
+
+      // Delete old photo from S3 if exists
+      if (user.photo_url) {
+        try {
+          await deletePhotoFromS3(user.photo_url);
+        } catch (error) {
+          console.error('Failed to delete old photo from S3:', error);
+          // Continue even if deletion fails
+        }
+      }
+
+      // Upload new photo to S3
+      const photoUrl = await uploadProfilePhotoToS3(req.file);
+
+      // Update user photo URL in database
+      const updatedUser = await UserModel.updateProfile(req.user.id, {
+        photo_url: photoUrl,
+      });
+
+      res.json({
+        success: true,
+        message: 'Profile photo uploaded successfully',
+        data: {
+          photo_url: photoUrl,
+          user: UserModel.sanitize(updatedUser),
+        },
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        res.status(error.statusCode).json({
+          success: false,
+          error: error.message,
+        });
+      } else {
+        console.error('Upload photo error:', error);
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to upload photo',
+        });
+      }
+    }
+  }
+
+  // DELETE /api/users/me/photo - Delete profile photo
+  static async deletePhoto(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new ApiError('Authentication required', 401);
+      }
+
+      // Get current user
+      const user = await UserModel.findById(req.user.id);
+      if (!user) {
+        throw new ApiError('User not found', 404);
+      }
+
+      if (!user.photo_url) {
+        throw new ApiError('No profile photo to delete', 400);
+      }
+
+      // Delete photo from S3
+      try {
+        await deletePhotoFromS3(user.photo_url);
+      } catch (error) {
+        console.error('Failed to delete photo from S3:', error);
+        // Continue to update database even if S3 deletion fails
+      }
+
+      // Remove photo URL from database
+      const updatedUser = await UserModel.updateProfile(req.user.id, {
+        photo_url: null,
+      });
+
+      res.json({
+        success: true,
+        message: 'Profile photo deleted successfully',
+        data: UserModel.sanitize(updatedUser),
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        res.status(error.statusCode).json({
+          success: false,
+          error: error.message,
+        });
+      } else {
+        console.error('Delete photo error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to delete photo',
         });
       }
     }

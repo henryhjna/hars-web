@@ -5,7 +5,11 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
+  preferred_name?: string;
+  prefix?: string;
+  academic_title?: string;
   affiliation?: string;
+  photo_url?: string;
   roles: UserRole[];
   is_email_verified: boolean;
   created_at: string;
@@ -22,6 +26,9 @@ export interface RegisterData {
   password: string;
   first_name: string;
   last_name: string;
+  preferred_name?: string;
+  prefix?: string;
+  academic_title?: string;
   affiliation?: string;
 }
 

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ChevronDown, User as UserIcon, FileText, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Badge from './ui/Badge';
 
@@ -8,11 +8,33 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const handleLogout = () => {
     logout();
     navigate('/');
     setMobileMenuOpen(false);
+    setUserDropdownOpen(false);
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const getUserInitials = () => {
+    if (!user) return '';
+    return `${user.first_name?.charAt(0) || ''}${user.last_name?.charAt(0) || ''}`.toUpperCase();
   };
 
   return (
@@ -78,21 +100,66 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                         </Badge>
                       </Link>
                     )}
-                    <Link
-                      to="/my-submissions"
-                      className="text-sm font-medium text-gray-500 hover:text-gray-900"
-                    >
-                      My Submissions
-                    </Link>
-                    <span className="text-sm text-gray-700">
-                      {user?.first_name} {user?.last_name}
-                    </span>
-                    <button
-                      onClick={handleLogout}
-                      className="text-sm font-medium text-gray-500 hover:text-gray-900"
-                    >
-                      Logout
-                    </button>
+
+                    {/* User Dropdown */}
+                    <div className="relative" ref={dropdownRef}>
+                      <button
+                        onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                        className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none"
+                      >
+                        {user?.photo_url ? (
+                          <img
+                            src={user.photo_url}
+                            alt={`${user.first_name} ${user.last_name}`}
+                            className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center border-2 border-gray-200">
+                            <span className="text-xs font-bold text-white">{getUserInitials()}</span>
+                          </div>
+                        )}
+                        <span>{user?.first_name} {user?.last_name}</span>
+                        <ChevronDown className={`w-4 h-4 transition-transform ${userDropdownOpen ? 'rotate-180' : ''}`} />
+                      </button>
+
+                      {/* Dropdown Menu */}
+                      {userDropdownOpen && (
+                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                          <Link
+                            to="/my-page"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <UserIcon className="w-4 h-4 text-gray-500" />
+                            My Profile
+                          </Link>
+                          <Link
+                            to="/my-submissions"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <FileText className="w-4 h-4 text-gray-500" />
+                            My Submissions
+                          </Link>
+                          <Link
+                            to="/my-page/change-password"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <Settings className="w-4 h-4 text-gray-500" />
+                            Change Password
+                          </Link>
+                          <div className="border-t border-gray-200 my-1"></div>
+                          <button
+                            onClick={handleLogout}
+                            className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            Logout
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </>
                 ) : (
                   <>
@@ -165,18 +232,51 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               {isAuthenticated ? (
                 <>
                   <div className="px-4 pb-3">
-                    <div className="text-base font-medium text-gray-800">
-                      {user?.first_name} {user?.last_name}
+                    <div className="flex items-center gap-3">
+                      {user?.photo_url ? (
+                        <img
+                          src={user.photo_url}
+                          alt={`${user.first_name} ${user.last_name}`}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center border-2 border-gray-200">
+                          <span className="text-sm font-bold text-white">{getUserInitials()}</span>
+                        </div>
+                      )}
+                      <div>
+                        <div className="text-base font-medium text-gray-800">
+                          {user?.first_name} {user?.last_name}
+                        </div>
+                        <div className="text-sm font-medium text-gray-500">{user?.email}</div>
+                      </div>
                     </div>
-                    <div className="text-sm font-medium text-gray-500">{user?.email}</div>
                   </div>
+                  <Link
+                    to="/my-page"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  >
+                    <UserIcon className="w-5 h-5" />
+                    My Profile
+                  </Link>
                   <Link
                     to="/my-submissions"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                    className="flex items-center gap-3 px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
                   >
+                    <FileText className="w-5 h-5" />
                     My Submissions
                   </Link>
+                  <Link
+                    to="/my-page/change-password"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  >
+                    <Settings className="w-5 h-5" />
+                    Change Password
+                  </Link>
+                  <div className="border-t border-gray-200 my-2"></div>
                   {user?.roles.includes('reviewer') && (
                     <Link
                       to="/reviewer"
@@ -195,10 +295,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       Admin Panel
                     </Link>
                   )}
+                  {(user?.roles.includes('reviewer') || user?.roles.includes('admin')) && (
+                    <div className="border-t border-gray-200 my-2"></div>
+                  )}
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                    className="flex items-center gap-3 w-full text-left px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50"
                   >
+                    <LogOut className="w-5 h-5" />
                     Logout
                   </button>
                 </>

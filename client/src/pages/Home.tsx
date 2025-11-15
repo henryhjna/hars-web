@@ -1,12 +1,45 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FileText, Users, BookOpen, Calendar, ArrowRight, Building2, Lightbulb, Award } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
+import eventService from '../services/event.service';
+import type { Event } from '../types';
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
+  const [nextEvent, setNextEvent] = useState<Event | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadNextEvent();
+  }, []);
+
+  const loadNextEvent = async () => {
+    try {
+      const response = await eventService.getUpcomingEvents();
+      if (response.data && response.data.length > 0) {
+        // Get the first upcoming event
+        setNextEvent(response.data[0]);
+      }
+    } catch (error) {
+      console.error('Failed to load upcoming event:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'TBD';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   return (
     <div className="bg-white">
@@ -31,9 +64,8 @@ export default function Home() {
             </h1>
 
             <p className="mt-6 text-xl text-primary-100 max-w-3xl mx-auto leading-relaxed">
-              An annual academic conference fostering collaboration between scholars,
-              practitioners, and policymakers to explore transformative trends in
-              accounting and finance
+              Advancing accounting research through rigorous scholarship and innovative
+              methodologies, with a distinctive focus on technology-driven insights
             </p>
 
             {/* Next Event Info */}
@@ -44,12 +76,20 @@ export default function Home() {
                   Next Event
                 </span>
               </div>
-              <div className="text-3xl font-bold text-white mb-1">
-                June 15, 2025
-              </div>
-              <div className="text-primary-200">
-                Hanyang University, Seoul, South Korea
-              </div>
+              {loading ? (
+                <div className="text-2xl font-bold text-white mb-1">Loading...</div>
+              ) : nextEvent ? (
+                <>
+                  <div className="text-3xl font-bold text-white mb-1">
+                    {formatDate(nextEvent.event_date)}
+                  </div>
+                  <div className="text-primary-200">
+                    {nextEvent.venue || 'Hanyang University, Seoul, South Korea'}
+                  </div>
+                </>
+              ) : (
+                <div className="text-2xl font-bold text-white mb-1">TBD</div>
+              )}
             </div>
 
             {/* CTA Buttons */}
@@ -96,179 +136,153 @@ export default function Home() {
               <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
                 Paper Submission Deadline
               </div>
-              <div className="text-2xl font-bold text-white">April 30, 2025</div>
+              <div className="text-2xl font-bold text-white">
+                {loading ? 'Loading...' : formatDate(nextEvent?.submission_deadline)}
+              </div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
                 Review Results
               </div>
-              <div className="text-2xl font-bold text-white">May 31, 2025</div>
+              <div className="text-2xl font-bold text-white">
+                {loading ? 'Loading...' : formatDate(nextEvent?.notification_date)}
+              </div>
             </div>
             <div className="space-y-1">
               <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
                 Symposium Date
               </div>
-              <div className="text-2xl font-bold text-white">June 15, 2025</div>
+              <div className="text-2xl font-bold text-white">
+                {loading ? 'Loading...' : formatDate(nextEvent?.event_date)}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* About HARS Section */}
+      {/* Research Scope */}
       <div className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
             <Badge variant="primary" size="lg" rounded className="mb-4">
-              About HARS
+              Research Scope
             </Badge>
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-6">
-              What is HARS?
+              Broad Topics, Tech-Forward Approach
             </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              We welcome research across all areas of accounting, while maintaining our
+              distinctive strength in technology-driven methodologies
+            </p>
           </div>
 
-          <div className="prose prose-lg mx-auto text-gray-600 leading-relaxed space-y-6">
-            <p>
-              The Hanyang Accounting Research Symposium (HARS) is an annual academic conference
-              hosted by the Department of Accounting at Hanyang University Business School,
-              a leading institution in South Korea.
-            </p>
-            <p>
-              Launched in 2024, HARS serves as a platform for scholars, practitioners, and
-              policymakers to exchange cutting-edge ideas, foster collaborations, and explore
-              transformative technological trends in accounting and finance.
-            </p>
-
-            <div className="bg-primary-50 rounded-xl p-8 mt-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Our Mission</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+            {/* All Accounting Topics */}
+            <Card variant="elevated" padding="lg" className="bg-gradient-to-br from-primary-50 to-white">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">All Accounting Research</h3>
+              </div>
               <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold mr-3 mt-0.5">1</span>
-                  <span>Showcase high-quality academic research and its real-world implications</span>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
+                  Financial Reporting & Disclosure
                 </li>
-                <li className="flex items-start">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold mr-3 mt-0.5">2</span>
-                  <span>Foster collaboration between academia, industry, and regulatory bodies</span>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
+                  Corporate Governance & ESG
                 </li>
-                <li className="flex items-start">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold mr-3 mt-0.5">3</span>
-                  <span>Highlight the role of emerging technologies in reshaping accounting and finance</span>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
+                  Audit Quality & Regulation
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
+                  Capital Markets & Valuation
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
+                  Managerial & Cost Accounting
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
+                  Taxation & Public Policy
                 </li>
               </ul>
-            </div>
+            </Card>
+
+            {/* Tech Strength */}
+            <Card variant="elevated" padding="lg" className="bg-gradient-to-br from-accent-50 to-white">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center flex-shrink-0">
+                  <Lightbulb className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900">Tech-Driven Strength</h3>
+              </div>
+              <p className="text-gray-700 mb-4 leading-relaxed">
+                Leveraging Hanyang University's excellence in computer science and engineering,
+                we particularly encourage innovative research using:
+              </p>
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>
+                  AI & Machine Learning
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>
+                  Large Language Models
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>
+                  Big Data & Analytics
+                </li>
+                <li className="flex items-center">
+                  <span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>
+                  Alternative Data Sources
+                </li>
+              </ul>
+            </Card>
           </div>
         </div>
       </div>
 
-      {/* New Technologies Focus */}
+      {/* Why HARS - Simple & Action-oriented */}
       <div className="py-20 bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <Badge variant="accent" size="lg" rounded className="mb-4">
-              <Lightbulb className="w-4 h-4 mr-2" />
-              Research Focus
-            </Badge>
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-6">
-              Emerging Technologies in Accounting
+              Why HARS?
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              The rapid advancement of technology is transforming accounting and finance,
-              creating new opportunities and challenges for researchers and practitioners
-            </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            <Card variant="elevated" padding="lg" className="bg-white">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
-                  <Lightbulb className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Key Technologies</h3>
-              </div>
-              <ul className="space-y-3 text-gray-600">
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3"></span>
-                  Machine Learning & Artificial Intelligence
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3"></span>
-                  Large Language Models (LLMs)
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3"></span>
-                  Alternative Data Analytics
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3"></span>
-                  Big Data & Computational Methods
-                </li>
-              </ul>
-            </Card>
-
-            <Card variant="elevated" padding="lg" className="bg-white">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Research Impact</h3>
-              </div>
-              <p className="text-gray-600 leading-relaxed">
-                By exploring opportunities and addressing challenges presented by technological
-                innovations, we collectively shape a future where technology drives better
-                decisions, greater efficiency, and more equitable financial systems.
-              </p>
-            </Card>
-          </div>
-        </div>
-      </div>
-
-      {/* Key Features */}
-      <div className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-6">
-              Why Participate in HARS?
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Whether you are an academic, practitioner, or policymaker,
-              HARS offers an invaluable opportunity to engage with thought leaders
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
             {[
               {
                 icon: FileText,
-                title: 'Showcase Research',
-                description: 'Present high-quality academic research and explore real-world implications with peers',
-                color: 'from-primary-500 to-primary-600',
+                title: 'Present Your Research',
+                description: 'Share your work with scholars and receive valuable feedback',
               },
               {
                 icon: Users,
-                title: 'Network & Collaborate',
-                description: 'Connect with leading scholars, practitioners, and policymakers across Asia',
-                color: 'from-accent-500 to-accent-600',
-              },
-              {
-                icon: Lightbulb,
-                title: 'Explore Innovation',
-                description: 'Learn about emerging technologies reshaping accounting and finance practices',
-                color: 'from-primary-600 to-accent-500',
+                title: 'Build Connections',
+                description: 'Network with leading researchers and practitioners',
               },
               {
                 icon: Award,
-                title: 'Gain Recognition',
-                description: 'Best paper awards and publication opportunities for outstanding contributions',
-                color: 'from-accent-600 to-primary-600',
+                title: 'Earn Recognition',
+                description: 'Best paper awards and publication opportunities',
               },
             ].map((feature) => (
-              <Card key={feature.title} variant="elevated" padding="lg" hoverable>
-                <div className={`inline-flex items-center justify-center p-3 bg-gradient-to-br ${feature.color} rounded-xl shadow-lg mb-6`}>
+              <Card key={feature.title} variant="elevated" padding="lg" hoverable className="bg-white">
+                <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg mb-4">
                   <feature.icon className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3">
+                <h3 className="text-lg font-bold text-gray-900 mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <p className="text-sm text-gray-600">
                   {feature.description}
                 </p>
               </Card>
@@ -277,48 +291,29 @@ export default function Home() {
         </div>
       </div>
 
-      {/* About Hanyang University */}
-      <div className="py-20 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <Badge variant="secondary" size="lg" rounded className="mb-4">
-              <Building2 className="w-4 h-4 mr-2" />
-              About Our Institution
-            </Badge>
-            <h2 className="text-3xl font-extrabold sm:text-4xl mb-6">
-              Hanyang University
-            </h2>
-          </div>
-
-          <div className="space-y-6 text-gray-300 leading-relaxed">
-            <p className="text-lg">
-              Established in 1939 at the heart of Seoul, Hanyang University is a premier
-              institution ranked 4th among universities in South Korea (2023).
-            </p>
-            <p>
-              Hanyang University is renowned for its outstanding programs in computer science
-              and engineering, consistently ranked among the best in South Korea. The university
-              has been at the forefront of research in artificial intelligence, machine learning,
-              and big data analytics—critical to the technological advancements reshaping
-              accounting and finance.
-            </p>
-            <p>
-              This expertise ensures that HARS participants benefit from the latest innovations
-              and insights in computational methods, fostering groundbreaking interdisciplinary research.
-            </p>
-
-            <div className="mt-8 pt-8 border-t border-gray-700">
-              <a
-                href="https://www.hanyang.ac.kr/web/eng"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-accent-400 hover:text-accent-300 font-medium transition-colors"
-              >
-                Visit Hanyang University Website
-                <ArrowRight className="ml-2 w-4 h-4" />
-              </a>
-            </div>
-          </div>
+      {/* Hosted by Hanyang University - Concise */}
+      <div className="py-16 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Badge variant="secondary" size="lg" rounded className="mb-6">
+            <Building2 className="w-4 h-4 mr-2" />
+            Hosted by
+          </Badge>
+          <h2 className="text-3xl font-extrabold sm:text-4xl mb-4">
+            Hanyang University Business School
+          </h2>
+          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+            Ranked #4 in South Korea, renowned for excellence in computer science,
+            engineering, and technological innovation
+          </p>
+          <a
+            href="https://www.hanyang.ac.kr/web/eng"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-accent-400 hover:text-accent-300 font-medium transition-colors text-lg"
+          >
+            Learn More About Hanyang University
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </a>
         </div>
       </div>
 

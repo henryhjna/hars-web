@@ -52,62 +52,158 @@ export default function About() {
           <div className="prose prose-lg text-gray-600 space-y-4">
             <p>
               The Hanyang Accounting Research Symposium (HARS) is an annual academic conference
-              hosted by the Department of Accounting at Hanyang University Business School,
-              a leading institution in South Korea.
+              hosted by the Department of Accounting at Hanyang University Business School.
+              Launched in 2024, HARS has quickly established itself as a premier venue for
+              accounting research in Asia.
             </p>
             <p>
-              Launched in 2024, HARS serves as a platform for scholars, practitioners, and
-              policymakers to exchange cutting-edge ideas, foster collaborations, and explore
-              transformative technological trends in accounting and finance.
+              We welcome submissions across <strong>all areas of accounting research</strong>,
+              from traditional topics like financial reporting and auditing to contemporary
+              issues in ESG, governance, and capital markets. Our distinctive strength lies in
+              fostering <strong>technology-driven methodologies</strong>—leveraging Hanyang
+              University's world-class capabilities in computer science, AI, and data analytics
+              to advance accounting scholarship.
             </p>
           </div>
 
-          {/* Mission */}
-          <div className="mt-12 bg-primary-50 rounded-xl p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-6">Our Mission</h3>
-            <ul className="space-y-4">
-              {[
-                'Showcase high-quality academic research and its real-world implications',
-                'Foster collaboration between academia, industry, and regulatory bodies',
-                'Highlight the role of emerging technologies in reshaping accounting and finance',
-              ].map((item, idx) => (
-                <li key={idx} className="flex items-start">
-                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold mr-4 mt-0.5">
-                    {idx + 1}
-                  </span>
-                  <span className="text-lg text-gray-700">{item}</span>
-                </li>
-              ))}
-            </ul>
+          {/* Mission & Vision */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-primary-50 rounded-xl p-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Mission</h3>
+              <p className="text-gray-700 leading-relaxed">
+                To provide a collaborative platform where rigorous accounting research meets
+                innovative methodologies, fostering meaningful dialogue among academics,
+                practitioners, and policymakers.
+              </p>
+            </div>
+            <div className="bg-accent-50 rounded-xl p-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Our Vision</h3>
+              <p className="text-gray-700 leading-relaxed">
+                To become Asia's leading symposium for accounting research that bridges
+                traditional scholarship with cutting-edge technological innovation.
+              </p>
+            </div>
+          </div>
+
+          {/* What Makes HARS Unique */}
+          <div className="mt-12 bg-gradient-to-br from-gray-50 to-white rounded-xl p-8 border border-gray-200">
+            <h3 className="text-2xl font-bold text-gray-900 mb-6">What Makes HARS Unique</h3>
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold mr-4 mt-0.5">
+                  1
+                </span>
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-1">Broad Scope, Deep Expertise</h4>
+                  <p className="text-gray-700">
+                    All accounting topics are welcome, while our technology-driven strength
+                    provides unique research opportunities
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold mr-4 mt-0.5">
+                  2
+                </span>
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-1">Interdisciplinary Collaboration</h4>
+                  <p className="text-gray-700">
+                    Access to world-class computer science and engineering faculty enables
+                    groundbreaking methodological innovation
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-600 text-white flex items-center justify-center text-sm font-bold mr-4 mt-0.5">
+                  3
+                </span>
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-1">Practitioner Engagement</h4>
+                  <p className="text-gray-700">
+                    Special sessions connecting academic research with real-world practice
+                    and policy implications
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Research Focus */}
+        {/* Research Topics */}
         <div className="mb-20 bg-gray-50 rounded-2xl p-8 sm:p-12">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <h2 className="text-3xl font-extrabold text-gray-900 mb-6 text-center">
-              Research Focus Areas
+              Welcome Research Topics
             </h2>
-            <p className="text-lg text-gray-600 mb-8 text-center">
-              HARS emphasizes the intersection of accounting research and emerging technologies
+            <p className="text-lg text-gray-600 mb-10 text-center max-w-3xl mx-auto">
+              We invite submissions across the full spectrum of accounting research.
+              While all topics are welcome, we particularly encourage innovative
+              methodologies and technology-driven approaches.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[
-                'Machine Learning & Artificial Intelligence',
-                'Large Language Models (LLMs)',
-                'Alternative Data Analytics',
-                'Big Data & Computational Methods',
-                'Corporate Governance & ESG',
-                'Financial Reporting & Disclosure',
-                'Audit Quality & Technology',
-                'Fintech & Digital Finance',
-              ].map((topic, idx) => (
-                <div key={idx} className="flex items-center bg-white rounded-lg p-4 shadow-sm">
-                  <div className="w-2 h-2 rounded-full bg-primary-600 mr-3"></div>
-                  <span className="text-gray-700 font-medium">{topic}</span>
-                </div>
-              ))}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Column 1: Traditional Core */}
+              <div className="bg-white rounded-xl p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 pb-3 border-b border-gray-200">
+                  Traditional Core
+                </h3>
+                <ul className="space-y-3">
+                  {[
+                    'Financial Reporting',
+                    'Audit & Assurance',
+                    'Managerial Accounting',
+                    'Taxation',
+                    'Capital Markets',
+                  ].map((topic, idx) => (
+                    <li key={idx} className="flex items-start text-gray-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary-600 mr-3 mt-2 flex-shrink-0"></span>
+                      <span>{topic}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Column 2: Contemporary Issues */}
+              <div className="bg-white rounded-xl p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 pb-3 border-b border-gray-200">
+                  Contemporary Issues
+                </h3>
+                <ul className="space-y-3">
+                  {[
+                    'Corporate Governance',
+                    'ESG & Sustainability',
+                    'Regulation & Policy',
+                    'Fintech & Blockchain',
+                    'International Accounting',
+                  ].map((topic, idx) => (
+                    <li key={idx} className="flex items-start text-gray-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-primary-600 mr-3 mt-2 flex-shrink-0"></span>
+                      <span>{topic}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Column 3: Tech-Driven Methods */}
+              <div className="bg-gradient-to-br from-accent-50 to-white rounded-xl p-6 shadow-md border-2 border-accent-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 pb-3 border-b border-accent-200">
+                  Tech-Driven Methods
+                </h3>
+                <ul className="space-y-3">
+                  {[
+                    'AI & Machine Learning',
+                    'Large Language Models',
+                    'Big Data Analytics',
+                    'Alternative Data',
+                    'Computational Methods',
+                  ].map((topic, idx) => (
+                    <li key={idx} className="flex items-start text-gray-900 font-medium">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent-600 mr-3 mt-2 flex-shrink-0"></span>
+                      <span>{topic}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         </div>

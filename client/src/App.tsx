@@ -12,6 +12,9 @@ import UpcomingEvents from './pages/UpcomingEvents';
 import PastEvents from './pages/PastEvents';
 import SubmitPaper from './pages/SubmitPaper';
 import MySubmissions from './pages/MySubmissions';
+import MyPage from './pages/MyPage';
+import MyPageEdit from './pages/MyPageEdit';
+import ChangePassword from './pages/ChangePassword';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminSubmissions from './pages/admin/AdminSubmissions';
 import AdminEvents from './pages/admin/AdminEvents';
@@ -84,6 +87,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Layout><MySubmissions /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-page"
+        element={
+          <ProtectedRoute>
+            <Layout><MyPage /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-page/edit"
+        element={
+          <ProtectedRoute>
+            <Layout><MyPageEdit /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-page/change-password"
+        element={
+          <ProtectedRoute>
+            <Layout><ChangePassword /></Layout>
           </ProtectedRoute>
         }
       />

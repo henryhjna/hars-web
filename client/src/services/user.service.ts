@@ -14,6 +14,29 @@ class UserService {
     return response.data;
   }
 
+  // Upload profile photo
+  async uploadPhoto(file: File): Promise<ApiResponse<{ photo_url: string; user: User }>> {
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    const response = await api.post<ApiResponse<{ photo_url: string; user: User }>>(
+      '/users/me/photo',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
+
+  // Delete profile photo
+  async deletePhoto(): Promise<ApiResponse<User>> {
+    const response = await api.delete<ApiResponse<User>>('/users/me/photo');
+    return response.data;
+  }
+
   // Change password
   async changePassword(
     currentPassword: string,
