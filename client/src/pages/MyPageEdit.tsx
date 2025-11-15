@@ -34,6 +34,7 @@ export default function MyPageEdit() {
     prefix: authUser?.prefix || '',
     academic_title: authUser?.academic_title || '',
     affiliation: authUser?.affiliation || '',
+    photo_url: authUser?.photo_url || '',
   });
 
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -185,9 +186,9 @@ export default function MyPageEdit() {
               <div className="flex items-center gap-6">
                 {/* Photo Preview */}
                 <div className="flex-shrink-0">
-                  {formData.photo_url ? (
+                  {photoPreview ? (
                     <img
-                      src={formData.photo_url}
+                      src={photoPreview}
                       alt="Profile"
                       className="w-24 h-24 rounded-full object-cover border-4 border-primary-100"
                     />
@@ -200,18 +201,48 @@ export default function MyPageEdit() {
                   )}
                 </div>
 
-                {/* Photo URL Input */}
+                {/* Photo Upload Controls */}
                 <div className="flex-1">
-                  <Input
-                    name="photo_url"
-                    label="Photo URL"
-                    type="url"
-                    value={formData.photo_url}
-                    onChange={handleChange}
-                    placeholder="https://example.com/photo.jpg"
-                    helperText="Enter a URL to your profile photo (S3 upload coming soon)"
-                    fullWidth
-                  />
+                  <div className="flex gap-3 mb-2">
+                    <label className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                        onChange={handlePhotoChange}
+                        className="hidden"
+                        disabled={uploadingPhoto || loading}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploadingPhoto || loading}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const input = e.currentTarget.parentElement?.querySelector('input');
+                          input?.click();
+                        }}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        {uploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                      </Button>
+                    </label>
+                    {photoPreview && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePhotoDelete}
+                        disabled={uploadingPhoto || loading}
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Delete
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    JPEG, PNG, or WebP. Max size 2MB.
+                  </p>
                 </div>
               </div>
             </div>
@@ -338,23 +369,6 @@ export default function MyPageEdit() {
             </div>
           </Card>
         </form>
-
-        {/* Help Text */}
-        <Card variant="default" className="mt-6">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg flex-shrink-0">
-              <Upload className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-1">Profile Photo Upload</h4>
-              <p className="text-sm text-gray-600">
-                Currently, you can provide a URL to your profile photo. Direct file upload to S3
-                will be available soon. You can use services like Imgur or your institution's
-                website to host your photo.
-              </p>
-            </div>
-          </div>
-        </Card>
       </div>
     </div>
   );
