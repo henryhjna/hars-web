@@ -17,6 +17,7 @@ import AdminSubmissions from './pages/admin/AdminSubmissions';
 import AdminEvents from './pages/admin/AdminEvents';
 import AdminEventDetails from './pages/admin/AdminEventDetails';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminFaculty from './pages/admin/AdminFaculty';
 import ReviewerDashboard from './pages/reviewer/ReviewerDashboard';
 import ReviewForm from './pages/reviewer/ReviewForm';
 
@@ -143,6 +144,14 @@ function AppRoutes() {
         element={
           <AdminRoute>
             <AdminLayout><AdminUsers /></AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/faculty"
+        element={
+          <AdminRoute>
+            <AdminLayout><AdminFaculty /></AdminLayout>
           </AdminRoute>
         }
       />

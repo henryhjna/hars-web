@@ -32,6 +32,61 @@ export interface UserResponse {
   created_at: Date;
 }
 
+// Faculty Types
+export interface Education {
+  degree: string;
+  institution: string;
+  year: number;
+}
+
+export interface FacultyMember {
+  id: string;
+  name: string;
+  title: string;
+  email?: string;
+  phone?: string;
+  office_location?: string;
+  photo_url?: string;
+  bio?: string;
+  research_interests?: string[];
+  education?: Education[];
+  publications?: string[];
+  display_order: number;
+  is_active: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface CreateFacultyInput {
+  name: string;
+  title: string;
+  email?: string;
+  phone?: string;
+  office_location?: string;
+  photo_url?: string;
+  bio?: string;
+  research_interests?: string[];
+  education?: Education[];
+  publications?: string[];
+  display_order?: number;
+  is_active?: boolean;
+}
+
+export interface UpdateFacultyInput {
+  name?: string;
+  title?: string;
+  email?: string;
+  phone?: string;
+  office_location?: string;
+  photo_url?: string;
+  bio?: string;
+  research_interests?: string[];
+  education?: Education[];
+  publications?: string[];
+  display_order?: number;
+  is_active?: boolean;
+}
+
 // Auth Types
 export interface AuthRequest extends Request {
   user?: {

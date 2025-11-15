@@ -67,3 +67,4 @@ server/uploads/*
 # Documentation (internal use only)
 PROJECT_STRUCTURE.md
 claude.md
+.claude/settings.local.json

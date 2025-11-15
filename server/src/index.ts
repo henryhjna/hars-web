@@ -12,6 +12,7 @@ import eventPhotoRoutes from './routes/eventPhoto.routes';
 import keynoteSpeakerRoutes from './routes/keynoteSpeaker.routes';
 import testimonialRoutes from './routes/testimonial.routes';
 import conferenceTopicRoutes from './routes/conferenceTopic.routes';
+import facultyRoutes from './routes/faculty.routes';
 import { errorHandler, notFound } from './middleware/errorHandler';
 
 dotenv.config();
@@ -87,6 +88,7 @@ app.get('/', (req, res) => {
       speakers: '/api/speakers',
       testimonials: '/api/testimonials',
       topics: '/api/conference-topics',
+      faculty: '/api/faculty',
       health: '/health'
     }
   });
@@ -102,6 +104,7 @@ app.use('/api/photos', eventPhotoRoutes);
 app.use('/api/speakers', keynoteSpeakerRoutes);
 app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/conference-topics', conferenceTopicRoutes);
+app.use('/api/faculty', facultyRoutes);
 
 // Error handling
 app.use(notFound);

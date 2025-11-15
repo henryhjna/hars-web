@@ -42,6 +42,61 @@ export interface ApiResponse<T = any> {
   error?: string;
 }
 
+// Faculty Types
+export interface Education {
+  degree: string;
+  institution: string;
+  year: number;
+}
+
+export interface FacultyMember {
+  id: string;
+  name: string;
+  title: string;
+  email?: string;
+  phone?: string;
+  office_location?: string;
+  photo_url?: string;
+  bio?: string;
+  research_interests?: string[];
+  education?: Education[];
+  publications?: string[];
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateFacultyInput {
+  name: string;
+  title: string;
+  email?: string;
+  phone?: string;
+  office_location?: string;
+  photo_url?: string;
+  bio?: string;
+  research_interests?: string[];
+  education?: Education[];
+  publications?: string[];
+  display_order?: number;
+  is_active?: boolean;
+}
+
+export interface UpdateFacultyInput {
+  name?: string;
+  title?: string;
+  email?: string;
+  phone?: string;
+  office_location?: string;
+  photo_url?: string;
+  bio?: string;
+  research_interests?: string[];
+  education?: Education[];
+  publications?: string[];
+  display_order?: number;
+  is_active?: boolean;
+}
+
 // Event Types
 export type EventStatus = 'upcoming' | 'ongoing' | 'past';
 
