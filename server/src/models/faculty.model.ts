@@ -86,7 +86,7 @@ export class FacultyModel {
       values.push(data.education ? JSON.stringify(data.education) : null);
     }
     if (data.profile_url !== undefined) {
-      fields.push(`publications = $${paramCount++}`);
+      fields.push(`profile_url = $${paramCount++}`);
       values.push(data.profile_url || null);
     }
     if (data.display_order !== undefined) {
