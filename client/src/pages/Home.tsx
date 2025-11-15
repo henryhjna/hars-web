@@ -84,7 +84,7 @@ export default function Home() {
                     {formatDate(nextEvent.event_date)}
                   </div>
                   <div className="text-primary-200">
-                    {nextEvent.venue || 'Hanyang University, Seoul, South Korea'}
+                    {nextEvent.location || 'Hanyang University, Seoul, South Korea'}
                   </div>
                 </>
               ) : (
@@ -137,7 +137,7 @@ export default function Home() {
                 Paper Submission Deadline
               </div>
               <div className="text-2xl font-bold text-white">
-                {loading ? 'Loading...' : formatDate(nextEvent?.submission_deadline)}
+                {loading ? 'Loading...' : formatDate(nextEvent?.submission_end_date)}
               </div>
             </div>
             <div className="space-y-1">
