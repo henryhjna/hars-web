@@ -277,9 +277,16 @@ export default function About() {
                       {member.email && (
                         <div className="flex items-center">
                           <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                          <a href={`mailto:${member.email}`} className="hover:text-primary-600">
-                            {member.email}
-                          </a>
+                          <button
+                            onClick={() => {
+                              const email = member.email!;
+                              window.location.href = `mailto:${email}`;
+                            }}
+                            className="hover:text-primary-600 text-left"
+                            title="Click to send email"
+                          >
+                            {member.email.replace('@', ' [at] ').replace(/\./g, ' [dot] ')}
+                          </button>
                         </div>
                       )}
                       {member.phone && (
@@ -295,6 +302,21 @@ export default function About() {
                         </div>
                       )}
                     </div>
+
+                    {/* Profile URL Link */}
+                    {member.profile_url && (
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <a
+                          href={member.profile_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium text-sm"
+                        >
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          View Full Profile
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </Card>
               ))}

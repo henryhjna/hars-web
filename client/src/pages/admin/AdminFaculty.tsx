@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, X, Save } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Save, Upload } from 'lucide-react';
 import facultyService from '../../services/faculty.service';
 import type { FacultyMember, CreateFacultyInput, UpdateFacultyInput } from '../../types';
 import Button from '../../components/ui/Button';
@@ -20,15 +20,18 @@ export default function AdminFaculty() {
     phone: '',
     office_location: '',
     photo_url: '',
+    profile_url: '',
     bio: '',
     research_interests: [],
-    publications: [],
     display_order: 0,
     is_active: true,
   });
 
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
   const [researchInterestInput, setResearchInterestInput] = useState('');
-  const [publicationInput, setPublicationInput] = useState('');
 
   useEffect(() => {
     loadFaculty();
@@ -56,12 +59,14 @@ export default function AdminFaculty() {
       phone: '',
       office_location: '',
       photo_url: '',
+      profile_url: '',
       bio: '',
       research_interests: [],
-      publications: [],
       display_order: 0,
       is_active: true,
     });
+    setPhotoFile(null);
+    setPhotoPreview('');
     setShowModal(true);
   };
 
@@ -74,12 +79,14 @@ export default function AdminFaculty() {
       phone: member.phone || '',
       office_location: member.office_location || '',
       photo_url: member.photo_url || '',
+      profile_url: member.profile_url || '',
       bio: member.bio || '',
       research_interests: member.research_interests || [],
-      publications: member.publications || [],
       display_order: member.display_order,
       is_active: member.is_active,
     });
+    setPhotoPreview(member.photo_url || '');
+    setPhotoFile(null);
     setShowModal(true);
   };
 
@@ -97,17 +104,90 @@ export default function AdminFaculty() {
     }
   };
 
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Photo size must be less than 2MB');
+      return;
+    }
+
+    // Validate file type
+    if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+      setError('Photo must be JPEG, PNG, or WebP');
+      return;
+    }
+
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    setError('');
+  };
+
+  const handlePhotoDelete = async () => {
+    if (editingFaculty && editingFaculty.photo_url) {
+      if (!confirm('Are you sure you want to delete this photo?')) {
+        return;
+      }
+
+      try {
+        setUploadingPhoto(true);
+        const response = await facultyService.deletePhoto(editingFaculty.id);
+        if (response.success && response.data) {
+          setPhotoPreview('');
+          setPhotoFile(null);
+          setFormData({ ...formData, photo_url: '' });
+          setSuccess('Photo deleted successfully');
+          await loadFaculty();
+        }
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Failed to delete photo');
+      } finally {
+        setUploadingPhoto(false);
+      }
+    } else {
+      // Just clear preview for new faculty or if no photo exists
+      setPhotoPreview('');
+      setPhotoFile(null);
+      setFormData({ ...formData, photo_url: '' });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setError('');
       setSuccess('');
 
+      // Upload photo first if selected
+      let photoUrl = formData.photo_url;
+      if (photoFile && editingFaculty) {
+        setUploadingPhoto(true);
+        const photoResponse = await facultyService.uploadPhoto(editingFaculty.id, photoFile);
+        if (photoResponse.success && photoResponse.data) {
+          photoUrl = photoResponse.data.photo_url;
+        }
+        setUploadingPhoto(false);
+        setPhotoFile(null);
+      }
+
+      const submitData = {
+        ...formData,
+        photo_url: photoUrl,
+      };
+
       if (editingFaculty) {
-        await facultyService.update(editingFaculty.id, formData);
+        await facultyService.update(editingFaculty.id, submitData);
         setSuccess('Faculty member updated successfully');
       } else {
-        await facultyService.create(formData as CreateFacultyInput);
+        const createdMember = await facultyService.create(submitData as CreateFacultyInput);
+        // If photo was selected for new member, upload it now
+        if (photoFile && createdMember.data) {
+          setUploadingPhoto(true);
+          await facultyService.uploadPhoto(createdMember.data.id, photoFile);
+          setUploadingPhoto(false);
+        }
         setSuccess('Faculty member created successfully');
       }
 
@@ -134,20 +214,13 @@ export default function AdminFaculty() {
     setFormData({ ...formData, research_interests: updated });
   };
 
-  const addPublication = () => {
-    if (publicationInput.trim()) {
-      setFormData({
-        ...formData,
-        publications: [...(formData.publications || []), publicationInput.trim()],
-      });
-      setPublicationInput('');
-    }
-  };
-
-  const removePublication = (index: number) => {
-    const updated = [...(formData.publications || [])];
-    updated.splice(index, 1);
-    setFormData({ ...formData, publications: updated });
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   if (loading) {
@@ -188,43 +261,60 @@ export default function AdminFaculty() {
         {faculty.map((member) => (
           <Card key={member.id} variant="elevated" padding="lg">
             <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-bold text-gray-900">{member.name}</h3>
-                  {!member.is_active && (
-                    <span className="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded">
-                      Inactive
+              <div className="flex gap-4 flex-1">
+                {/* Photo */}
+                {member.photo_url ? (
+                  <img
+                    src={member.photo_url}
+                    alt={member.name}
+                    className="w-20 h-20 rounded-full object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xl font-bold text-white">
+                      {getInitials(member.name)}
                     </span>
-                  )}
-                </div>
-                <p className="text-gray-600 mb-2">{member.title}</p>
-                {member.email && (
-                  <p className="text-sm text-gray-500">Email: {member.email}</p>
-                )}
-                {member.phone && (
-                  <p className="text-sm text-gray-500">Phone: {member.phone}</p>
-                )}
-                {member.office_location && (
-                  <p className="text-sm text-gray-500">Office: {member.office_location}</p>
-                )}
-                {member.bio && (
-                  <p className="mt-3 text-gray-700 line-clamp-2">{member.bio}</p>
-                )}
-                {member.research_interests && member.research_interests.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-sm font-semibold text-gray-700 mb-1">Research Interests:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {member.research_interests.map((interest, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded"
-                        >
-                          {interest}
-                        </span>
-                      ))}
-                    </div>
                   </div>
                 )}
+
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-xl font-bold text-gray-900">{member.name}</h3>
+                    {!member.is_active && (
+                      <span className="px-2 py-1 bg-gray-200 text-gray-700 text-xs font-semibold rounded">
+                        Inactive
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-600 mb-2">{member.title}</p>
+                  {member.email && (
+                    <p className="text-sm text-gray-500">Email: {member.email}</p>
+                  )}
+                  {member.phone && (
+                    <p className="text-sm text-gray-500">Phone: {member.phone}</p>
+                  )}
+                  {member.office_location && (
+                    <p className="text-sm text-gray-500">Office: {member.office_location}</p>
+                  )}
+                  {member.bio && (
+                    <p className="mt-3 text-gray-700 line-clamp-2">{member.bio}</p>
+                  )}
+                  {member.research_interests && member.research_interests.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-sm font-semibold text-gray-700 mb-1">Research Interests:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {member.research_interests.map((interest, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-1 bg-primary-100 text-primary-800 text-xs rounded"
+                          >
+                            {interest}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex gap-2 ml-4">
                 <Button onClick={() => handleEdit(member)} variant="outline" size="sm">
@@ -259,6 +349,73 @@ export default function AdminFaculty() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              {/* Profile Photo Section */}
+              <div className="pb-4 border-b border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Photo</h3>
+                <div className="flex items-center gap-6">
+                  {/* Photo Preview */}
+                  <div className="flex-shrink-0">
+                    {photoPreview ? (
+                      <img
+                        src={photoPreview}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-primary-100"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center border-4 border-primary-100">
+                        <span className="text-3xl font-bold text-white">
+                          {formData.name ? getInitials(formData.name) : '?'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Photo Upload Controls */}
+                  <div className="flex-1">
+                    <div className="flex gap-3 mb-2">
+                      <label className="flex-1">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          onChange={handlePhotoChange}
+                          className="hidden"
+                          disabled={uploadingPhoto}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={uploadingPhoto}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const input = e.currentTarget.parentElement?.querySelector('input');
+                            input?.click();
+                          }}
+                        >
+                          <Upload className="w-4 h-4 mr-2" />
+                          {uploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                        </Button>
+                      </label>
+                      {photoPreview && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePhotoDelete}
+                          disabled={uploadingPhoto}
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Delete
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-500">
+                      JPEG, PNG, or WebP. Max size 2MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -324,14 +481,18 @@ export default function AdminFaculty() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Photo URL
+                    Profile URL
                   </label>
                   <input
                     type="url"
-                    value={formData.photo_url}
-                    onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
+                    value={formData.profile_url}
+                    onChange={(e) => setFormData({ ...formData, profile_url: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                    placeholder="https://example.com/faculty/profile"
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    External URL to detailed faculty profile page
+                  </p>
                 </div>
 
                 <div>
@@ -409,45 +570,11 @@ export default function AdminFaculty() {
                 </div>
               </div>
 
-              {/* Publications */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Publications
-                </label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={publicationInput}
-                    onChange={(e) => setPublicationInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addPublication())}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                    placeholder="Add publication..."
-                  />
-                  <Button type="button" onClick={addPublication} variant="outline">
-                    Add
-                  </Button>
-                </div>
-                <div className="space-y-2">
-                  {formData.publications?.map((pub, idx) => (
-                    <div key={idx} className="flex items-start gap-2 p-2 bg-gray-50 rounded">
-                      <span className="flex-1 text-sm text-gray-700">{pub}</span>
-                      <button
-                        type="button"
-                        onClick={() => removePublication(idx)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <Button type="button" onClick={() => setShowModal(false)} variant="outline">
                   Cancel
                 </Button>
-                <Button type="submit" variant="primary">
+                <Button type="submit" variant="primary" disabled={uploadingPhoto}>
                   <Save className="w-4 h-4 mr-2" />
                   {editingFaculty ? 'Update' : 'Create'}
                 </Button>

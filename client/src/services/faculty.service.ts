@@ -31,6 +31,29 @@ class FacultyService {
     const response = await api.delete(`/faculty/${id}`);
     return response.data;
   }
+
+  // Upload faculty photo (admin only)
+  async uploadPhoto(id: string, file: File): Promise<ApiResponse<{ photo_url: string; faculty: FacultyMember }>> {
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    const response = await api.post<ApiResponse<{ photo_url: string; faculty: FacultyMember }>>(
+      `/faculty/${id}/photo`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data;
+  }
+
+  // Delete faculty photo (admin only)
+  async deletePhoto(id: string): Promise<ApiResponse<FacultyMember>> {
+    const response = await api.delete<ApiResponse<FacultyMember>>(`/faculty/${id}/photo`);
+    return response.data;
+  }
 }
 
 export default new FacultyService();

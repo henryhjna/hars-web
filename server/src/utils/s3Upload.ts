@@ -102,3 +102,9 @@ export const deletePhotoFromS3 = async (photoUrl: string): Promise<void> => {
   await s3Client.send(command);
   // Let errors propagate to the caller
 };
+
+export const uploadFacultyPhotoToS3 = async (
+  file: Express.Multer.File
+): Promise<string> => {
+  return uploadPhotoToS3(file, 'faculty-photos', MAX_PHOTO_SIZE);
+};

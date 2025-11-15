@@ -64,10 +64,10 @@ export interface FacultyMember {
   phone?: string;
   office_location?: string;
   photo_url?: string;
+  profile_url?: string;
   bio?: string;
   research_interests?: string[];
   education?: Education[];
-  publications?: string[];
   display_order: number;
   is_active: boolean;
   created_at: string;
@@ -81,10 +81,10 @@ export interface CreateFacultyInput {
   phone?: string;
   office_location?: string;
   photo_url?: string;
+  profile_url?: string;
   bio?: string;
   research_interests?: string[];
   education?: Education[];
-  publications?: string[];
   display_order?: number;
   is_active?: boolean;
 }
@@ -96,10 +96,10 @@ export interface UpdateFacultyInput {
   phone?: string;
   office_location?: string;
   photo_url?: string;
+  profile_url?: string;
   bio?: string;
   research_interests?: string[];
   education?: Education[];
-  publications?: string[];
   display_order?: number;
   is_active?: boolean;
 }
