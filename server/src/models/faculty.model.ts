@@ -23,7 +23,7 @@ export class FacultyModel {
     const result = await pool.query(
       `INSERT INTO faculty_members (
         name, title, email, phone, office_location, photo_url, bio,
-        research_interests, education, publications, display_order, is_active
+        research_interests, education, profile_url, display_order, is_active
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *`,
       [
@@ -36,7 +36,7 @@ export class FacultyModel {
         data.bio || null,
         data.research_interests || null,
         data.education ? JSON.stringify(data.education) : null,
-        data.publications || null,
+        data.profile_url || null,
         data.display_order ?? 0,
         data.is_active ?? true,
       ]
@@ -85,9 +85,9 @@ export class FacultyModel {
       fields.push(`education = $${paramCount++}`);
       values.push(data.education ? JSON.stringify(data.education) : null);
     }
-    if (data.publications !== undefined) {
+    if (data.profile_url !== undefined) {
       fields.push(`publications = $${paramCount++}`);
-      values.push(data.publications || null);
+      values.push(data.profile_url || null);
     }
     if (data.display_order !== undefined) {
       fields.push(`display_order = $${paramCount++}`);
