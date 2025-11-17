@@ -128,9 +128,7 @@ export class ReviewModel {
         AVG(overall_score) as avg_score,
         COUNT(CASE WHEN is_completed = true THEN 1 END) as completed_reviews,
         COUNT(CASE WHEN recommendation = 'accept' THEN 1 END) as accept_count,
-        COUNT(CASE WHEN recommendation = 'reject' THEN 1 END) as reject_count,
-        COUNT(CASE WHEN recommendation = 'major_revision' THEN 1 END) as major_revision_count,
-        COUNT(CASE WHEN recommendation = 'minor_revision' THEN 1 END) as minor_revision_count
+        COUNT(CASE WHEN recommendation = 'reject' THEN 1 END) as reject_count
        FROM reviews
        WHERE submission_id = $1`,
       [submissionId]

@@ -138,28 +138,41 @@ export class SubmissionController {
       }
 
       // Upload PDF to S3
-      const pdfUrl = await uploadPdfToS3(req.file);
+      let pdfUrl: string | null = null;
+      try {
+        pdfUrl = await uploadPdfToS3(req.file);
 
-      // Create submission
-      const submission = await SubmissionModel.create({
-        event_id,
-        user_id: req.user!.id,
-        title,
-        abstract,
-        keywords: keywordsArray,
-        corresponding_author,
-        co_authors: co_authors || null,
-        pdf_url: pdfUrl,
-        pdf_filename: req.file.originalname,
-        pdf_size: req.file.size,
-        status: status || 'submitted',
-      });
+        // Create submission
+        const submission = await SubmissionModel.create({
+          event_id,
+          user_id: req.user!.id,
+          title,
+          abstract,
+          keywords: keywordsArray,
+          corresponding_author,
+          co_authors: co_authors || null,
+          pdf_url: pdfUrl,
+          pdf_filename: req.file.originalname,
+          pdf_size: req.file.size,
+          status: status || 'submitted',
+        });
 
-      res.status(201).json({
-        success: true,
-        message: 'Submission created successfully',
-        data: submission,
-      });
+        res.status(201).json({
+          success: true,
+          message: 'Submission created successfully',
+          data: submission,
+        });
+      } catch (dbError) {
+        // Rollback: Delete uploaded file from S3 if DB save failed
+        if (pdfUrl) {
+          try {
+            await deletePhotoFromS3(pdfUrl);
+          } catch (cleanupError) {
+            console.error('Failed to cleanup S3 file after DB error:', cleanupError);
+          }
+        }
+        throw dbError;
+      }
     } catch (error) {
       next(error);
     }
@@ -271,6 +284,15 @@ export class SubmissionController {
 
       if (!isOwner && !isAdmin) {
         throw new ApiError('You do not have permission to delete this submission', 403);
+      }
+
+      // Prevent deletion of submissions that are being reviewed or have been reviewed
+      const protectedStatuses = ['under_review', 'accepted', 'rejected', 'revision_requested'];
+      if (protectedStatuses.includes(submission.status) && !isAdmin) {
+        throw new ApiError(
+          'Cannot delete submission that is under review or has been reviewed. Please contact an administrator.',
+          400
+        );
       }
 
       // Delete PDF from S3

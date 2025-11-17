@@ -168,7 +168,7 @@ export default function Home() {
               Research Scope
             </Badge>
             <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-6">
-              Broad Topics, Tech-Forward Approach
+              Broad Topics, Tech-Forward
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               We welcome research across all areas of accounting, while maintaining our
@@ -272,7 +272,7 @@ export default function Home() {
               {
                 icon: Award,
                 title: 'Earn Recognition',
-                description: 'Best paper awards and publication opportunities',
+                description: 'Best paper awards',
               },
             ].map((feature) => (
               <Card key={feature.title} variant="elevated" padding="lg" hoverable className="bg-white">

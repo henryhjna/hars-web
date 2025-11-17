@@ -1,7 +1,37 @@
 import { query } from '../config/database';
 import { Event, EventSession, KeynoteSpeaker } from '../types';
+import { ApiError } from '../types';
 
 export class EventModel {
+  // Validate event dates order
+  static validateEventDates(data: any): void {
+    const eventDate = data.event_date ? new Date(data.event_date) : null;
+    const subStart = data.submission_start_date ? new Date(data.submission_start_date) : null;
+    const subEnd = data.submission_end_date ? new Date(data.submission_end_date) : null;
+    const reviewDeadline = data.review_deadline ? new Date(data.review_deadline) : null;
+    const notificationDate = data.notification_date ? new Date(data.notification_date) : null;
+
+    if (subStart && subEnd && subStart >= subEnd) {
+      throw new ApiError('Submission start date must be before end date', 400);
+    }
+
+    if (subEnd && eventDate && subEnd >= eventDate) {
+      throw new ApiError('Submission end date must be before event date', 400);
+    }
+
+    if (reviewDeadline && subEnd && reviewDeadline <= subEnd) {
+      throw new ApiError('Review deadline must be after submission end date', 400);
+    }
+
+    if (notificationDate && reviewDeadline && notificationDate <= reviewDeadline) {
+      throw new ApiError('Notification date must be after review deadline', 400);
+    }
+
+    if (notificationDate && eventDate && notificationDate >= eventDate) {
+      throw new ApiError('Notification date must be before event date', 400);
+    }
+  }
+
   // Get all events with computed status
   static async findAll(): Promise<Event[]> {
     const sql = `
@@ -66,6 +96,9 @@ export class EventModel {
 
   // Create new event (status is computed, not stored)
   static async create(eventData: Partial<Event>, createdBy: string): Promise<Event> {
+    // Validate event dates
+    this.validateEventDates(eventData);
+
     const {
       title,
       description,
@@ -146,6 +179,9 @@ export class EventModel {
 
   // Update event (status is computed, not updated)
   static async update(id: string, eventData: Partial<Event>): Promise<Event | null> {
+    // Validate event dates
+    this.validateEventDates(eventData);
+
     const {
       title,
       description,

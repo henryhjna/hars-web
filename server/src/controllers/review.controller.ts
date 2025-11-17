@@ -72,10 +72,20 @@ export class ReviewController {
           await ReviewAssignmentModel.updateStatus(myAssignment.id, 'completed');
         }
 
-        // Update submission status to under_review if not already
+        // Check if all reviewers have completed their reviews
+        const allCompleted = assignments.every((a) =>
+          a.reviewer_id === reviewerId || a.status === 'completed'
+        );
+
         const submission = await SubmissionModel.findById(submissionId);
-        if (submission && submission.status === 'submitted') {
-          await SubmissionModel.updateStatus(submissionId, 'under_review');
+        if (submission) {
+          if (allCompleted) {
+            // All reviews completed - mark as needing admin decision
+            await SubmissionModel.updateStatus(submissionId, 'revision_requested');
+          } else if (submission.status === 'submitted') {
+            // First review submitted - mark as under review
+            await SubmissionModel.updateStatus(submissionId, 'under_review');
+          }
         }
       }
 
