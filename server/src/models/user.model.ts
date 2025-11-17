@@ -72,6 +72,19 @@ export class UserModel {
     );
   }
 
+  static async setEmailVerificationToken(
+    userId: string,
+    token: string
+  ): Promise<void> {
+    await query(
+      `UPDATE users
+       SET email_verification_token = $1,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $2`,
+      [token, userId]
+    );
+  }
+
   static async setResetPasswordToken(
     userId: string,
     token: string,

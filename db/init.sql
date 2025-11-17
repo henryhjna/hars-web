@@ -16,6 +16,7 @@ DROP TABLE IF EXISTS submissions CASCADE;
 DROP TABLE IF EXISTS keynote_speakers CASCADE;
 DROP TABLE IF EXISTS event_sessions CASCADE;
 DROP TABLE IF EXISTS events CASCADE;
+DROP TABLE IF EXISTS faculty_members CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 -- Users Table
@@ -33,6 +34,10 @@ CREATE TABLE users (
     reset_password_expires TIMESTAMP,
     is_migrated BOOLEAN DEFAULT FALSE,
     must_reset_password BOOLEAN DEFAULT FALSE,
+    preferred_name VARCHAR(100),
+    prefix VARCHAR(10),
+    academic_title VARCHAR(100),
+    photo_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -86,6 +91,9 @@ CREATE TABLE events (
     show_keynote BOOLEAN DEFAULT TRUE,
     show_photos BOOLEAN DEFAULT TRUE,
     show_testimonials BOOLEAN DEFAULT FALSE,
+
+    -- Event status
+    status VARCHAR(20) DEFAULT 'upcoming',
 
     created_by UUID REFERENCES users(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -247,7 +255,10 @@ CREATE TABLE activity_logs (
 -- Indexes for performance
 CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_roles ON users USING GIN(roles);
+CREATE INDEX idx_users_prefix ON users(prefix);
+CREATE INDEX idx_users_academic_title ON users(academic_title);
 CREATE INDEX idx_events_date ON events(event_date DESC);
+CREATE INDEX idx_events_status ON events(status);
 CREATE INDEX idx_submissions_user ON submissions(user_id);
 CREATE INDEX idx_submissions_event ON submissions(event_id);
 CREATE INDEX idx_submissions_status ON submissions(status);
@@ -282,6 +293,31 @@ CREATE TRIGGER update_reviews_updated_at BEFORE UPDATE ON reviews
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_conference_topics_updated_at BEFORE UPDATE ON conference_topics
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Faculty Members Table
+CREATE TABLE faculty_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    office_location VARCHAR(255),
+    photo_url TEXT,
+    bio TEXT,
+    research_interests TEXT[],
+    education JSONB,
+    profile_url TEXT,
+    display_order INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_faculty_display_order ON faculty_members(display_order);
+CREATE INDEX idx_faculty_is_active ON faculty_members(is_active);
+
+CREATE TRIGGER update_faculty_updated_at BEFORE UPDATE ON faculty_members
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert default admin user (password: Admin123!)

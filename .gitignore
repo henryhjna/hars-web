@@ -68,3 +68,4 @@ server/uploads/*
 PROJECT_STRUCTURE.md
 claude.md
 .claude/settings.local.json
+.claude/settings.local.json

@@ -312,16 +312,9 @@ export class AuthController {
         throw new ApiError('Email is already verified', 400);
       }
 
-      // Generate new verification token if needed
-      let token = user.email_verification_token;
-      if (!token) {
-        token = generateRandomToken(32);
-        await UserModel.setResetPasswordToken(
-          user.id,
-          token,
-          new Date(Date.now() + 24 * 60 * 60 * 1000)
-        );
-      }
+      // Generate new verification token
+      const token = generateRandomToken(32);
+      await UserModel.setEmailVerificationToken(user.id, token);
 
       // Send verification email
       try {

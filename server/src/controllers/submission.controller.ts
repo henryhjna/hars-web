@@ -75,12 +75,18 @@ export class SubmissionController {
         throw new ApiError('Submission not found', 404);
       }
 
-      // Check permissions: owner, admin, or reviewer can view
+      // Check permissions: owner, admin, or assigned reviewer can view
       const isOwner = submission.user_id === req.user!.id;
       const isAdmin = req.user!.roles.includes('admin');
-      const isReviewer = req.user!.roles.includes('reviewer');
 
-      if (!isOwner && !isAdmin && !isReviewer) {
+      // Reviewer must be assigned to this submission
+      let isAssignedReviewer = false;
+      if (req.user!.roles.includes('reviewer')) {
+        const { ReviewAssignmentModel } = await import('../models/review.model');
+        isAssignedReviewer = await ReviewAssignmentModel.isAssigned(id, req.user!.id);
+      }
+
+      if (!isOwner && !isAdmin && !isAssignedReviewer) {
         throw new ApiError('You do not have permission to view this submission', 403);
       }
 
