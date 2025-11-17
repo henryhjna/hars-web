@@ -4,8 +4,10 @@ import facultyService from '../services/faculty.service';
 import type { FacultyMember } from '../types';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function About() {
+  const { user } = useAuth();
   const [faculty, setFaculty] = useState<FacultyMember[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -273,35 +275,38 @@ export default function About() {
                       </div>
                     )}
 
-                    <div className="space-y-2 text-sm text-gray-600 border-t border-gray-200 pt-4">
-                      {member.email && (
-                        <div className="flex items-center">
-                          <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                          <button
-                            onClick={() => {
-                              const email = member.email!;
-                              window.location.href = `mailto:${email}`;
-                            }}
-                            className="hover:text-primary-600 text-left"
-                            title="Click to send email"
-                          >
-                            {member.email.replace('@', ' [at] ').replace(/\./g, ' [dot] ')}
-                          </button>
-                        </div>
-                      )}
-                      {member.phone && (
-                        <div className="flex items-center">
-                          <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                          <span>{member.phone}</span>
-                        </div>
-                      )}
-                      {member.office_location && (
-                        <div className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                          <span>{member.office_location}</span>
-                        </div>
-                      )}
-                    </div>
+                    {/* Contact info - only visible to logged-in users */}
+                    {user && (member.email || member.phone || member.office_location) && (
+                      <div className="space-y-2 text-sm text-gray-600 border-t border-gray-200 pt-4">
+                        {member.email && (
+                          <div className="flex items-center">
+                            <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                            <button
+                              onClick={() => {
+                                const email = member.email!;
+                                window.location.href = `mailto:${email}`;
+                              }}
+                              className="hover:text-primary-600 text-left"
+                              title="Click to send email"
+                            >
+                              {member.email}
+                            </button>
+                          </div>
+                        )}
+                        {member.phone && (
+                          <div className="flex items-center">
+                            <Phone className="w-4 h-4 mr-2 text-gray-400" />
+                            <span>{member.phone}</span>
+                          </div>
+                        )}
+                        {member.office_location && (
+                          <div className="flex items-center">
+                            <MapPin className="w-4 h-4 mr-2 text-gray-400" />
+                            <span>{member.office_location}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Profile URL Link */}
                     {member.profile_url && (
