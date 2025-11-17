@@ -1,37 +1,31 @@
 # HARS Web - AWS Deployment Guide
 
-**Last Updated**: 2025-01-14
+**Last Updated**: 2025-01-17
+**Deployment Strategy**: Git Push → EC2 Git Pull → EC2 Docker Build
 
 ---
 
-## 🏗️ 배포 아키텍처
+## 🏗️ 배포 아키텍처 (실제 사용)
 
 ```
 ┌─────────────┐                    ┌─────────────┐
-│ 로컬 개발   │  1. Git Push       │   GitHub    │
-│ 환경        │ ────────────────>  │ Repository  │
-└─────────────┘                    └─────────────┘
-      │
-      │ 2. Docker Build
-      │    (로컬에서 이미지 빌드)
-      ▼
-┌─────────────┐  3. Docker Push    ┌─────────────┐
-│ 로컬 Docker │ ────────────────>  │   AWS ECR   │
-│ 이미지      │                    │  (Registry) │
+│ 로컬 개발   │  1. Git Commit     │   GitHub    │
+│ 환경        │     & Push         │ Repository  │
+│             │ ────────────────>  │             │
 └─────────────┘                    └─────────────┘
                                          │
-                            4. Pull      │
-                               Image     │
+                            2. Git Pull  │
                                          ▼
                                   ┌─────────────┐
                                   │   AWS EC2   │
                                   │ 52.78.232.37│
                                   │             │
-                                  │ docker-     │
-                                  │ compose up  │
+                                  │ 3. Docker   │
+                                  │    Build    │
+                                  │    (EC2)    │
                                   └─────────────┘
                                          │
-                            5. 서비스    │
+                            4. 컨테이너  │
                                실행      │
                                          ▼
                                   ┌─────────────┐
@@ -41,63 +35,79 @@
 ```
 
 **핵심 원칙**:
-1. **Terraform**: AWS 인프라 초기 세팅 (EC2, ECR, VPC, S3 등)
-2. **로컬 빌드**: 로컬 PC에서 Docker Compose로 이미지 빌드
-3. **ECR 푸시**: 빌드된 이미지를 AWS ECR에 푸시
-4. **Git 커밋**: 소스코드 변경사항을 GitHub에 커밋
-5. **EC2 배포**: EC2에서 업데이트된 ECR 이미지를 pull하여 새 버전 배포
+1. **로컬**: 코드 작성 → Git commit → Git push
+2. **EC2**: Git pull → Docker build (EC2에서) → Container restart
+3. **이유**: t3.micro에서 빌드하는 것이 ECR 인증 문제를 피하는 가장 간단한 방법
 
 ---
 
 ## ⚠️ CRITICAL: 배포 규칙 (MUST FOLLOW!)
 
 **절대 규칙**:
-1. **인프라 변경은 반드시 Terraform으로만 수행**
-2. **이미지 빌드는 항상 로컬에서 수행 (t2.micro는 느림!)**
-3. **빌드된 이미지는 ECR에 푸시**
-4. **소스코드는 반드시 Git에 커밋**
-5. **EC2는 ECR에서 이미지만 pull (빌드 안 함!)**
-6. **절대 AWS 콘솔에서 수동으로 변경하지 말 것**
-7. **Terraform과 수동 변경을 섞으면 충돌 발생!**
+1. **모든 코드 변경은 반드시 Git commit & push**
+2. **배포는 자동화 스크립트만 사용 (scripts/deploy.sh)**
+3. **EC2에서 Docker 이미지 빌드 (t3.micro 충분)**
+4. **인프라 변경은 반드시 Terraform으로만 수행**
+5. **절대 AWS 콘솔에서 수동으로 변경하지 말 것**
 
 ---
 
-## 🔴 표준 배포 프로세스
+## 🔴 표준 배포 프로세스 (자동화)
 
 ### 📋 배포 전 체크리스트
 - [ ] 로컬에서 코드 변경 완료
-- [ ] AWS CLI 설정 확인 (`aws configure`)
-- [ ] ECR 로그인 완료
-- [ ] 인프라 변경 여부 확인 (terraform/main.tf)
+- [ ] Git commit 완료
+- [ ] SSH 키 존재 확인 (terraform/hars-key)
 
 ---
 
-## 1️⃣ 코드만 변경한 경우 (가장 일반적)
+## 1️⃣ 자동 배포 (권장)
 
-### Step 1: 로컬에서 Docker 이미지 빌드
+### 단일 명령어로 배포
 
 ```bash
 cd c:/projects/hars-web
-
-# Client 이미지 빌드
-docker build -t hars-client:latest -f client/Dockerfile client
-
-# Server 이미지 빌드
-docker build -t hars-server:latest -f server/Dockerfile server
+bash scripts/deploy.sh
 ```
 
-### Step 2: ECR 로그인 및 이미지 태그
+**자동으로 수행되는 작업**:
+1. Git commit 확인
+2. Git push to GitHub
+3. EC2에 SSH 접속
+4. EC2에서 git pull
+5. EC2에서 docker-compose down
+6. EC2에서 docker-compose up -d --build
+7. 배포 검증
+
+---
+
+## 2️⃣ 수동 배포 (자동화 실패 시)
+
+### Step 1: Git Push
 
 ```bash
-# ECR 로그인 (AWS CLI 필요)
-aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com
-
-# 이미지 태그 (ECR URI 사용)
-docker tag hars-client:latest <AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com/hars-client:latest
-docker tag hars-server:latest <AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com/hars-server:latest
+cd c:/projects/hars-web
+git add .
+git commit -m "Your commit message"
+git push origin main
 ```
 
-### Step 3: ECR에 이미지 푸시
+### Step 2: EC2 SSH 접속
+
+```bash
+ssh -i terraform/hars-key ubuntu@52.78.232.37
+```
+
+### Step 3: EC2에서 배포
+
+```bash
+cd hars-web
+git pull origin main
+docker-compose down
+docker-compose up -d --build
+```
+
+**소요 시간**: 약 5-10분 (TypeScript 빌드 포함)
 
 ```bash
 # Client 이미지 푸시

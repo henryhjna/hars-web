@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # HARS Web - Automated Deployment Script
-# This script automates the entire deployment process to AWS EC2
-# DO NOT run individual commands - ONLY use 'make deploy'
+# Deployment strategy: Git push → EC2 git pull → EC2 docker build
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
@@ -22,164 +21,33 @@ echo -e "${GREEN}========================================${NC}"
 echo ""
 
 # ==============================================================================
-# STEP 1: Environment & Prerequisites Check
+# STEP 1: Prerequisites Check
 # ==============================================================================
-echo -e "${YELLOW}[1/7] Checking prerequisites...${NC}"
+echo -e "${YELLOW}[1/4] Checking prerequisites...${NC}"
 
-# Load environment variables
-if [ ! -f ".env" ]; then
-    echo -e "${RED}ERROR: .env file not found!${NC}"
-    echo "Please copy .env.example to .env and configure your values."
+# Check if there are uncommitted changes
+if ! git diff-index --quiet HEAD --; then
+    echo -e "${RED}ERROR: You have uncommitted changes${NC}"
+    echo "Please commit or stash your changes first:"
+    echo "  git status"
     exit 1
 fi
 
-source .env
-
-# Check required environment variables
-REQUIRED_VARS=(
-    "AWS_REGION"
-    "AWS_ACCESS_KEY_ID"
-    "AWS_SECRET_ACCESS_KEY"
-    "S3_BUCKET_NAME"
-    "DB_PASSWORD"
-    "JWT_SECRET"
-)
-
-for var in "${REQUIRED_VARS[@]}"; do
-    if [ -z "${!var}" ]; then
-        echo -e "${RED}ERROR: $var is not set in .env${NC}"
-        exit 1
-    fi
-done
-
-# Check Docker
-if ! command -v docker &> /dev/null; then
-    echo -e "${RED}ERROR: Docker is not installed or not in PATH${NC}"
+# Check Terraform (try multiple locations)
+if command -v terraform &> /dev/null; then
+    TERRAFORM_CMD="terraform"
+elif [ -f "/c/terraform/terraform.exe" ]; then
+    TERRAFORM_CMD="/c/terraform/terraform.exe"
+else
+    echo -e "${RED}ERROR: Terraform is not installed${NC}"
+    echo "Install from: https://www.terraform.io/downloads"
     exit 1
 fi
 
-# Check if Docker is running
-if ! docker info &> /dev/null; then
-    echo -e "${RED}ERROR: Docker is not running${NC}"
-    echo "Please start Docker Desktop and try again."
-    exit 1
-fi
-
-# Check AWS CLI
-AWS_CMD="${AWS_CLI_PATH:-aws}"
-if ! command -v "$AWS_CMD" &> /dev/null; then
-    echo -e "${RED}ERROR: AWS CLI is not installed${NC}"
-    exit 1
-fi
-
-# Check Terraform
-TERRAFORM_CMD="${TERRAFORM_PATH:-terraform}"
 if [ ! -d "terraform" ]; then
     echo -e "${RED}ERROR: terraform directory not found${NC}"
     exit 1
 fi
-
-echo -e "${GREEN}✓ All prerequisites met${NC}"
-echo ""
-
-# ==============================================================================
-# STEP 2: Get Terraform Outputs
-# ==============================================================================
-echo -e "${YELLOW}[2/7] Getting Terraform outputs...${NC}"
-
-# Get EC2 IP
-EC2_IP=$(cd terraform && "$TERRAFORM_CMD" output -raw ec2_public_ip 2>/dev/null || echo "")
-if [ -z "$EC2_IP" ]; then
-    echo -e "${RED}ERROR: Could not get EC2 IP from Terraform${NC}"
-    echo "Run 'cd terraform && terraform apply' first"
-    exit 1
-fi
-
-# Get ECR URLs
-ECR_CLIENT_URL=$(cd terraform && "$TERRAFORM_CMD" output -raw ecr_client_repository_url 2>/dev/null || echo "")
-ECR_SERVER_URL=$(cd terraform && "$TERRAFORM_CMD" output -raw ecr_server_repository_url 2>/dev/null || echo "")
-
-if [ -z "$ECR_CLIENT_URL" ] || [ -z "$ECR_SERVER_URL" ]; then
-    echo -e "${RED}ERROR: Could not get ECR repository URLs from Terraform${NC}"
-    exit 1
-fi
-
-echo -e "${GREEN}✓ EC2 IP: $EC2_IP${NC}"
-echo -e "${GREEN}✓ ECR Client: $ECR_CLIENT_URL${NC}"
-echo -e "${GREEN}✓ ECR Server: $ECR_SERVER_URL${NC}"
-echo ""
-
-# ==============================================================================
-# STEP 3: Build Docker Images Locally
-# ==============================================================================
-echo -e "${YELLOW}[3/7] Building Docker images locally...${NC}"
-echo "This may take a few minutes..."
-
-# Build client
-echo "Building client image..."
-docker build -t hars-client:latest -f client/Dockerfile client || {
-    echo -e "${RED}ERROR: Failed to build client image${NC}"
-    exit 1
-}
-
-# Build server
-echo "Building server image..."
-docker build -t hars-server:latest -f server/Dockerfile server || {
-    echo -e "${RED}ERROR: Failed to build server image${NC}"
-    exit 1
-}
-
-echo -e "${GREEN}✓ Docker images built successfully${NC}"
-echo ""
-
-# ==============================================================================
-# STEP 4: ECR Login
-# ==============================================================================
-echo -e "${YELLOW}[4/7] Logging into AWS ECR...${NC}"
-
-# Extract AWS account ID from ECR URL
-AWS_ACCOUNT_ID=$(echo "$ECR_CLIENT_URL" | cut -d'.' -f1)
-
-# ECR login
-"$AWS_CMD" ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com" || {
-    echo -e "${RED}ERROR: ECR login failed${NC}"
-    echo "Check your AWS credentials in .env"
-    exit 1
-}
-
-echo -e "${GREEN}✓ Successfully logged into ECR${NC}"
-echo ""
-
-# ==============================================================================
-# STEP 5: Tag and Push Images to ECR
-# ==============================================================================
-echo -e "${YELLOW}[5/7] Tagging and pushing images to ECR...${NC}"
-
-# Tag images
-docker tag hars-client:latest "${ECR_CLIENT_URL}:latest"
-docker tag hars-server:latest "${ECR_SERVER_URL}:latest"
-
-# Push client
-echo "Pushing client image to ECR..."
-docker push "${ECR_CLIENT_URL}:latest" || {
-    echo -e "${RED}ERROR: Failed to push client image${NC}"
-    exit 1
-}
-
-# Push server
-echo "Pushing server image to ECR..."
-docker push "${ECR_SERVER_URL}:latest" || {
-    echo -e "${RED}ERROR: Failed to push server image${NC}"
-    exit 1
-}
-
-echo -e "${GREEN}✓ Images pushed to ECR successfully${NC}"
-echo ""
-
-# ==============================================================================
-# STEP 6: Deploy to EC2
-# ==============================================================================
-echo -e "${YELLOW}[6/7] Deploying to EC2...${NC}"
 
 # Check SSH key
 SSH_KEY="terraform/hars-key"
@@ -188,6 +56,43 @@ if [ ! -f "$SSH_KEY" ]; then
     exit 1
 fi
 
+echo -e "${GREEN}✓ All prerequisites met${NC}"
+echo ""
+
+# ==============================================================================
+# STEP 2: Push to GitHub
+# ==============================================================================
+echo -e "${YELLOW}[2/4] Pushing changes to GitHub...${NC}"
+
+# Push to GitHub
+git push origin main || {
+    echo -e "${RED}ERROR: Failed to push to GitHub${NC}"
+    exit 1
+}
+
+echo -e "${GREEN}✓ Pushed to GitHub successfully${NC}"
+echo ""
+
+# ==============================================================================
+# STEP 3: Get EC2 IP from Terraform
+# ==============================================================================
+echo -e "${YELLOW}[3/4] Getting EC2 IP from Terraform...${NC}"
+
+EC2_IP=$(cd terraform && "$TERRAFORM_CMD" output -raw ec2_public_ip 2>/dev/null || echo "")
+if [ -z "$EC2_IP" ]; then
+    echo -e "${RED}ERROR: Could not get EC2 IP from Terraform${NC}"
+    echo "Run 'cd terraform && terraform apply' first"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ EC2 IP: $EC2_IP${NC}"
+echo ""
+
+# ==============================================================================
+# STEP 4: Deploy to EC2 (Git Pull + Docker Build on EC2)
+# ==============================================================================
+echo -e "${YELLOW}[4/4] Deploying to EC2...${NC}"
+
 # Set proper permissions on SSH key (Windows Git Bash compatible)
 chmod 600 "$SSH_KEY" 2>/dev/null || true
 
@@ -195,64 +100,56 @@ chmod 600 "$SSH_KEY" 2>/dev/null || true
 SSH_OPTS="-i $SSH_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 echo "Connecting to EC2 instance at $EC2_IP..."
+echo "This will take several minutes (Docker build on EC2)..."
+echo ""
 
-# Deploy commands
+# Deploy commands: git pull → stop containers → build → start
 ssh $SSH_OPTS ubuntu@$EC2_IP << 'ENDSSH'
 set -e
 
-echo "Pulling latest code from GitHub..."
+echo "[EC2] Pulling latest code from GitHub..."
 cd hars-web
 git pull origin main
 
-echo "Logging into ECR..."
-aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin 025158345480.dkr.ecr.ap-northeast-2.amazonaws.com
+echo "[EC2] Stopping old containers..."
+docker-compose down
 
-echo "Pulling latest Docker images from ECR..."
-docker pull 025158345480.dkr.ecr.ap-northeast-2.amazonaws.com/hars-client:latest
-docker pull 025158345480.dkr.ecr.ap-northeast-2.amazonaws.com/hars-server:latest
+echo "[EC2] Building and starting new containers..."
+echo "This may take 5-10 minutes on t3.micro..."
+docker-compose up -d --build
 
-echo "Stopping old containers..."
-docker-compose -f docker-compose.prod.yml down
-
-echo "Starting new containers..."
-docker-compose -f docker-compose.prod.yml up -d
-
-echo "Deployment complete!"
+echo "[EC2] Deployment complete!"
 ENDSSH
 
 if [ $? -eq 0 ]; then
+    echo ""
     echo -e "${GREEN}✓ Successfully deployed to EC2${NC}"
+    echo ""
+
+    # Wait for containers to fully start
+    echo "Waiting for containers to start (10 seconds)..."
+    sleep 10
+
+    # Check container status
+    echo -e "${YELLOW}Container Status:${NC}"
+    ssh $SSH_OPTS ubuntu@$EC2_IP "docker ps --filter name=hars --format 'table {{.Names}}\t{{.Status}}'" || true
+
+    echo ""
+    echo -e "${GREEN}========================================${NC}"
+    echo -e "${GREEN}  Deployment Complete!${NC}"
+    echo -e "${GREEN}========================================${NC}"
+    echo ""
+    echo -e "Application URL: ${GREEN}http://$EC2_IP${NC}"
+    echo -e "API Health Check: ${GREEN}http://$EC2_IP:5000/health${NC}"
+    echo ""
+    echo -e "${YELLOW}Next steps:${NC}"
+    echo "1. Test the application in your browser: http://$EC2_IP"
+    echo "2. Check logs: ssh -i terraform/hars-key ubuntu@$EC2_IP 'cd hars-web && docker-compose logs -f'"
+    echo "3. Monitor containers: ssh -i terraform/hars-key ubuntu@$EC2_IP 'docker ps'"
+    echo ""
 else
+    echo ""
     echo -e "${RED}ERROR: Deployment to EC2 failed${NC}"
+    echo "Check logs: ssh -i terraform/hars-key ubuntu@$EC2_IP 'cd hars-web && docker-compose logs'"
     exit 1
 fi
-
-echo ""
-
-# ==============================================================================
-# STEP 7: Verification
-# ==============================================================================
-echo -e "${YELLOW}[7/7] Verifying deployment...${NC}"
-
-# Wait a few seconds for containers to start
-echo "Waiting for containers to start..."
-sleep 5
-
-# Check if containers are running
-ssh $SSH_OPTS ubuntu@$EC2_IP "docker ps --filter name=hars" || {
-    echo -e "${RED}WARNING: Could not verify containers${NC}"
-}
-
-echo ""
-echo -e "${GREEN}========================================${NC}"
-echo -e "${GREEN}  Deployment Complete!${NC}"
-echo -e "${GREEN}========================================${NC}"
-echo ""
-echo -e "Application URL: ${GREEN}http://$EC2_IP${NC}"
-echo -e "API Health Check: ${GREEN}http://$EC2_IP:5000/health${NC}"
-echo ""
-echo -e "${YELLOW}Next steps:${NC}"
-echo "1. Test the application in your browser"
-echo "2. Check logs if needed: ssh -i terraform/hars-key ubuntu@$EC2_IP 'cd hars-web && docker-compose logs'"
-echo "3. Monitor the application"
-echo ""
