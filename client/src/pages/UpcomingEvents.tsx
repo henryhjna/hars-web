@@ -187,11 +187,12 @@ export default function UpcomingEvents() {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section with Optional Banner Image */}
       <div
-        className="relative min-h-[500px] bg-cover bg-center overflow-hidden"
+        className="relative min-h-[600px] bg-cover bg-center overflow-hidden"
         style={event.banner_image_url ? {
           backgroundImage: `url(${event.banner_image_url})`,
           backgroundPosition: 'center',
-          backgroundSize: 'cover'
+          backgroundSize: 'cover',
+          imageRendering: '-webkit-optimize-contrast',
         } : undefined}
       >
         {/* Gradient overlay - darker when banner image exists, regular gradient otherwise */}
@@ -201,7 +202,7 @@ export default function UpcomingEvents() {
         } />
 
         {/* Content with high z-index for visibility */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 min-h-[500px] flex items-center justify-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 min-h-[600px] flex items-center justify-center">
           <div className="text-center text-white">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-lg">
               {event.title}

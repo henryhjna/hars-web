@@ -7,7 +7,7 @@ const s3Client = new S3Client({
 
 const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'hars-submissions-henryhjna';
 const MAX_PHOTO_SIZE = 2 * 1024 * 1024; // 2MB
-const MAX_BANNER_SIZE = 20 * 1024 * 1024; // 20MB
+const MAX_BANNER_SIZE = 50 * 1024 * 1024; // 50MB for high-resolution banners
 
 export const uploadPhotoToS3 = async (
   file: Express.Multer.File,

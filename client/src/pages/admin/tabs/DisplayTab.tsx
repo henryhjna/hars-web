@@ -33,10 +33,10 @@ export default function DisplayTab({ event, basicForm, onInputChange, onSubmit, 
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size (20MB)
-    const maxSize = 20 * 1024 * 1024; // 20MB
+    // Validate file size (50MB for high-resolution banners)
+    const maxSize = 50 * 1024 * 1024; // 50MB
     if (file.size > maxSize) {
-      setbannerError(`File size exceeds 20MB limit. File size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
+      setbannerError(`File size exceeds 50MB limit. File size: ${(file.size / 1024 / 1024).toFixed(2)}MB`);
       return;
     }
 
@@ -197,7 +197,7 @@ export default function DisplayTab({ event, basicForm, onInputChange, onSubmit, 
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Upload Banner Image (Max 20MB, JPEG/PNG/WebP)
+              Upload Banner Image (Max 50MB, JPEG/PNG/WebP)
             </label>
             <input
               id="banner-upload"
@@ -216,6 +216,17 @@ export default function DisplayTab({ event, basicForm, onInputChange, onSubmit, 
                 Selected: {bannerFile.name} ({(bannerFile.size / 1024 / 1024).toFixed(2)}MB)
               </p>
             )}
+
+            {/* Banner Upload Guidelines */}
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm font-semibold text-blue-900 mb-2">📸 For Best Quality:</p>
+              <ul className="text-xs text-blue-800 space-y-1 ml-4 list-disc">
+                <li>Resolution: 2560x1440 (4K) recommended, minimum 1920x1080 (Full HD)</li>
+                <li>Format: WebP (best) or high-quality JPEG (90%+)</li>
+                <li>File Size: Up to 50MB supported for high-resolution images</li>
+                <li>Aspect Ratio: 16:9 works best for hero banner display</li>
+              </ul>
+            </div>
           </div>
 
           {/* Current Banner Preview */}
