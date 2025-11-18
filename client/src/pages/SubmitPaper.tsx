@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import eventService from '../services/event.service';
 import submissionService from '../services/submission.service';
-import type { Event } from '../types';
+import type { Event, Submission } from '../types';
 
 export default function SubmitPaper() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEditMode = !!editId;
+
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [editingSubmission, setEditingSubmission] = useState<Submission | null>(null);
 
   const [formData, setFormData] = useState({
     event_id: '',
@@ -80,6 +85,44 @@ export default function SubmitPaper() {
     loadUpcomingEvents();
   }, []);
 
+  useEffect(() => {
+    if (isEditMode && editId) {
+      loadSubmission(editId);
+    }
+  }, [isEditMode, editId]);
+
+  const loadSubmission = async (submissionId: string) => {
+    try {
+      setLoading(true);
+      const response = await submissionService.getMySubmissions();
+      if (response.success && response.data) {
+        const submission = response.data.find((s: Submission) => s.id === submissionId);
+        if (submission) {
+          setEditingSubmission(submission);
+          setFormData({
+            event_id: submission.event_id,
+            title: submission.title,
+            abstract: submission.abstract,
+            keywords: submission.keywords.join(', '),
+            corresponding_author: submission.corresponding_author,
+            co_authors: submission.co_authors || '',
+          });
+          // Find and set selected event
+          const event = events.find((e) => e.id === submission.event_id);
+          if (event) {
+            setSelectedEvent(event);
+          }
+        } else {
+          setError('Submission not found');
+        }
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load submission');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadUpcomingEvents = async () => {
     try {
       setLoading(true);
@@ -146,7 +189,8 @@ export default function SubmitPaper() {
       return;
     }
 
-    if (!pdfFile) {
+    // In edit mode, PDF is optional (can keep existing PDF)
+    if (!isEditMode && !pdfFile) {
       setError('Please upload a PDF file');
       return;
     }
@@ -159,24 +203,45 @@ export default function SubmitPaper() {
         .map((k) => k.trim())
         .filter((k) => k.length > 0);
 
-      const response = await submissionService.createSubmission({
-        event_id: formData.event_id,
-        title: formData.title,
-        abstract: formData.abstract,
-        keywords: keywordsArray,
-        corresponding_author: formData.corresponding_author,
-        co_authors: formData.co_authors || undefined,
-        pdf: pdfFile,
-      });
+      let response;
+
+      if (isEditMode && editId) {
+        // Update existing submission
+        const updateData: any = {
+          title: formData.title,
+          abstract: formData.abstract,
+          keywords: keywordsArray,
+          corresponding_author: formData.corresponding_author,
+          co_authors: formData.co_authors || undefined,
+        };
+
+        // Only include PDF if a new file was selected
+        if (pdfFile) {
+          updateData.pdf = pdfFile;
+        }
+
+        response = await submissionService.updateSubmission(editId, updateData);
+      } else {
+        // Create new submission
+        response = await submissionService.createSubmission({
+          event_id: formData.event_id,
+          title: formData.title,
+          abstract: formData.abstract,
+          keywords: keywordsArray,
+          corresponding_author: formData.corresponding_author,
+          co_authors: formData.co_authors || undefined,
+          pdf: pdfFile!,
+        });
+      }
 
       if (response.success) {
-        setSuccess('Paper submitted successfully!');
+        setSuccess(isEditMode ? 'Paper updated successfully!' : 'Paper submitted successfully!');
         setTimeout(() => {
           navigate('/my-submissions');
         }, 2000);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to submit paper');
+      setError(err.response?.data?.message || `Failed to ${isEditMode ? 'update' : 'submit'} paper`);
     } finally {
       setSubmitting(false);
     }
@@ -218,7 +283,9 @@ export default function SubmitPaper() {
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Submit Paper</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            {isEditMode ? 'Edit Submission' : 'Submit Paper'}
+          </h2>
 
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded text-red-700">
@@ -244,7 +311,8 @@ export default function SubmitPaper() {
                 value={formData.event_id}
                 onChange={handleEventChange}
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                disabled={isEditMode}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="">-- Select an Event --</option>
                 {events.map((event) => (
@@ -356,7 +424,7 @@ export default function SubmitPaper() {
             {/* PDF Upload */}
             <div>
               <label htmlFor="pdf" className="block text-sm font-medium text-gray-700">
-                Upload PDF *
+                Upload PDF {isEditMode ? '(Optional - leave empty to keep current PDF)' : '*'}
               </label>
               <input
                 type="file"
@@ -364,7 +432,7 @@ export default function SubmitPaper() {
                 name="pdf"
                 accept=".pdf"
                 onChange={handleFileChange}
-                required
+                required={!isEditMode}
                 className="mt-1 block w-full text-sm text-gray-500
                   file:mr-4 file:py-2 file:px-4
                   file:rounded file:border-0
@@ -378,6 +446,11 @@ export default function SubmitPaper() {
                   Selected: {pdfFile.name} ({(pdfFile.size / 1024 / 1024).toFixed(2)} MB)
                 </p>
               )}
+              {isEditMode && !pdfFile && editingSubmission && (
+                <p className="mt-1 text-sm text-gray-600">
+                  Current PDF: {editingSubmission.pdf_url.split('/').pop()}
+                </p>
+              )}
               <p className="mt-1 text-xs text-gray-500">
                 Maximum file size: 10MB. Only PDF files are accepted.
               </p>
@@ -387,7 +460,7 @@ export default function SubmitPaper() {
             <div className="flex justify-end space-x-3">
               <button
                 type="button"
-                onClick={() => navigate('/events')}
+                onClick={() => navigate('/my-submissions')}
                 disabled={submitting}
                 className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
               >
@@ -395,10 +468,13 @@ export default function SubmitPaper() {
               </button>
               <button
                 type="submit"
-                disabled={submitting || !isSubmissionOpen(selectedEvent)}
+                disabled={submitting || (!isEditMode && !isSubmissionOpen(selectedEvent))}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting ? 'Submitting...' : 'Submit Paper'}
+                {submitting
+                  ? (isEditMode ? 'Updating...' : 'Submitting...')
+                  : (isEditMode ? 'Update Submission' : 'Submit Paper')
+                }
               </button>
             </div>
           </form>

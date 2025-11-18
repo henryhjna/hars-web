@@ -212,7 +212,7 @@ export default function MySubmissions() {
                     {submission.status === 'draft' || submission.status === 'submitted' ? (
                       <>
                         <button
-                          onClick={() => navigate(`/edit-submission/${submission.id}`)}
+                          onClick={() => navigate(`/submit-paper?edit=${submission.id}`)}
                           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
                         >
                           Edit
