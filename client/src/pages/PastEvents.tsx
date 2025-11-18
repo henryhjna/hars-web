@@ -182,8 +182,102 @@ export default function PastEvents() {
                       </p>
                     </div>
 
+                    {/* Overview / Description */}
+                    {selectedEvent.show_overview && (selectedEvent.description || selectedEvent.event_content?.overview) && (
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Conference Overview</h3>
+                        <div className="prose max-w-none text-gray-700">
+                          {selectedEvent.event_content?.overview ? (
+                            selectedEvent.event_content.overview.split('\n').map((paragraph, idx) =>
+                              paragraph.trim() && <p key={idx} className="mb-4">{paragraph.trim()}</p>
+                            )
+                          ) : (
+                            <p>{selectedEvent.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Practitioner Sessions */}
+                    {selectedEvent.show_practitioner_sessions && selectedEvent.event_content?.practitioner_sessions && (
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Special Practitioner Sessions</h3>
+                        <div className="prose max-w-none text-gray-700 whitespace-pre-line">
+                          {selectedEvent.event_content.practitioner_sessions}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Submission Guidelines */}
+                    {selectedEvent.show_submission_guidelines && selectedEvent.event_content?.submission_guidelines && (
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Submission Guidelines</h3>
+                        <div className="prose max-w-none text-gray-700 whitespace-pre-line">
+                          {selectedEvent.event_content.submission_guidelines}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Awards */}
+                    {selectedEvent.show_awards && selectedEvent.event_content?.awards && (
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Awards</h3>
+                        <div className="prose max-w-none text-gray-700 whitespace-pre-line">
+                          {selectedEvent.event_content.awards}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Academic Committee */}
+                    {selectedEvent.show_committees && selectedEvent.event_content?.academic_committee && selectedEvent.event_content.academic_committee.length > 0 && (
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Academic Committee</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {selectedEvent.event_content.academic_committee.map((member, idx) => (
+                            <div key={idx} className="bg-gray-50 p-4 rounded-lg">
+                              <p className="font-semibold text-gray-900">{member.name}</p>
+                              <p className="text-sm text-gray-600">{member.affiliation}</p>
+                              {member.area && <p className="text-xs text-primary-600 mt-1">({member.area})</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Organizing Committee */}
+                    {selectedEvent.show_committees && selectedEvent.event_content?.organizing_committee && selectedEvent.event_content.organizing_committee.length > 0 && (
+                      <div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">Organizing Committee</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {selectedEvent.event_content.organizing_committee.map((member, idx) => (
+                            <div
+                              key={idx}
+                              className={`p-4 rounded-lg ${
+                                member.role === 'Chair'
+                                  ? 'bg-gradient-to-br from-primary-600 to-primary-700 text-white'
+                                  : 'bg-gray-50'
+                              }`}
+                            >
+                              {member.role === 'Chair' && (
+                                <span className="text-xs font-semibold mb-1 block text-primary-100">CHAIR</span>
+                              )}
+                              <p className={`font-semibold ${member.role === 'Chair' ? 'text-white' : 'text-gray-900'}`}>
+                                {member.name}
+                              </p>
+                              <p className={`text-sm ${member.role === 'Chair' ? 'text-white opacity-90' : 'text-gray-600'}`}>
+                                {member.affiliation}
+                              </p>
+                              {member.role && member.role !== 'Chair' && (
+                                <p className="text-xs text-gray-500 mt-1">{member.role}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Venue Information */}
-                    {(selectedEvent.location || selectedEvent.event_content?.venue_info) && (
+                    {selectedEvent.show_venue && (selectedEvent.location || selectedEvent.event_content?.venue_info) && (
                       <div className="bg-gray-50 p-6 rounded-lg space-y-6">
                         <div>
                           <h3 className="text-xl font-bold text-gray-900 mb-4">Venue Information</h3>
@@ -271,70 +365,6 @@ export default function PastEvents() {
                             </div>
                           </div>
                         )}
-                      </div>
-                    )}
-
-                    {/* Overview / Description */}
-                    {(selectedEvent.description || selectedEvent.event_content?.overview) && (
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">Overview</h3>
-                        <div className="prose max-w-none text-gray-700">
-                          {selectedEvent.event_content?.overview ? (
-                            selectedEvent.event_content.overview.split('\n').map((paragraph, idx) =>
-                              paragraph.trim() && <p key={idx} className="mb-4">{paragraph.trim()}</p>
-                            )
-                          ) : (
-                            <p>{selectedEvent.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Academic Committee */}
-                    {selectedEvent.show_committees && selectedEvent.event_content?.academic_committee && selectedEvent.event_content.academic_committee.length > 0 && (
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">Academic Committee</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {selectedEvent.event_content.academic_committee.map((member, idx) => (
-                            <div key={idx} className="bg-gray-50 p-4 rounded-lg">
-                              <p className="font-semibold text-gray-900">{member.name}</p>
-                              <p className="text-sm text-gray-600">{member.affiliation}</p>
-                              {member.area && <p className="text-xs text-primary-600 mt-1">({member.area})</p>}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Organizing Committee */}
-                    {selectedEvent.show_committees && selectedEvent.event_content?.organizing_committee && selectedEvent.event_content.organizing_committee.length > 0 && (
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">Organizing Committee</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {selectedEvent.event_content.organizing_committee.map((member, idx) => (
-                            <div
-                              key={idx}
-                              className={`p-4 rounded-lg ${
-                                member.role === 'Chair'
-                                  ? 'bg-gradient-to-br from-primary-600 to-primary-700 text-white'
-                                  : 'bg-gray-50'
-                              }`}
-                            >
-                              {member.role === 'Chair' && (
-                                <span className="text-xs font-semibold mb-1 block text-primary-100">CHAIR</span>
-                              )}
-                              <p className={`font-semibold ${member.role === 'Chair' ? 'text-white' : 'text-gray-900'}`}>
-                                {member.name}
-                              </p>
-                              <p className={`text-sm ${member.role === 'Chair' ? 'text-white opacity-90' : 'text-gray-600'}`}>
-                                {member.affiliation}
-                              </p>
-                              {member.role && member.role !== 'Chair' && (
-                                <p className="text-xs text-gray-500 mt-1">{member.role}</p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
                       </div>
                     )}
                   </div>
