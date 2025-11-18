@@ -73,8 +73,9 @@ export class ReviewController {
         }
 
         // Check if all reviewers have completed their reviews
+        // After updating current reviewer's status, check if ALL assignments are completed
         const allCompleted = assignments.every((a) =>
-          a.reviewer_id === reviewerId || a.status === 'completed'
+          a.reviewer_id === reviewerId ? true : a.status === 'completed'
         );
 
         const submission = await SubmissionModel.findById(submissionId);

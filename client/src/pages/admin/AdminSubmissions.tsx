@@ -293,21 +293,9 @@ export default function AdminSubmissions() {
                 </div>
                 <div className="flex justify-between md:justify-start items-center">
                   <span className="text-sm text-gray-600 md:mr-2">Status:</span>
-                  <select
-                    value={submission.status}
-                    onChange={(e) =>
-                      handleStatusChange(submission.id, e.target.value as SubmissionStatus)
-                    }
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(
-                      submission.status
-                    )} border-0 cursor-pointer`}
-                  >
-                    <option value="submitted">Submitted</option>
-                    <option value="under_review">Under Review</option>
-                    <option value="accepted">Accepted</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="review_complete">Review Complete</option>
-                  </select>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(submission.status)}`}>
+                    {submission.status.replace('_', ' ').replace(/bw/g, (l) => l.toUpperCase())}
+                  </span>
                 </div>
                 <div className="flex justify-between md:justify-start items-center">
                   <span className="text-sm text-gray-600 md:mr-2">Submitted:</span>
@@ -335,6 +323,22 @@ export default function AdminSubmissions() {
                   Assign Reviewer
                 </button>
               </div>
+                {submission.status === 'review_complete' && (
+                  <>
+                    <button
+                      onClick={() => handleStatusChange(submission.id, 'accepted')}
+                      className="flex-1 md:flex-none px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange(submission.id, 'rejected')}
+                      className="flex-1 md:flex-none px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700"
+                    >
+                      Reject
+                    </button>
+                  </>
+                )}
             </div>
           ))}
         </div>
