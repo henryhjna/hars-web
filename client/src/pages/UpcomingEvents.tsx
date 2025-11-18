@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, MapPin, Award, Users, BookOpen, Presentation, ArrowUpDown } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { Link } from 'react-router-dom';
@@ -7,11 +7,11 @@ import conferenceTopicService from '../services/conferenceTopic.service';
 import type { Event, ConferenceTopic, CommitteeMember, EventSession } from '../types';
 
 // Simple markdown parser for venue info
-function parseMarkdown(markdown: string): JSX.Element[] {
+function parseMarkdown(markdown: string): React.ReactElement[] {
   if (!markdown) return [];
 
   const lines = markdown.split('\n');
-  const elements: JSX.Element[] = [];
+  const elements: React.ReactElement[] = [];
   let key = 0;
 
   lines.forEach((line, index) => {

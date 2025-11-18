@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import eventService from '../services/event.service';
 import pastEventsService from '../services/pastEvents.service';
@@ -7,11 +7,11 @@ import type { Event, EventPhoto, EventSession, Testimonial } from '../types';
 type ViewTab = 'overview' | 'program' | 'photos' | 'highlights';
 
 // Simple markdown parser for venue info
-function parseMarkdown(markdown: string): JSX.Element[] {
+function parseMarkdown(markdown: string): React.ReactElement[] {
   if (!markdown) return [];
 
   const lines = markdown.split('\n');
-  const elements: JSX.Element[] = [];
+  const elements: React.ReactElement[] = [];
   let key = 0;
 
   lines.forEach((line, index) => {
