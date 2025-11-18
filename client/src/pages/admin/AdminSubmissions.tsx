@@ -324,6 +324,7 @@ export default function AdminSubmissions() {
                 </div>
               </div>
 
+              {/* Action Buttons */}
               <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
                 <button
                   onClick={() => viewPdf(submission.pdf_url)}
@@ -350,22 +351,24 @@ export default function AdminSubmissions() {
                   Delete
                 </button>
               </div>
-                {submission.status === 'review_complete' && (
-                  <>
-                    <button
-                      onClick={() => handleStatusChange(submission.id, 'accepted')}
-                      className="flex-1 md:flex-none px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700"
-                    >
-                      Accept
-                    </button>
-                    <button
-                      onClick={() => handleStatusChange(submission.id, 'rejected')}
-                      className="flex-1 md:flex-none px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700"
-                    >
-                      Reject
-                    </button>
-                  </>
-                )}
+
+              {/* Decision Buttons (only show when review is complete) */}
+              {submission.status === 'review_complete' && (
+                <div className="flex flex-wrap gap-2 pt-2">
+                  <button
+                    onClick={() => handleStatusChange(submission.id, 'accepted')}
+                    className="flex-1 md:flex-none px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleStatusChange(submission.id, 'rejected')}
+                    className="flex-1 md:flex-none px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700"
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
