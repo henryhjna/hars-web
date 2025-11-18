@@ -367,53 +367,6 @@ export default function About() {
           </div>
         </div>
 
-        {/* Contact Information */}
-        <div className="max-w-4xl mx-auto">
-          <Card variant="elevated" padding="lg">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Us</h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-2">General Inquiries</h3>
-                <p className="text-gray-600">
-                  For questions about the symposium, paper submissions, or registration:
-                </p>
-                <a
-                  href="mailto:info@hanyanghars.com"
-                  className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium mt-2"
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  info@hanyanghars.com
-                </a>
-              </div>
-
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Technical Support</h3>
-                <p className="text-gray-600">
-                  For website or submission system issues:
-                </p>
-                <a
-                  href="mailto:noreply@hanyanghars.com"
-                  className="inline-flex items-center text-primary-600 hover:text-primary-700 font-medium mt-2"
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  noreply@hanyanghars.com
-                </a>
-              </div>
-
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Location</h3>
-                <div className="flex items-start text-gray-600">
-                  <MapPin className="w-5 h-5 mr-2 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p>Hanyang University Business School</p>
-                    <p>222 Wangsimni-ro, Seongdong-gu</p>
-                    <p>Seoul 04763, South Korea</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
       </div>
     </div>
   );
