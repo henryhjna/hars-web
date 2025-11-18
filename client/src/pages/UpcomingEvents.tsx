@@ -1,62 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, MapPin, Award, Users, BookOpen, Presentation, ArrowUpDown } from 'lucide-react';
+import { Calendar, MapPin, Award, Users, BookOpen, Presentation, ArrowUpDown, Train, Bus, Car, Plane } from 'lucide-react';
 import Button from '../components/ui/Button';
 import { Link } from 'react-router-dom';
 import eventService from '../services/event.service';
 import conferenceTopicService from '../services/conferenceTopic.service';
 import type { Event, ConferenceTopic, CommitteeMember, EventSession } from '../types';
-
-// Simple markdown parser for venue info (handles both array and string formats)
-function parseMarkdown(markdown: string | string[] | undefined): React.ReactElement[] {
-  // Handle legacy array format
-  if (Array.isArray(markdown)) {
-    if (markdown.length === 0) return [];
-    return markdown.map((item, idx) => (
-      <p key={idx} className="text-base text-gray-700 mb-2">• {item}</p>
-    ));
-  }
-
-  // Handle empty or invalid input
-  if (!markdown || typeof markdown !== 'string') return [];
-
-  const lines = markdown.split('\n');
-  const elements: React.ReactElement[] = [];
-  let key = 0;
-
-  lines.forEach((line, index) => {
-    const trimmed = line.trim();
-
-    if (trimmed.startsWith('## ')) {
-      // Main section heading (h3)
-      const text = trimmed.substring(3);
-      elements.push(
-        <h3 key={key++} className="text-xl font-bold text-gray-900 mt-6 first:mt-0 mb-3">
-          {text}
-        </h3>
-      );
-    } else if (trimmed.startsWith('### ')) {
-      // Subsection heading (h4)
-      const text = trimmed.substring(4);
-      elements.push(
-        <h4 key={key++} className="text-lg font-semibold text-gray-800 mt-4 mb-2">
-          {text}
-        </h4>
-      );
-    } else if (trimmed.length > 0) {
-      // Regular text paragraph
-      elements.push(
-        <p key={key++} className="text-base text-gray-700 mb-2">
-          {trimmed}
-        </p>
-      );
-    } else if (index > 0 && index < lines.length - 1) {
-      // Empty line creates spacing
-      elements.push(<div key={key++} className="h-2" />);
-    }
-  });
-
-  return elements;
-}
 
 export default function UpcomingEvents() {
   const [loading, setLoading] = useState(true);
@@ -616,14 +564,13 @@ export default function UpcomingEvents() {
 
       {/* Venue Information */}
       {event.show_venue && (event.event_content?.venue_info?.name || event.event_content?.venue_info?.address ||
-        (event.event_content?.venue_info?.accessibility && event.event_content.venue_info.accessibility.length > 0) ||
-        (event.event_content?.venue_info?.contact && event.event_content.venue_info.contact.length > 0)) && (
+        event.event_content?.venue_info?.accessibility || event.event_content?.venue_info?.contact) && (
         <section className="bg-white py-12 md:py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Venue Information</h2>
 
             {(event.event_content?.venue_info?.name || event.event_content?.venue_info?.address) && (
-              <div className="text-center mb-8">
+              <div className="text-center mb-12">
                 {event.event_content?.venue_info?.name && (
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">
                     {event.event_content.venue_info.name}
@@ -637,24 +584,75 @@ export default function UpcomingEvents() {
               </div>
             )}
 
-            <div className="space-y-6">
-              {event.event_content?.venue_info?.accessibility && (
-                <div className="p-6 bg-primary-50 rounded-lg">
-                  <h4 className="font-bold text-2xl text-gray-900 mb-4">How to Get Here</h4>
-                  <div className="prose prose-lg max-w-none">
-                    {parseMarkdown(event.event_content.venue_info.accessibility)}
-                  </div>
+            {/* How to Get Here - Card Grid */}
+            {event.event_content?.venue_info?.accessibility && (
+              <>
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">How to Get Here</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                  {/* Subway Card */}
+                  {event.event_content.venue_info.accessibility.subway && (
+                    <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Train className="h-8 w-8 text-blue-600" />
+                        <h4 className="text-xl font-bold text-gray-900">Subway</h4>
+                      </div>
+                      <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                        {event.event_content.venue_info.accessibility.subway}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bus Card */}
+                  {event.event_content.venue_info.accessibility.bus && (
+                    <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Bus className="h-8 w-8 text-green-600" />
+                        <h4 className="text-xl font-bold text-gray-900">Bus</h4>
+                      </div>
+                      <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                        {event.event_content.venue_info.accessibility.bus}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Car & Parking Card */}
+                  {event.event_content.venue_info.accessibility.car && (
+                    <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Car className="h-8 w-8 text-purple-600" />
+                        <h4 className="text-xl font-bold text-gray-900">Car & Parking</h4>
+                      </div>
+                      <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                        {event.event_content.venue_info.accessibility.car}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Airport Card */}
+                  {event.event_content.venue_info.accessibility.airport && (
+                    <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Plane className="h-8 w-8 text-orange-600" />
+                        <h4 className="text-xl font-bold text-gray-900">From Incheon Airport</h4>
+                      </div>
+                      <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                        {event.event_content.venue_info.accessibility.airport}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-              {event.event_content?.venue_info?.contact && (
-                <div className="p-6 bg-accent-50 rounded-lg">
-                  <h4 className="font-bold text-2xl text-gray-900 mb-4">Contact Information</h4>
-                  <div className="prose prose-lg max-w-none">
-                    {parseMarkdown(event.event_content.venue_info.contact)}
-                  </div>
+              </>
+            )}
+
+            {/* Contact Information */}
+            {event.event_content?.venue_info?.contact && (
+              <div className="p-6 bg-gray-50 border-2 border-gray-200 rounded-lg">
+                <h4 className="font-bold text-2xl text-gray-900 mb-4">Contact Information</h4>
+                <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                  {event.event_content.venue_info.contact}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </section>
       )}

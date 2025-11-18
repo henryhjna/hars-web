@@ -234,25 +234,96 @@ export default function ContentTab({
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Accessibility Info (Markdown format)
-              </label>
-              <textarea
-                value={contentForm.venue_info?.accessibility || ''}
-                onChange={(e) => onContentFormChange({
-                  venue_info: {
-                    ...contentForm.venue_info,
-                    accessibility: e.target.value
-                  }
-                })}
-                rows={20}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
-                placeholder="Use Markdown format:&#10;&#10;## Address&#10;Hanyang University School of Business&#10;222 Wangsimni-ro, Seongdong-gu&#10;Seoul 04763, Republic of Korea&#10;&#10;## Subway Access&#10;The Seoul Campus is exceptionally well-connected...&#10;&#10;### Hanyang University Station (Line 2)&#10;The campus has its own dedicated subway station...&#10;&#10;### Wangsimni Station&#10;Located just 10 minutes walking distance..."
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                Use ## for main sections (bold, large), ### for subsections (bold, medium)
-              </p>
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-gray-900">How to Get Here</h4>
+
+              {/* Subway */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  🚇 Subway Access
+                </label>
+                <textarea
+                  value={contentForm.venue_info?.accessibility?.subway || ''}
+                  onChange={(e) => onContentFormChange({
+                    venue_info: {
+                      ...contentForm.venue_info,
+                      accessibility: {
+                        ...contentForm.venue_info?.accessibility,
+                        subway: e.target.value
+                      }
+                    }
+                  })}
+                  rows={6}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="Example:&#10;Hanyang University Station (Line 2)&#10;- On campus with dedicated subway station&#10;- Exit 2 ('Aejimun') provides direct campus access in less than one minute"
+                />
+              </div>
+
+              {/* Bus */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  🚌 Bus Service
+                </label>
+                <textarea
+                  value={contentForm.venue_info?.accessibility?.bus || ''}
+                  onChange={(e) => onContentFormChange({
+                    venue_info: {
+                      ...contentForm.venue_info,
+                      accessibility: {
+                        ...contentForm.venue_info?.accessibility,
+                        bus: e.target.value
+                      }
+                    }
+                  })}
+                  rows={4}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="Example:&#10;Main Lines: #121, #302, N62 (Night Bus)&#10;Branch Lines: #2012, #2014, #2016, #4211"
+                />
+              </div>
+
+              {/* Car & Parking */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  🚗 Car & Parking Information
+                </label>
+                <textarea
+                  value={contentForm.venue_info?.accessibility?.car || ''}
+                  onChange={(e) => onContentFormChange({
+                    venue_info: {
+                      ...contentForm.venue_info,
+                      accessibility: {
+                        ...contentForm.venue_info?.accessibility,
+                        car: e.target.value
+                      }
+                    }
+                  })}
+                  rows={4}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="Example:&#10;Visitor parking available on campus&#10;Parking fee: 2,000 KRW/hour&#10;Enter via Main Gate on Wangsimni-ro"
+                />
+              </div>
+
+              {/* Airport */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ✈️ From Incheon Airport
+                </label>
+                <textarea
+                  value={contentForm.venue_info?.accessibility?.airport || ''}
+                  onChange={(e) => onContentFormChange({
+                    venue_info: {
+                      ...contentForm.venue_info,
+                      accessibility: {
+                        ...contentForm.venue_info?.accessibility,
+                        airport: e.target.value
+                      }
+                    }
+                  })}
+                  rows={6}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="Example:&#10;Option 1: Airport Railroad Express + Line 2 transfer (110 min)&#10;Option 2: Airport Limousine Bus #6010 to Wangsimni Station (120 min)&#10;Option 3: Taxi - Direct service to campus (90 min, ~80,000 KRW)"
+                />
+              </div>
             </div>
 
             <div>

@@ -114,11 +114,18 @@ export interface CommitteeMember {
   role?: string;
 }
 
+export interface AccessibilityInfo {
+  subway?: string;
+  bus?: string;
+  car?: string;
+  airport?: string;
+}
+
 export interface VenueInfo {
   name?: string;
   address?: string;
-  accessibility?: string; // Markdown format
-  contact?: string; // Markdown format
+  accessibility?: AccessibilityInfo;
+  contact?: string;
 }
 
 

@@ -1,62 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { Train, Bus, Car, Plane } from 'lucide-react';
 import eventService from '../services/event.service';
 import pastEventsService from '../services/pastEvents.service';
 import type { Event, EventPhoto, EventSession, Testimonial } from '../types';
 
 type ViewTab = 'overview' | 'program' | 'photos' | 'highlights';
-
-// Simple markdown parser for venue info (handles both array and string formats)
-function parseMarkdown(markdown: string | string[] | undefined): React.ReactElement[] {
-  // Handle legacy array format
-  if (Array.isArray(markdown)) {
-    if (markdown.length === 0) return [];
-    return markdown.map((item, idx) => (
-      <p key={idx} className="text-base text-gray-700 mb-2">• {item}</p>
-    ));
-  }
-
-  // Handle empty or invalid input
-  if (!markdown || typeof markdown !== 'string') return [];
-
-  const lines = markdown.split('\n');
-  const elements: React.ReactElement[] = [];
-  let key = 0;
-
-  lines.forEach((line, index) => {
-    const trimmed = line.trim();
-
-    if (trimmed.startsWith('## ')) {
-      // Main section heading (h3)
-      const text = trimmed.substring(3);
-      elements.push(
-        <h3 key={key++} className="text-xl font-bold text-gray-900 mt-6 first:mt-0 mb-3">
-          {text}
-        </h3>
-      );
-    } else if (trimmed.startsWith('### ')) {
-      // Subsection heading (h4)
-      const text = trimmed.substring(4);
-      elements.push(
-        <h4 key={key++} className="text-lg font-semibold text-gray-800 mt-4 mb-2">
-          {text}
-        </h4>
-      );
-    } else if (trimmed.length > 0) {
-      // Regular text paragraph
-      elements.push(
-        <p key={key++} className="text-base text-gray-700 mb-2">
-          {trimmed}
-        </p>
-      );
-    } else if (index > 0 && index < lines.length - 1) {
-      // Empty line creates spacing
-      elements.push(<div key={key++} className="h-2" />);
-    }
-  });
-
-  return elements;
-}
 
 export default function PastEvents() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -253,12 +202,62 @@ export default function PastEvents() {
                           )}
                         </div>
 
-                        {/* How to Get Here */}
+                        {/* How to Get Here - Card Grid */}
                         {selectedEvent.event_content?.venue_info?.accessibility && (
                           <div className="border-t pt-4">
-                            <h4 className="text-lg font-bold text-gray-900 mb-3">How to Get Here</h4>
-                            <div className="prose max-w-none">
-                              {parseMarkdown(selectedEvent.event_content.venue_info.accessibility)}
+                            <h4 className="text-lg font-bold text-gray-900 mb-4">How to Get Here</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Subway Card */}
+                              {selectedEvent.event_content.venue_info.accessibility.subway && (
+                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <Train className="h-6 w-6 text-blue-600" />
+                                    <h5 className="font-semibold text-gray-900">Subway</h5>
+                                  </div>
+                                  <div className="text-sm text-gray-700 whitespace-pre-line">
+                                    {selectedEvent.event_content.venue_info.accessibility.subway}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Bus Card */}
+                              {selectedEvent.event_content.venue_info.accessibility.bus && (
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <Bus className="h-6 w-6 text-green-600" />
+                                    <h5 className="font-semibold text-gray-900">Bus</h5>
+                                  </div>
+                                  <div className="text-sm text-gray-700 whitespace-pre-line">
+                                    {selectedEvent.event_content.venue_info.accessibility.bus}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Car & Parking Card */}
+                              {selectedEvent.event_content.venue_info.accessibility.car && (
+                                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <Car className="h-6 w-6 text-purple-600" />
+                                    <h5 className="font-semibold text-gray-900">Car & Parking</h5>
+                                  </div>
+                                  <div className="text-sm text-gray-700 whitespace-pre-line">
+                                    {selectedEvent.event_content.venue_info.accessibility.car}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Airport Card */}
+                              {selectedEvent.event_content.venue_info.accessibility.airport && (
+                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <Plane className="h-6 w-6 text-orange-600" />
+                                    <h5 className="font-semibold text-gray-900">From Incheon Airport</h5>
+                                  </div>
+                                  <div className="text-sm text-gray-700 whitespace-pre-line">
+                                    {selectedEvent.event_content.venue_info.accessibility.airport}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}
@@ -267,8 +266,8 @@ export default function PastEvents() {
                         {selectedEvent.event_content?.venue_info?.contact && (
                           <div className="border-t pt-4">
                             <h4 className="text-lg font-bold text-gray-900 mb-3">Contact Information</h4>
-                            <div className="prose max-w-none">
-                              {parseMarkdown(selectedEvent.event_content.venue_info.contact)}
+                            <div className="text-gray-700 whitespace-pre-line">
+                              {selectedEvent.event_content.venue_info.contact}
                             </div>
                           </div>
                         )}
