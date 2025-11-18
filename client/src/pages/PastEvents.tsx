@@ -18,6 +18,8 @@ export default function PastEvents() {
   const [photos, setPhotos] = useState<EventPhoto[]>([]);
   const [highlightPhotos, setHighlightPhotos] = useState<EventPhoto[]>([]);
   const [sessions, setSessions] = useState<EventSession[]>([]);
+  const [sessionTypeFilter, setSessionTypeFilter] = useState<string>('all');
+  const [sessionLocationFilter, setSessionLocationFilter] = useState<string>('all');
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [featuredTestimonials, setFeaturedTestimonials] = useState<Testimonial[]>([]);
 
@@ -80,7 +82,33 @@ export default function PastEvents() {
   const handleYearSelect = (event: Event) => {
     setSelectedEvent(event);
     setActiveTab('overview');
+    // Reset filters when switching events
+    setSessionTypeFilter('all');
+    setSessionLocationFilter('all');
   };
+
+  // Get unique session types and locations for filters
+  const sessionTypes = ['all', ...Array.from(new Set(sessions.map(s => s.session_type).filter(Boolean)))];
+  const sessionLocations = ['all', ...Array.from(new Set(sessions.map(s => s.location).filter(Boolean)))];
+
+  // Filter and sort sessions by time
+  const filteredAndSortedSessions = sessions
+    .filter(session => {
+      const typeMatch = sessionTypeFilter === 'all' || session.session_type === sessionTypeFilter;
+      const locationMatch = sessionLocationFilter === 'all' || session.location === sessionLocationFilter;
+      return typeMatch && locationMatch;
+    })
+    .sort((a, b) => {
+      // Sort by date first
+      const dateA = a.session_date ? new Date(a.session_date).getTime() : 0;
+      const dateB = b.session_date ? new Date(b.session_date).getTime() : 0;
+      if (dateA !== dateB) return dateA - dateB;
+
+      // Then by start_time
+      const timeA = a.start_time || '';
+      const timeB = b.start_time || '';
+      return timeA.localeCompare(timeB);
+    });
 
   if (loading) {
     return (
@@ -374,11 +402,62 @@ export default function PastEvents() {
                 {activeTab === 'program' && (
                   <div className="space-y-6">
                     <h3 className="text-2xl font-bold text-gray-900 mb-6">Program Schedule</h3>
+
                     {sessions.length === 0 ? (
                       <p className="text-gray-600">No program information available.</p>
                     ) : (
-                      <div className="space-y-4">
-                        {sessions.map((session) => (
+                      <>
+                        {/* Filters */}
+                        {(sessionTypes.length > 1 || sessionLocations.length > 1) && (
+                          <div className="space-y-4 mb-6">
+                            {/* Session Type Filter */}
+                            {sessionTypes.length > 1 && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Type:</label>
+                                <div className="flex flex-wrap gap-2">
+                                  {sessionTypes.map((type) => (
+                                    <button
+                                      key={type}
+                                      onClick={() => setSessionTypeFilter(type)}
+                                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                        sessionTypeFilter === type
+                                          ? 'bg-primary-600 text-white'
+                                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                                      }`}
+                                    >
+                                      {type === 'all' ? 'All Types' : type}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Location Filter */}
+                            {sessionLocations.length > 1 && (
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Filter by Location:</label>
+                                <div className="flex flex-wrap gap-2">
+                                  {sessionLocations.map((location) => (
+                                    <button
+                                      key={location}
+                                      onClick={() => setSessionLocationFilter(location)}
+                                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                        sessionLocationFilter === location
+                                          ? 'bg-accent-600 text-white'
+                                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                                      }`}
+                                    >
+                                      {location === 'all' ? 'All Locations' : location}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="space-y-4">
+                          {filteredAndSortedSessions.map((session) => (
                           <div key={session.id} className="bg-gray-50 p-6 rounded-lg border-l-4 border-primary-500">
                             <div className="flex justify-between items-start mb-2">
                               <h4 className="text-lg font-semibold text-gray-900">{session.session_title}</h4>
@@ -422,8 +501,9 @@ export default function PastEvents() {
                               <p className="text-gray-700 whitespace-pre-line">{session.description}</p>
                             )}
                           </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      </>
                     )}
                   </div>
                 )}

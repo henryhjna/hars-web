@@ -12,6 +12,8 @@ export default function UpcomingEvents() {
   const [event, setEvent] = useState<Event | null>(null);
   const [topics, setTopics] = useState<ConferenceTopic[]>([]);
   const [sessions, setSessions] = useState<EventSession[]>([]);
+  const [sessionTypeFilter, setSessionTypeFilter] = useState<string>('all');
+  const [sessionLocationFilter, setSessionLocationFilter] = useState<string>('all');
   const [academicSort, setAcademicSort] = useState<'name' | 'affiliation' | 'area'>('name');
   const [organizingSort, setOrganizingSort] = useState<'name' | 'affiliation' | 'role'>('name');
 
@@ -97,6 +99,29 @@ export default function UpcomingEvents() {
     const bVal = b[organizingSort] || '';
     return aVal.localeCompare(bVal);
   });
+
+  // Get unique session types and locations for filters
+  const sessionTypes = ['all', ...Array.from(new Set(sessions.map(s => s.session_type).filter(Boolean)))];
+  const sessionLocations = ['all', ...Array.from(new Set(sessions.map(s => s.location).filter(Boolean)))];
+
+  // Filter and sort sessions by time
+  const filteredAndSortedSessions = sessions
+    .filter(session => {
+      const typeMatch = sessionTypeFilter === 'all' || session.session_type === sessionTypeFilter;
+      const locationMatch = sessionLocationFilter === 'all' || session.location === sessionLocationFilter;
+      return typeMatch && locationMatch;
+    })
+    .sort((a, b) => {
+      // Sort by date first
+      const dateA = a.session_date ? new Date(a.session_date).getTime() : 0;
+      const dateB = b.session_date ? new Date(b.session_date).getTime() : 0;
+      if (dateA !== dateB) return dateA - dateB;
+
+      // Then by start_time
+      const timeA = a.start_time || '';
+      const timeB = b.start_time || '';
+      return timeA.localeCompare(timeB);
+    });
 
   // Loading state
   if (loading) {
@@ -341,8 +366,61 @@ export default function UpcomingEvents() {
               <h2 className="text-3xl font-bold text-gray-900">Program Schedule</h2>
             </div>
 
+            {/* Filters */}
+            {(sessionTypes.length > 1 || sessionLocations.length > 1) && (
+              <div className="max-w-4xl mx-auto mb-6 space-y-4">
+                {/* Session Type Filter */}
+                {sessionTypes.length > 1 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Filter by Type:</label>
+                    <div className="flex justify-center">
+                      <div className="inline-flex gap-2 flex-wrap justify-center">
+                        {sessionTypes.map((type) => (
+                          <button
+                            key={type}
+                            onClick={() => setSessionTypeFilter(type)}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                              sessionTypeFilter === type
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                            }`}
+                          >
+                            {type === 'all' ? 'All Types' : type}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Location Filter */}
+                {sessionLocations.length > 1 && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2 text-center">Filter by Location:</label>
+                    <div className="flex justify-center">
+                      <div className="inline-flex gap-2 flex-wrap justify-center">
+                        {sessionLocations.map((location) => (
+                          <button
+                            key={location}
+                            onClick={() => setSessionLocationFilter(location)}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                              sessionLocationFilter === location
+                                ? 'bg-accent-600 text-white'
+                                : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                            }`}
+                          >
+                            {location === 'all' ? 'All Locations' : location}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-4 max-w-4xl mx-auto">
-              {sessions.map((session) => (
+              {filteredAndSortedSessions.map((session) => (
                 <div key={session.id} className="bg-white p-6 rounded-lg shadow-sm border-l-4 border-primary-500 hover:shadow-md transition-shadow">
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-3">
                     <h3 className="text-lg md:text-xl font-semibold text-gray-900">{session.session_title}</h3>
