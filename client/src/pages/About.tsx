@@ -131,6 +131,104 @@ export default function About() {
           </div>
         </div>
 
+        {/* Why Seoul? Section */}
+        <section className="mb-20">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">
+              Why Seoul?
+            </h2>
+            <p className="text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed">
+              The Korean Wave—from BTS to Parasite, from Korean BBQ to K-Beauty—has
+              transformed Seoul into one of the world's most exciting cultural destinations.
+              For international scholars, Seoul offers far more than trending phenomena:
+              it represents a unique convergence of ancient wisdom and future-forward thinking.
+            </p>
+          </div>
+
+          {/* Section 1: Academic Excellence + Modern Image */}
+          <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
+            <div className="order-2 md:order-1">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Academic Excellence Meets Innovation
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                Seoul is home to prestigious universities like Seoul National University,
+                KAIST, and Hanyang University, consistently ranked among Asia's top research
+                institutions. The city's thriving startup ecosystem, supported by robust
+                government R&D funding, makes it an ideal hub for scholars exploring the
+                intersection of technology, business, and society.
+              </p>
+            </div>
+            <div className="order-1 md:order-2">
+              <img
+                src="/images/seoul/seoul-modern.jpg"
+                alt="Modern Seoul - Dongdaemun Design Plaza"
+                className="w-full h-80 object-cover rounded-lg shadow-lg"
+              />
+            </div>
+          </div>
+
+          {/* Section 2: Culture + Palace Image */}
+          <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
+            <div className="order-1">
+              <img
+                src="/images/seoul/seoul-palace.jpg"
+                alt="Gyeongbokgung Palace - Traditional Korean Architecture"
+                className="w-full h-80 object-cover rounded-lg shadow-lg"
+              />
+            </div>
+            <div className="order-2">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                A City of Contrasts
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                Walk through 600-year-old palaces in the morning, attend a symposium in a
+                state-of-the-art conference center in the afternoon, and enjoy Michelin-starred
+                dining at night. Seoul seamlessly blends UNESCO World Heritage sites with
+                gleaming skyscrapers, traditional tea ceremonies with high-speed internet cafes.
+              </p>
+            </div>
+          </div>
+
+          {/* Section 3: Infrastructure + Skyline Image */}
+          <div className="grid md:grid-cols-2 gap-8 items-center mb-16">
+            <div className="order-2 md:order-1">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                World-Class Infrastructure
+              </h3>
+              <p className="text-gray-700 leading-relaxed mb-4">
+                Ranked #1 globally for public transportation, Seoul offers unparalleled
+                convenience and safety. With ultra-fast WiFi everywhere, English signage
+                in major areas, and Incheon International Airport serving direct flights
+                from 50+ countries, Seoul is as accessible as it is exciting.
+              </p>
+            </div>
+            <div className="order-1 md:order-2">
+              <img
+                src="/images/seoul/seoul-skyline.jpg"
+                alt="Seoul Skyline at Night"
+                className="w-full h-80 object-cover rounded-lg shadow-lg"
+              />
+            </div>
+          </div>
+
+          {/* Section 4: Hospitality (Full-width) */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 sm:p-12">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4 text-center">
+              Experience Korean Hospitality
+            </h3>
+            <p className="text-gray-700 leading-relaxed max-w-3xl mx-auto text-center mb-6">
+              From humble street food stalls to luxury hotels, Seoul welcomes visitors
+              with legendary Korean hospitality (<em>jeong</em>). Affordable yet sophisticated,
+              vibrant yet orderly, Seoul promises an academic conference experience like no other.
+            </p>
+            <p className="text-xl font-semibold text-primary-600 text-center">
+              Join us in Seoul—where scholarship meets soul-searching.
+            </p>
+          </div>
+        </section>
+
         {/* Research Topics */}
         <div className="mb-20 bg-gray-50 rounded-2xl p-8 sm:p-12">
           <div className="max-w-5xl mx-auto">

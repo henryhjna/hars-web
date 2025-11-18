@@ -185,16 +185,30 @@ export default function UpcomingEvents() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+      {/* Hero Section with Optional Banner Image */}
+      <div
+        className="relative min-h-[500px] bg-cover bg-center overflow-hidden"
+        style={event.banner_image_url ? {
+          backgroundImage: `url(${event.banner_image_url})`,
+          backgroundPosition: 'center',
+          backgroundSize: 'cover'
+        } : undefined}
+      >
+        {/* Gradient overlay - darker when banner image exists, regular gradient otherwise */}
+        <div className={event.banner_image_url
+          ? "absolute inset-0 bg-gradient-to-br from-primary-900/85 via-primary-800/75 to-accent-900/85"
+          : "absolute inset-0 bg-gradient-to-br from-primary-600 via-primary-700 to-accent-600"
+        } />
+
+        {/* Content with high z-index for visibility */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 min-h-[500px] flex items-center justify-center">
+          <div className="text-center text-white">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-lg">
               {event.title}
             </h1>
-            <p className="text-xl md:text-2xl mb-6">{formatDate(event.event_date)}</p>
+            <p className="text-xl md:text-2xl mb-6 drop-shadow-md">{formatDate(event.event_date)}</p>
             {event.location && (
-              <div className="flex items-center justify-center gap-2 text-lg mb-8">
+              <div className="flex items-center justify-center gap-2 text-lg mb-8 drop-shadow-md">
                 <MapPin className="h-5 w-5" />
                 <span>{event.location}</span>
               </div>
