@@ -256,11 +256,11 @@ export default function AdminSubmissions() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Statuses</option>
-              <option value="draft">Draft</option>
               <option value="submitted">Submitted</option>
               <option value="under_review">Under Review</option>
               <option value="accepted">Accepted</option>
               <option value="rejected">Rejected</option>
+              <option value="review_complete">Review Complete</option>
             </select>
           </div>
         </div>
@@ -300,11 +300,11 @@ export default function AdminSubmissions() {
                       submission.status
                     )} border-0 cursor-pointer`}
                   >
-                    <option value="draft">Draft</option>
                     <option value="submitted">Submitted</option>
                     <option value="under_review">Under Review</option>
                     <option value="accepted">Accepted</option>
                     <option value="rejected">Rejected</option>
+                    <option value="review_complete">Review Complete</option>
                   </select>
                 </div>
                 <div className="flex justify-between md:justify-start items-center">
@@ -418,8 +418,6 @@ export default function AdminSubmissions() {
                         <p className="text-sm text-gray-600">Recommendations</p>
                         <p className="text-xs text-gray-700">
                           Accept: {reviewStats.accept_count} | Reject: {reviewStats.reject_count}
-                          <br />
-                          Minor Rev: {reviewStats.minor_revision_count} | Major Rev: {reviewStats.major_revision_count}
                         </p>
                       </div>
                     </div>

@@ -221,13 +221,11 @@ export interface EventSession {
 
 // Submission Types
 export type SubmissionStatus =
-  | 'draft'
   | 'submitted'
   | 'under_review'
+  | 'review_complete'
   | 'accepted'
-  | 'rejected'
-  | 'revision_requested';
-
+  | 'rejected';
 export interface Submission {
   id: string;
   event_id: string;

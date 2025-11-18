@@ -152,7 +152,7 @@ CREATE TABLE submissions (
     pdf_size INTEGER,
 
     -- Status tracking
-    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'submitted', 'under_review', 'accepted', 'rejected', 'revision_requested')),
+    status VARCHAR(20) DEFAULT 'submitted' CHECK (status IN ('submitted', 'under_review', 'review_complete', 'accepted', 'rejected')),
     submitted_at TIMESTAMP,
 
     -- Award

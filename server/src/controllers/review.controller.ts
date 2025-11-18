@@ -81,7 +81,7 @@ export class ReviewController {
         if (submission) {
           if (allCompleted) {
             // All reviews completed - mark as needing admin decision
-            await SubmissionModel.updateStatus(submissionId, 'revision_requested');
+            await SubmissionModel.updateStatus(submissionId, 'review_complete');
           } else if (submission.status === 'submitted') {
             // First review submitted - mark as under review
             await SubmissionModel.updateStatus(submissionId, 'under_review');
@@ -143,6 +143,11 @@ export class ReviewController {
         assigned_by: req.user!.id,
         due_date: due_date ? new Date(due_date) : undefined,
       });
+
+      // Update submission status to 'under_review' when first reviewer is assigned
+      if (submission.status === 'submitted') {
+        await SubmissionModel.updateStatus(submissionId, 'under_review');
+      }
 
       res.json({
         success: true,

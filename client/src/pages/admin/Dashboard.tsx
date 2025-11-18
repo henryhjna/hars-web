@@ -35,19 +35,31 @@ export default function AdminDashboard() {
       const eventsResponse = await eventService.getAllEvents();
       const events = eventsResponse.data || [];
 
-      // Load submissions (admin endpoint - we'll need to add this)
-      // For now, we'll just show a placeholder
+      // Load submissions
+      const submissionsResponse = await submissionService.getAllSubmissions();
+      const submissions = submissionsResponse.data || [];
+
       const totalEvents = events.length;
       const upcomingEvents = events.filter((e: Event) => e.status === 'upcoming').length;
+      const totalSubmissions = submissions.length;
+      const pendingReview = submissions.filter(
+        (s: Submission) => s.status === 'submitted' || s.status === 'under_review' || s.status === 'review_complete'
+      ).length;
 
       setStats({
         totalEvents,
         upcomingEvents,
-        totalSubmissions: 0, // TODO: Add admin endpoint
-        pendingReview: 0, // TODO: Add admin endpoint
+        totalSubmissions,
+        pendingReview,
       });
 
-      setRecentSubmissions([]);
+      // Get 5 most recent submissions
+      const recent = submissions
+        .sort((a: Submission, b: Submission) =>
+          new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
+        )
+        .slice(0, 5);
+      setRecentSubmissions(recent);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load dashboard data');
     } finally {

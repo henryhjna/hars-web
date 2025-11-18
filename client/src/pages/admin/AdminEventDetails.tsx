@@ -57,6 +57,17 @@ export default function AdminEventDetails() {
     awards: '',
     academic_committee: [],
     organizing_committee: [],
+    venue_info: {
+      name: '',
+      address: '',
+      accessibility: {
+        subway: '',
+        bus: '',
+        car: '',
+        airport: '',
+      },
+      contact: '',
+    },
   });
 
   // Basic event info form

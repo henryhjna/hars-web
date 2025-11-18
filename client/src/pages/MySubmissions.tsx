@@ -209,7 +209,7 @@ export default function MySubmissions() {
                     >
                       View PDF
                     </button>
-                    {submission.status === 'draft' || submission.status === 'submitted' ? (
+                    {submission.status === 'submitted' ? (
                       <>
                         <button
                           onClick={() => navigate(`/submit-paper?edit=${submission.id}`)}
