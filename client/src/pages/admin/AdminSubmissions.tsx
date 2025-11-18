@@ -86,6 +86,27 @@ export default function AdminSubmissions() {
     }
   };
 
+  const handleDelete = async (submission: Submission) => {
+    const confirmMessage = `Are you sure you want to delete this submission?\n\nTitle: ${submission.title}\nAuthor: ${submission.corresponding_author}\n\nThis will also delete:\n- All reviewer assignments\n- All reviews\n- The uploaded PDF file\n\nThis action cannot be undone.`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      setError('');
+      setSuccess('');
+
+      await submissionService.deleteSubmission(submission.id);
+      setSuccess('Submission deleted successfully');
+
+      // Reload data
+      await loadData();
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to delete submission');
+    }
+  };
+
   const openAssignModal = async (submission: Submission) => {
     setSelectedSubmission(submission);
     setAssignModalOpen(true);
@@ -321,6 +342,12 @@ export default function AdminSubmissions() {
                   className="flex-1 md:flex-none px-4 py-2 text-sm text-green-600 bg-green-50 rounded hover:bg-green-100"
                 >
                   Assign Reviewer
+                </button>
+                <button
+                  onClick={() => handleDelete(submission)}
+                  className="flex-1 md:flex-none px-4 py-2 text-sm text-red-600 bg-red-50 rounded hover:bg-red-100"
+                >
+                  Delete
                 </button>
               </div>
                 {submission.status === 'review_complete' && (
