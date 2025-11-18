@@ -117,8 +117,8 @@ export interface CommitteeMember {
 export interface VenueInfo {
   name?: string;
   address?: string;
-  accessibility?: string[];
-  contact?: string[];
+  accessibility?: string; // Markdown format
+  contact?: string; // Markdown format
 }
 
 

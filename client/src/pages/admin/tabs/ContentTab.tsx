@@ -236,38 +236,44 @@ export default function ContentTab({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Accessibility Info (one per line)
+                Accessibility Info (Markdown format)
               </label>
               <textarea
-                value={(contentForm.venue_info?.accessibility || []).join('\n')}
+                value={contentForm.venue_info?.accessibility || ''}
                 onChange={(e) => onContentFormChange({
                   venue_info: {
                     ...contentForm.venue_info,
-                    accessibility: e.target.value.split('\n').filter(line => line.trim())
+                    accessibility: e.target.value
                   }
                 })}
-                rows={4}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                placeholder="e.g.,&#10;Incheon International Airport: 60 minutes by AREX&#10;Hanyang University Station: Seoul Metro Line 2"
+                rows={20}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
+                placeholder="Use Markdown format:&#10;&#10;## Address&#10;Hanyang University School of Business&#10;222 Wangsimni-ro, Seongdong-gu&#10;Seoul 04763, Republic of Korea&#10;&#10;## Subway Access&#10;The Seoul Campus is exceptionally well-connected...&#10;&#10;### Hanyang University Station (Line 2)&#10;The campus has its own dedicated subway station...&#10;&#10;### Wangsimni Station&#10;Located just 10 minutes walking distance..."
               />
+              <p className="mt-1 text-xs text-gray-500">
+                Use ## for main sections (bold, large), ### for subsections (bold, medium)
+              </p>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Contact Information (one per line)
+                Contact Information (Markdown format)
               </label>
               <textarea
-                value={(contentForm.venue_info?.contact || []).join('\n')}
+                value={contentForm.venue_info?.contact || ''}
                 onChange={(e) => onContentFormChange({
                   venue_info: {
                     ...contentForm.venue_info,
-                    contact: e.target.value.split('\n').filter(line => line.trim())
+                    contact: e.target.value
                   }
                 })}
-                rows={4}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-                placeholder="e.g.,&#10;Website: www.hanyanghars.com&#10;Email: contact@hanyanghars.com"
+                rows={10}
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
+                placeholder="Use Markdown format:&#10;&#10;## Website&#10;www.hanyanghars.com&#10;&#10;## Email&#10;contact@hanyanghars.com&#10;info@hanyanghars.com&#10;&#10;## Phone&#10;+82-2-2220-1234"
               />
+              <p className="mt-1 text-xs text-gray-500">
+                Use ## for section titles (bold)
+              </p>
             </div>
           </div>
         </div>

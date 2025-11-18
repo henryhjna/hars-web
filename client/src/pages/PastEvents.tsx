@@ -6,6 +6,49 @@ import type { Event, EventPhoto, EventSession, Testimonial } from '../types';
 
 type ViewTab = 'overview' | 'program' | 'photos' | 'highlights';
 
+// Simple markdown parser for venue info
+function parseMarkdown(markdown: string): JSX.Element[] {
+  if (!markdown) return [];
+
+  const lines = markdown.split('\n');
+  const elements: JSX.Element[] = [];
+  let key = 0;
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('## ')) {
+      // Main section heading (h3)
+      const text = trimmed.substring(3);
+      elements.push(
+        <h3 key={key++} className="text-xl font-bold text-gray-900 mt-6 first:mt-0 mb-3">
+          {text}
+        </h3>
+      );
+    } else if (trimmed.startsWith('### ')) {
+      // Subsection heading (h4)
+      const text = trimmed.substring(4);
+      elements.push(
+        <h4 key={key++} className="text-lg font-semibold text-gray-800 mt-4 mb-2">
+          {text}
+        </h4>
+      );
+    } else if (trimmed.length > 0) {
+      // Regular text paragraph
+      elements.push(
+        <p key={key++} className="text-base text-gray-700 mb-2">
+          {trimmed}
+        </p>
+      );
+    } else if (index > 0 && index < lines.length - 1) {
+      // Empty line creates spacing
+      elements.push(<div key={key++} className="h-2" />);
+    }
+  });
+
+  return elements;
+}
+
 export default function PastEvents() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [pastEvents, setPastEvents] = useState<Event[]>([]);
@@ -183,20 +226,42 @@ export default function PastEvents() {
 
                     {/* Venue Information */}
                     {(selectedEvent.location || selectedEvent.event_content?.venue_info) && (
-                      <div className="bg-gray-50 p-6 rounded-lg">
-                        <h3 className="text-xl font-bold text-gray-900 mb-4">Venue Information</h3>
-                        {selectedEvent.event_content?.venue_info?.name && (
-                          <p className="text-lg font-semibold text-gray-900 mb-2">
-                            {selectedEvent.event_content.venue_info.name}
-                          </p>
+                      <div className="bg-gray-50 p-6 rounded-lg space-y-6">
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-4">Venue Information</h3>
+                          {selectedEvent.event_content?.venue_info?.name && (
+                            <p className="text-lg font-semibold text-gray-900 mb-2">
+                              {selectedEvent.event_content.venue_info.name}
+                            </p>
+                          )}
+                          {selectedEvent.location && (
+                            <p className="text-gray-700 mb-2">{selectedEvent.location}</p>
+                          )}
+                          {selectedEvent.event_content?.venue_info?.address && (
+                            <p className="text-gray-600 whitespace-pre-line">
+                              {selectedEvent.event_content.venue_info.address}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* How to Get Here */}
+                        {selectedEvent.event_content?.venue_info?.accessibility && (
+                          <div className="border-t pt-4">
+                            <h4 className="text-lg font-bold text-gray-900 mb-3">How to Get Here</h4>
+                            <div className="prose max-w-none">
+                              {parseMarkdown(selectedEvent.event_content.venue_info.accessibility)}
+                            </div>
+                          </div>
                         )}
-                        {selectedEvent.location && (
-                          <p className="text-gray-700 mb-2">{selectedEvent.location}</p>
-                        )}
-                        {selectedEvent.event_content?.venue_info?.address && (
-                          <p className="text-gray-600 whitespace-pre-line">
-                            {selectedEvent.event_content.venue_info.address}
-                          </p>
+
+                        {/* Contact Information */}
+                        {selectedEvent.event_content?.venue_info?.contact && (
+                          <div className="border-t pt-4">
+                            <h4 className="text-lg font-bold text-gray-900 mb-3">Contact Information</h4>
+                            <div className="prose max-w-none">
+                              {parseMarkdown(selectedEvent.event_content.venue_info.contact)}
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}

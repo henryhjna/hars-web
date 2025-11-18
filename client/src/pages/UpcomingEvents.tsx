@@ -6,6 +6,49 @@ import eventService from '../services/event.service';
 import conferenceTopicService from '../services/conferenceTopic.service';
 import type { Event, ConferenceTopic, CommitteeMember, EventSession } from '../types';
 
+// Simple markdown parser for venue info
+function parseMarkdown(markdown: string): JSX.Element[] {
+  if (!markdown) return [];
+
+  const lines = markdown.split('\n');
+  const elements: JSX.Element[] = [];
+  let key = 0;
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('## ')) {
+      // Main section heading (h3)
+      const text = trimmed.substring(3);
+      elements.push(
+        <h3 key={key++} className="text-xl font-bold text-gray-900 mt-6 first:mt-0 mb-3">
+          {text}
+        </h3>
+      );
+    } else if (trimmed.startsWith('### ')) {
+      // Subsection heading (h4)
+      const text = trimmed.substring(4);
+      elements.push(
+        <h4 key={key++} className="text-lg font-semibold text-gray-800 mt-4 mb-2">
+          {text}
+        </h4>
+      );
+    } else if (trimmed.length > 0) {
+      // Regular text paragraph
+      elements.push(
+        <p key={key++} className="text-base text-gray-700 mb-2">
+          {trimmed}
+        </p>
+      );
+    } else if (index > 0 && index < lines.length - 1) {
+      // Empty line creates spacing
+      elements.push(<div key={key++} className="h-2" />);
+    }
+  });
+
+  return elements;
+}
+
 export default function UpcomingEvents() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -586,26 +629,20 @@ export default function UpcomingEvents() {
             )}
 
             <div className="space-y-6">
-              {event.event_content?.venue_info?.accessibility &&
-               event.event_content.venue_info.accessibility.length > 0 && (
+              {event.event_content?.venue_info?.accessibility && (
                 <div className="p-6 bg-primary-50 rounded-lg">
-                  <h4 className="font-bold text-lg text-gray-900 mb-4">Accessibility</h4>
-                  <ul className="space-y-2 text-base text-gray-700">
-                    {event.event_content.venue_info.accessibility.map((item, idx) => (
-                      <li key={idx}>• {item}</li>
-                    ))}
-                  </ul>
+                  <h4 className="font-bold text-2xl text-gray-900 mb-4">How to Get Here</h4>
+                  <div className="prose prose-lg max-w-none">
+                    {parseMarkdown(event.event_content.venue_info.accessibility)}
+                  </div>
                 </div>
               )}
-              {event.event_content?.venue_info?.contact &&
-               event.event_content.venue_info.contact.length > 0 && (
+              {event.event_content?.venue_info?.contact && (
                 <div className="p-6 bg-accent-50 rounded-lg">
-                  <h4 className="font-bold text-lg text-gray-900 mb-4">Contact Information</h4>
-                  <ul className="space-y-2 text-base text-gray-700">
-                    {event.event_content.venue_info.contact.map((item, idx) => (
-                      <li key={idx}>• {item}</li>
-                    ))}
-                  </ul>
+                  <h4 className="font-bold text-2xl text-gray-900 mb-4">Contact Information</h4>
+                  <div className="prose prose-lg max-w-none">
+                    {parseMarkdown(event.event_content.venue_info.contact)}
+                  </div>
                 </div>
               )}
             </div>
