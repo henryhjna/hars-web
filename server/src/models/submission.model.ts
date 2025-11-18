@@ -240,15 +240,8 @@ export class SubmissionModel {
       return false;
     }
 
-    // Check if user already has a submission for this event
-    const submissionSql = `
-      SELECT id FROM submissions
-      WHERE user_id = $1 AND event_id = $2
-      LIMIT 1
-    `;
-    const submissionResult = await query(submissionSql, [userId, eventId]);
-
-    return submissionResult.rows.length === 0;
+    // Allow multiple submissions from the same user to the same event
+    return true;
   }
 
   // Get submission count by status for an event
