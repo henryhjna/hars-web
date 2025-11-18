@@ -6,9 +6,18 @@ import type { Event, EventPhoto, EventSession, Testimonial } from '../types';
 
 type ViewTab = 'overview' | 'program' | 'photos' | 'highlights';
 
-// Simple markdown parser for venue info
-function parseMarkdown(markdown: string): React.ReactElement[] {
-  if (!markdown) return [];
+// Simple markdown parser for venue info (handles both array and string formats)
+function parseMarkdown(markdown: string | string[] | undefined): React.ReactElement[] {
+  // Handle legacy array format
+  if (Array.isArray(markdown)) {
+    if (markdown.length === 0) return [];
+    return markdown.map((item, idx) => (
+      <p key={idx} className="text-base text-gray-700 mb-2">• {item}</p>
+    ));
+  }
+
+  // Handle empty or invalid input
+  if (!markdown || typeof markdown !== 'string') return [];
 
   const lines = markdown.split('\n');
   const elements: React.ReactElement[] = [];
