@@ -55,6 +55,22 @@ export default function AdminUsers() {
     }
   };
 
+  const handleVerifyEmail = async (userId: string, userName: string) => {
+    if (!window.confirm(`Are you sure you want to manually verify the email for ${userName}?`)) {
+      return;
+    }
+
+    try {
+      setError('');
+      setSuccess('');
+      await userService.verifyUserEmail(userId);
+      setSuccess('Email verified successfully');
+      await loadUsers();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to verify email');
+    }
+  };
+
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case 'admin':
@@ -158,12 +174,22 @@ export default function AdminUsers() {
               </div>
             </div>
 
-            <button
-              onClick={() => handleEditRoles(user)}
-              className="w-full md:w-auto px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded hover:bg-blue-100"
-            >
-              Edit Roles
-            </button>
+            <div className="flex flex-col md:flex-row gap-2">
+              <button
+                onClick={() => handleEditRoles(user)}
+                className="w-full md:w-auto px-4 py-2 text-sm text-blue-600 bg-blue-50 rounded hover:bg-blue-100"
+              >
+                Edit Roles
+              </button>
+              {!user.is_email_verified && (
+                <button
+                  onClick={() => handleVerifyEmail(user.id, `${user.first_name} ${user.last_name}`)}
+                  className="w-full md:w-auto px-4 py-2 text-sm text-green-600 bg-green-50 rounded hover:bg-green-100"
+                >
+                  Verify Email
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>

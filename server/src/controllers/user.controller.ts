@@ -324,6 +324,50 @@ export class UserController {
     }
   }
 
+  // PUT /api/users/:id/verify-email - Manually verify user email (admin only)
+  static async verifyUserEmail(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new ApiError('Authentication required', 401);
+      }
+
+      const { id } = req.params;
+
+      const user = await UserModel.findById(id);
+      if (!user) {
+        throw new ApiError('User not found', 404);
+      }
+
+      if (user.is_email_verified) {
+        throw new ApiError('Email is already verified', 400);
+      }
+
+      // Verify email
+      await UserModel.verifyEmail(id);
+
+      const updatedUser = await UserModel.findById(id);
+
+      res.json({
+        success: true,
+        message: 'Email verified successfully',
+        data: UserModel.sanitize(updatedUser!),
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        res.status(error.statusCode).json({
+          success: false,
+          error: error.message,
+        });
+      } else {
+        console.error('Verify user email error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to verify email',
+        });
+      }
+    }
+  }
+
   // PUT /api/users/:id/roles - Update user roles (admin only)
   static async updateUserRoles(req: AuthRequest, res: Response): Promise<void> {
     try {

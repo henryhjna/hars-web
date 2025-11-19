@@ -42,6 +42,7 @@ router.put('/me/password', UserController.changePassword);
 // Admin only routes
 router.get('/', authorize('admin'), UserController.listUsers);
 router.get('/:id', authorize('admin'), UserController.getUserById);
+router.put('/:id/verify-email', authorize('admin'), UserController.verifyUserEmail);
 router.put('/:id/roles', authorize('admin'), UserController.updateUserRoles);
 
 export default router;

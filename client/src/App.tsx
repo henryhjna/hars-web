@@ -7,6 +7,7 @@ import ReviewerRoute from './components/ReviewerRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import VerifyEmail from './pages/VerifyEmail';
 import About from './pages/About';
 import UpcomingEvents from './pages/UpcomingEvents';
 import PastEvents from './pages/PastEvents';
@@ -72,6 +73,7 @@ function AppRoutes() {
           </PublicRoute>
         }
       />
+      <Route path="/verify-email" element={<VerifyEmail />} />
 
       {/* Protected routes (require authentication) */}
       <Route

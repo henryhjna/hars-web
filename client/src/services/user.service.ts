@@ -66,6 +66,12 @@ class UserService {
     const response = await api.put<ApiResponse<User>>(`/users/${id}/roles`, { roles });
     return response.data;
   }
+
+  // Admin: Manually verify user email
+  async verifyUserEmail(id: string): Promise<ApiResponse<User>> {
+    const response = await api.put<ApiResponse<User>>(`/users/${id}/verify-email`);
+    return response.data;
+  }
 }
 
 export default new UserService();
