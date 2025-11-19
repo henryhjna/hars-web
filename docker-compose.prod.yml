@@ -62,6 +62,10 @@ services:
       - server
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt/live/hanyanghars.com/fullchain.pem:/etc/nginx/ssl/fullchain.pem:ro
+      - /etc/letsencrypt/live/hanyanghars.com/privkey.pem:/etc/nginx/ssl/privkey.pem:ro
     networks:
       - hars-network
 
