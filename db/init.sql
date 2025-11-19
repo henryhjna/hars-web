@@ -333,6 +333,20 @@ VALUES (
     TRUE
 );
 
+-- Insert "Deleted User" system account (for anonymization when users are deleted)
+-- This account receives ownership of submissions/reviews when a user is deleted
+INSERT INTO users (id, email, password_hash, first_name, last_name, affiliation, roles, is_email_verified)
+VALUES (
+    '00000000-0000-0000-0000-000000000000',
+    'deleted@system.hars',
+    '$2b$10$XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+    'Deleted',
+    'User',
+    'System',
+    ARRAY['user']::TEXT[],
+    TRUE
+) ON CONFLICT (id) DO NOTHING;
+
 -- Sample event (for development)
 INSERT INTO events (
     title,

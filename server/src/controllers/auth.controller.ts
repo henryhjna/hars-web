@@ -13,7 +13,7 @@ import { ApiError, RegisterInput, LoginInput } from '../types';
 export class AuthController {
   static async register(req: Request, res: Response): Promise<void> {
     try {
-      const { email, password, first_name, last_name, affiliation }: RegisterInput =
+      const { email, password, first_name, last_name, affiliation, preferred_name, prefix, academic_title }: RegisterInput =
         req.body;
 
       // Validation
@@ -46,6 +46,9 @@ export class AuthController {
         password_hash,
         first_name,
         last_name,
+        preferred_name,
+        prefix,
+        academic_title,
         affiliation,
         email_verification_token,
       });
@@ -101,10 +104,9 @@ export class AuthController {
       }
 
       // Check if email is verified
-      // TEMPORARY: Disabled for development - will re-enable after domain setup
-      // if (!user.is_email_verified) {
-      //   throw new ApiError('Please verify your email before logging in', 403);
-      // }
+      if (!user.is_email_verified) {
+        throw new ApiError('Please verify your email before logging in. Check your inbox or contact admin.', 403);
+      }
 
       // Check if user must reset password (migrated users)
       if (user.must_reset_password) {

@@ -213,7 +213,49 @@ export class UserModel {
   }
 
   static async deleteUser(userId: string): Promise<void> {
-    await query('DELETE FROM users WHERE id = $1', [userId]);
+    const deletedUserId = '00000000-0000-0000-0000-000000000000';
+
+    // Use transaction to ensure atomicity
+    await query('BEGIN');
+    try {
+      // 1. Transfer submissions to "Deleted User"
+      await query(
+        'UPDATE submissions SET user_id = $1 WHERE user_id = $2',
+        [deletedUserId, userId]
+      );
+
+      // 2. Transfer reviews to "Deleted User"
+      await query(
+        'UPDATE reviews SET reviewer_id = $1 WHERE reviewer_id = $2',
+        [deletedUserId, userId]
+      );
+
+      // 3. Transfer review assignments to "Deleted User"
+      await query(
+        'UPDATE review_assignments SET reviewer_id = $1 WHERE reviewer_id = $2',
+        [deletedUserId, userId]
+      );
+
+      // 4. Set uploaded_by to NULL for event photos (optional field)
+      await query(
+        'UPDATE event_photos SET uploaded_by = NULL WHERE uploaded_by = $1',
+        [userId]
+      );
+
+      // 5. Set user_id to NULL for activity logs (optional field)
+      await query(
+        'UPDATE activity_logs SET user_id = NULL WHERE user_id = $1',
+        [userId]
+      );
+
+      // 6. Delete the user
+      await query('DELETE FROM users WHERE id = $1', [userId]);
+
+      await query('COMMIT');
+    } catch (error) {
+      await query('ROLLBACK');
+      throw error;
+    }
   }
 
   static async list(params: {
