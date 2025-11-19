@@ -8,8 +8,10 @@ export class SubmissionModel {
 
     const countSql = 'SELECT COUNT(*) as total FROM submissions';
     const dataSql = `
-      SELECT * FROM submissions
-      ORDER BY created_at DESC
+      SELECT s.*, e.title as event_title, e.event_date
+      FROM submissions s
+      JOIN events e ON s.event_id = e.id
+      ORDER BY s.created_at DESC
       LIMIT $1 OFFSET $2
     `;
 
