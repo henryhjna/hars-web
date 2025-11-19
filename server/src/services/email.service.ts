@@ -63,7 +63,7 @@ export const sendVerificationEmail = async (
             <p>Thank you for registering for the Hanyang Accounting Research Symposium platform.</p>
             <p>Please verify your email address by clicking the button below:</p>
             <div style="text-align: center;">
-              <a href="${verificationUrl}" class="button">Verify Email</a>
+              <a href="${verificationUrl}" style="display: inline-block; padding: 12px 30px; background-color: #1a73e8; color: #ffffff !important; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: 600;">Verify Email</a>
             </div>
             <p>Or copy and paste this link into your browser:</p>
             <p style="word-break: break-all; color: #666;">${verificationUrl}</p>
