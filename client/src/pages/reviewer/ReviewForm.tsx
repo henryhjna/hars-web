@@ -94,6 +94,23 @@ export default function ReviewForm() {
       setError('');
       setSuccess('');
 
+      // Validate required fields when completing review
+      if (isCompleted) {
+        const missingFields: string[] = [];
+
+        if (!formData.originality_score) missingFields.push('Originality score');
+        if (!formData.methodology_score) missingFields.push('Methodology score');
+        if (!formData.clarity_score) missingFields.push('Clarity score');
+        if (!formData.contribution_score) missingFields.push('Contribution score');
+        if (!formData.recommendation) missingFields.push('Recommendation');
+
+        if (missingFields.length > 0) {
+          setError(`Please complete the following required fields: ${missingFields.join(', ')}`);
+          setSubmitting(false);
+          return;
+        }
+      }
+
       const submitData = {
         ...formData,
         is_completed: isCompleted,
@@ -241,7 +258,7 @@ export default function ReviewForm() {
             {/* Scoring Section */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 mb-4">
-                Evaluation Criteria (1-5 scale)
+                Evaluation Criteria (1-5 scale) <span className="text-red-600">*</span>
               </h3>
               <div className="space-y-4">
                 {[
@@ -346,7 +363,7 @@ export default function ReviewForm() {
             {/* Recommendation */}
             <div>
               <label htmlFor="recommendation" className="block text-sm font-medium text-gray-700">
-                Recommendation
+                Recommendation <span className="text-red-600">*</span>
               </label>
               <select
                 id="recommendation"
