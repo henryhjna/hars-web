@@ -241,7 +241,6 @@ export const sendReviewerAssignmentEmail = async (
   event: any,
   dueDate?: Date
 ): Promise<void> => {
-  const transporter = require('./email.service').transporter;
   const reviewUrl = `${process.env.FRONTEND_URL}/reviewer/review/${submission.id}`;
   const dueDateStr = dueDate ? new Date(dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not specified';
   const abstractPreview = submission.abstract.length > 200 ? submission.abstract.substring(0, 200) + '...' : submission.abstract;
@@ -263,7 +262,6 @@ export const sendDecisionEmail = async (
   decision: 'accepted' | 'rejected',
   comments?: string
 ): Promise<void> => {
-  const transporter = require('./email.service').transporter;
   const isAccepted = decision === 'accepted';
   const gradientColor = isAccepted ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #64748b 0%, #475569 100%)';
   const badgeColor = isAccepted ? '#dcfce7' : '#f1f5f9';
