@@ -234,7 +234,6 @@ export const sendWelcomeEmail = async (user: User): Promise<void> => {
 
   await transporter.sendMail(mailOptions);
 };
-import { User } from '../types';
 
 export const sendReviewerAssignmentEmail = async (
   reviewer: User,

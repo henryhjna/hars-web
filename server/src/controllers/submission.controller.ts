@@ -161,9 +161,12 @@ export class SubmissionController {
 
         // Send confirmation email (don't block on failure)
         try {
-          const event = await EventModel.findById(event_id);
-          if (event && req.user) {
-            await sendSubmissionConfirmationEmail(req.user, title, event.title);
+          const [event, user] = await Promise.all([
+            EventModel.findById(event_id),
+            UserModel.findById(req.user!.id)
+          ]);
+          if (event && user) {
+            await sendSubmissionConfirmationEmail(user, title, event.title);
           }
         } catch (emailError) {
           console.error('Failed to send confirmation email:', emailError);
