@@ -20,5 +20,6 @@ router.get('/', authorize('admin', 'reviewer'), SubmissionController.getAllSubmi
 router.get('/event/:eventId', authorize('admin', 'reviewer'), SubmissionController.getEventSubmissions);
 router.get('/event/:eventId/stats', authorize('admin'), SubmissionController.getEventSubmissionStats);
 router.patch('/:id/status', authorize('admin', 'reviewer'), SubmissionController.updateSubmissionStatus);
+router.post('/:id/send-decision-email', authorize('admin'), SubmissionController.sendDecisionEmail);
 
 export default router;

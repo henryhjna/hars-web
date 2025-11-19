@@ -3,6 +3,7 @@ import submissionService from '../../services/submission.service';
 import eventService from '../../services/event.service';
 import reviewService from '../../services/review.service';
 import userService from '../../services/user.service';
+import EmailPreviewModal from '../../components/EmailPreviewModal';
 import type { Submission, Event, SubmissionStatus, User, ReviewAssignment, Review } from '../../types';
 
 export default function AdminSubmissions() {
@@ -34,6 +35,11 @@ export default function AdminSubmissions() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewStats, setReviewStats] = useState<any>(null);
   const [reviewsLoading, setReviewsLoading] = useState(false);
+
+  // Email preview modal state
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [emailDecision, setEmailDecision] = useState<'accepted' | 'rejected'>('accepted');
+  const [emailSubmission, setEmailSubmission] = useState<Submission | null>(null);
 
   useEffect(() => {
     loadData();
@@ -83,6 +89,33 @@ export default function AdminSubmissions() {
       await loadData();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to update status');
+    }
+  };
+
+  const handleOpenEmailModal = (submission: Submission, decision: 'accepted' | 'rejected') => {
+    setEmailSubmission(submission);
+    setEmailDecision(decision);
+    setEmailModalOpen(true);
+  };
+
+  const handleSendDecisionEmail = async (comments?: string) => {
+    if (!emailSubmission) return;
+
+    try {
+      // First update the status
+      await submissionService.updateSubmissionStatus(emailSubmission.id, emailDecision);
+
+      // Then send the email
+      await submissionService.sendDecisionEmail(emailSubmission.id, comments);
+
+      setSuccess(`Submission ${emailDecision} and email sent successfully`);
+      setEmailModalOpen(false);
+      setEmailSubmission(null);
+
+      // Reload data
+      await loadData();
+    } catch (err: any) {
+      throw new Error(err.response?.data?.message || 'Failed to send decision email');
     }
   };
 
@@ -356,13 +389,13 @@ export default function AdminSubmissions() {
               {submission.status === 'review_complete' && (
                 <div className="flex flex-wrap gap-2 pt-2">
                   <button
-                    onClick={() => handleStatusChange(submission.id, 'accepted')}
+                    onClick={() => handleOpenEmailModal(submission, 'accepted')}
                     className="flex-1 md:flex-none px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700"
                   >
                     Accept
                   </button>
                   <button
-                    onClick={() => handleStatusChange(submission.id, 'rejected')}
+                    onClick={() => handleOpenEmailModal(submission, 'rejected')}
                     className="flex-1 md:flex-none px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700"
                   >
                     Reject
@@ -678,6 +711,20 @@ export default function AdminSubmissions() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Email Preview Modal */}
+      {emailSubmission && (
+        <EmailPreviewModal
+          isOpen={emailModalOpen}
+          onClose={() => {
+            setEmailModalOpen(false);
+            setEmailSubmission(null);
+          }}
+          onSend={handleSendDecisionEmail}
+          submission={emailSubmission}
+          decision={emailDecision}
+        />
       )}
     </div>
   );

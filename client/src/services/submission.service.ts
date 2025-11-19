@@ -84,6 +84,14 @@ class SubmissionService {
     return response.data;
   }
 
+  // Admin: Send decision email
+  async sendDecisionEmail(id: string, comments?: string): Promise<ApiResponse<void>> {
+    const response = await api.post<ApiResponse<void>>(`/submissions/${id}/send-decision-email`, {
+      comments,
+    });
+    return response.data;
+  }
+
   // Get PDF URL
   getPdfUrl(pdfUrl: string): string {
     // S3 URLs are returned as-is (already full HTTPS URLs)

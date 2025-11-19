@@ -1,9 +1,11 @@
 import { Response, NextFunction } from 'express';
 import { SubmissionModel } from '../models/submission.model';
 import { EventModel } from '../models/event.model';
+import { UserModel } from '../models/user.model';
 import { AuthRequest } from '../types';
 import { ApiError } from '../types';
 import { uploadPdfToS3, deletePhotoFromS3 } from '../utils/s3Upload';
+import { sendSubmissionConfirmationEmail, sendDecisionEmail } from '../services/email.service';
 
 export class SubmissionController {
   // Get all submissions with pagination (admin/reviewer only)
@@ -156,6 +158,17 @@ export class SubmissionController {
           pdf_size: req.file.size,
           status: status || 'submitted',
         });
+
+        // Send confirmation email (don't block on failure)
+        try {
+          const event = await EventModel.findById(event_id);
+          if (event && req.user) {
+            await sendSubmissionConfirmationEmail(req.user, title, event.title);
+          }
+        } catch (emailError) {
+          console.error('Failed to send confirmation email:', emailError);
+          // Continue - email failure should not block submission
+        }
 
         res.status(201).json({
           success: true,
@@ -333,6 +346,45 @@ export class SubmissionController {
           total_submissions: total,
           by_status: counts,
         },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Send decision email (admin only)
+  static async sendDecisionEmail(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { comments } = req.body;
+
+      // Get submission with details
+      const submission = await SubmissionModel.findById(id);
+      if (!submission) {
+        throw new ApiError('Submission not found', 404);
+      }
+
+      // Check if status is accepted or rejected
+      if (submission.status !== 'accepted' && submission.status !== 'rejected') {
+        throw new ApiError('Can only send decision email for accepted or rejected submissions', 400);
+      }
+
+      // Get event and author details
+      const [event, author] = await Promise.all([
+        EventModel.findById(submission.event_id),
+        UserModel.findById(submission.user_id),
+      ]);
+
+      if (!event || !author) {
+        throw new ApiError('Event or author not found', 404);
+      }
+
+      // Send decision email
+      await sendDecisionEmail(author, submission, event, submission.status as 'accepted' | 'rejected', comments);
+
+      res.json({
+        success: true,
+        message: 'Decision email sent successfully',
       });
     } catch (error) {
       next(error);

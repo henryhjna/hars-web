@@ -1,8 +1,11 @@
 import type { Response, NextFunction } from 'express';
 import { ReviewModel, ReviewAssignmentModel } from '../models/review.model';
 import { SubmissionModel } from '../models/submission.model';
+import { EventModel } from '../models/event.model';
+import { UserModel } from '../models/user.model';
 import type { AuthRequest } from '../types';
 import { ApiError } from '../types';
+import { sendReviewerAssignmentEmail } from '../services/email.service';
 
 export class ReviewController {
   // Get reviewer's assigned submissions
@@ -148,6 +151,26 @@ export class ReviewController {
       // Update submission status to 'under_review' when first reviewer is assigned
       if (submission.status === 'submitted') {
         await SubmissionModel.updateStatus(submissionId, 'under_review');
+      }
+
+      // Send reviewer assignment email (don't block on failure)
+      try {
+        const [event, reviewer] = await Promise.all([
+          EventModel.findById(submission.event_id),
+          UserModel.findById(reviewer_id)
+        ]);
+
+        if (event && reviewer) {
+          await sendReviewerAssignmentEmail(
+            reviewer,
+            submission,
+            event,
+            due_date ? new Date(due_date) : undefined
+          );
+        }
+      } catch (emailError) {
+        console.error('Failed to send reviewer assignment email:', emailError);
+        // Continue - email failure should not block assignment
       }
 
       res.json({

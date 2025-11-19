@@ -234,3 +234,57 @@ export const sendWelcomeEmail = async (user: User): Promise<void> => {
 
   await transporter.sendMail(mailOptions);
 };
+import { User } from '../types';
+
+export const sendReviewerAssignmentEmail = async (
+  reviewer: User,
+  submission: any,
+  event: any,
+  dueDate?: Date
+): Promise<void> => {
+  const transporter = require('./email.service').transporter;
+  const reviewUrl = `${process.env.FRONTEND_URL}/reviewer/review/${submission.id}`;
+  const dueDateStr = dueDate ? new Date(dueDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not specified';
+  const abstractPreview = submission.abstract.length > 200 ? submission.abstract.substring(0, 200) + '...' : submission.abstract;
+
+  const mailOptions = {
+    from: `"HARS Review System" <${process.env.EMAIL_FROM}>`,
+    to: reviewer.email,
+    subject: `New Review Assignment - ${event.title}`,
+    html: `<html><body style="font-family: Arial, sans-serif; background-color: #f8fafc;"><table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.07);"><tr><td style="background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); padding: 40px 30px; text-align: center;"><h1 style="margin: 0; color: #fff; font-size: 28px;">Review Assignment</h1><p style="margin: 12px 0 0 0; color: rgba(255,255,255,0.95); font-size: 16px;">You have been assigned a paper to review</p></td></tr><tr><td style="padding: 40px 30px;"><p style="margin: 0 0 24px 0; color: #1e293b; font-size: 16px;">Dear ${reviewer.prefix || 'Dr.'} ${reviewer.last_name || reviewer.email},</p><p style="margin: 0 0 24px 0; color: #475569; font-size: 15px;">You have been assigned to review a paper submission for <strong>${event.title}</strong>.</p><table width="100%" cellpadding="0" cellspacing="0" style="background: #f8fafc; border-radius: 8px; border: 2px solid #e2e8f0; margin-bottom: 24px;"><tr><td style="padding: 24px;"><h2 style="margin: 0 0 16px 0; color: #1e293b; font-size: 18px;">${submission.title}</h2><p style="margin: 0 0 12px 0; color: #64748b; font-size: 14px;">${abstractPreview}</p><div style="padding: 8px 12px; background: #e0f2fe; border-radius: 6px; display: inline-block;"><span style="color: #0369a1; font-size: 13px; font-weight: 600;">Author: ${submission.corresponding_author}</span></div></td></tr></table><div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 4px; margin-bottom: 32px;"><p style="margin: 0; color: #92400e; font-size: 14px;"><strong>Review Due Date:</strong> ${dueDateStr}</p></div><table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px;"><tr><td align="center"><a href="${reviewUrl}" style="display: inline-block; background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); color: #fff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;">Start Review</a></td></tr></table><p style="margin: 0 0 16px 0; color: #475569; font-size: 14px;">Thank you for your contribution to maintaining the quality of our symposium.</p><p style="margin: 0; color: #64748b; font-size: 14px;">Best regards,<br><strong>HARS Organizing Committee</strong></p></td></tr><tr><td style="background: #f8fafc; padding: 24px 30px; border-top: 1px solid #e2e8f0;"><p style="margin: 0; color: #64748b; font-size: 13px; text-align: center;">This is an automated message from the HARS Review System</p></td></tr></table></td></tr></table></body></html>`
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
+export const sendDecisionEmail = async (
+  author: User,
+  submission: any,
+  event: any,
+  decision: 'accepted' | 'rejected',
+  comments?: string
+): Promise<void> => {
+  const transporter = require('./email.service').transporter;
+  const isAccepted = decision === 'accepted';
+  const gradientColor = isAccepted ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'linear-gradient(135deg, #64748b 0%, #475569 100%)';
+  const badgeColor = isAccepted ? '#dcfce7' : '#f1f5f9';
+  const badgeTextColor = isAccepted ? '#166534' : '#475569';
+  const badgeText = isAccepted ? '✓ ACCEPTED' : 'DECLINED';
+  const title = isAccepted ? 'Congratulations! Your Paper Has Been Accepted' : `Paper Submission Decision - ${event.title}`;
+  const message = isAccepted ? `We are delighted to inform you that your paper has been accepted for presentation at ${event.title}.` : `Thank you for your submission to ${event.title}. After careful review by our committee, we regret to inform you that your paper was not selected for this symposium.`;
+
+  const nextSteps = isAccepted
+    ? '<h3 style="margin: 24px 0 12px 0; color: #1e293b; font-size: 16px; font-weight: 600;">Next Steps:</h3><ul style="margin: 0 0 24px 0; padding-left: 20px; color: #475569; font-size: 14px;"><li style="margin-bottom: 8px;">You will receive detailed presentation guidelines shortly</li><li style="margin-bottom: 8px;">Please confirm your attendance</li><li style="margin-bottom: 8px;">Registration information will be sent separately</li></ul>'
+    : '<h3 style="margin: 24px 0 12px 0; color: #1e293b; font-size: 16px; font-weight: 600;">We Encourage You:</h3><ul style="margin: 0 0 24px 0; padding-left: 20px; color: #475569; font-size: 14px;"><li style="margin-bottom: 8px;">To consider submitting to future HARS events</li><li style="margin-bottom: 8px;">To review the feedback provided below</li><li style="margin-bottom: 8px;">To continue your valuable research</li></ul>';
+
+  const commentsSection = comments ? `<div style="background: #fef9e7; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 4px; margin: 24px 0;"><h3 style="margin: 0 0 12px 0; color: #92400e; font-size: 15px; font-weight: 600;">Reviewer Comments:</h3><p style="margin: 0; color: #78350f; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${comments}</p></div>` : '';
+
+  const mailOptions = {
+    from: `"HARS Organizing Committee" <${process.env.EMAIL_FROM}>`,
+    to: author.email,
+    subject: isAccepted ? `✓ Paper Accepted - ${event.title}` : `Paper Decision - ${event.title}`,
+    html: `<html><body style="font-family: Arial, sans-serif; background-color: #f8fafc;"><table width="100%" cellpadding="0" cellspacing="0" style="padding: 20px;"><tr><td align="center"><table width="600" cellpadding="0" cellspacing="0" style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.07);"><tr><td style="background: ${gradientColor}; padding: 40px 30px; text-align: center;"><div style="display: inline-block; background: ${badgeColor}; color: ${badgeTextColor}; padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; letter-spacing: 1px; margin-bottom: 16px;">${badgeText}</div><h1 style="margin: 0; color: #fff; font-size: 26px; font-weight: 700;">${title}</h1></td></tr><tr><td style="padding: 40px 30px;"><p style="margin: 0 0 24px 0; color: #1e293b; font-size: 16px;">Dear ${author.prefix || 'Dr.'} ${author.last_name || author.email},</p><p style="margin: 0 0 24px 0; color: #475569; font-size: 15px;">${message}</p><table width="100%" cellpadding="0" cellspacing="0" style="background: #f8fafc; border-radius: 8px; border: 2px solid #e2e8f0; margin-bottom: 24px;"><tr><td style="padding: 20px;"><p style="margin: 0 0 4px 0; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Submission ID</p><p style="margin: 0 0 16px 0; color: #0ea5e9; font-size: 14px; font-family: monospace; font-weight: 600;">${submission.id}</p><p style="margin: 0 0 4px 0; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Paper Title</p><p style="margin: 0; color: #1e293b; font-size: 16px; font-weight: 600;">${submission.title}</p></td></tr></table>${commentsSection}${nextSteps}<p style="margin: 0 0 16px 0; color: #475569; font-size: 14px;">We appreciate your contribution to advancing accounting research and scholarship.</p><p style="margin: 0; color: #64748b; font-size: 14px;">Best regards,<br><strong>HARS Organizing Committee</strong></p></td></tr><tr><td style="background: #f8fafc; padding: 24px 30px; border-top: 1px solid #e2e8f0;"><p style="margin: 0 0 8px 0; color: #64748b; font-size: 13px; text-align: center;">${event.title}</p><p style="margin: 0; color: #94a3b8; font-size: 12px; text-align: center;">Hanyang University Business School</p></td></tr></table></td></tr></table></body></html>`
+  };
+
+  await transporter.sendMail(mailOptions);
+};
