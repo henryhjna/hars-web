@@ -1,7 +1,7 @@
 # HARS Web - AWS Deployment Guide
 
-**Last Updated**: 2025-01-17
-**Deployment Strategy**: Git Push → EC2 Git Pull → EC2 Docker Build
+**Last Updated**: 2025-01-19
+**Deployment Strategy**: Local Build → ECR Push → EC2 Pull (**NEVER BUILD ON EC2!**)
 
 ---
 
@@ -9,24 +9,25 @@
 
 ```
 ┌─────────────┐                    ┌─────────────┐
-│ 로컬 개발   │  1. Git Commit     │   GitHub    │
-│ 환경        │     & Push         │ Repository  │
+│ 로컬 개발   │  1. Docker Build   │   AWS ECR   │
+│ 환경        │     & Push         │  (Registry) │
 │             │ ────────────────>  │             │
 └─────────────┘                    └─────────────┘
                                          │
-                            2. Git Pull  │
+                            2. Pull      │
+                               Images    │
                                          ▼
                                   ┌─────────────┐
                                   │   AWS EC2   │
                                   │ 52.78.232.37│
                                   │             │
-                                  │ 3. Docker   │
-                                  │    Build    │
-                                  │    (EC2)    │
+                                  │ 3. Run      │
+                                  │ Containers  │
+                                  │ (NO BUILD!) │
                                   └─────────────┘
                                          │
-                            4. 컨테이너  │
-                               실행      │
+                            4. 서비스    │
+                               제공      │
                                          ▼
                                   ┌─────────────┐
                                   │   사용자    │
@@ -35,20 +36,21 @@
 ```
 
 **핵심 원칙**:
-1. **로컬**: 코드 작성 → Git commit → Git push
-2. **EC2**: Git pull → Docker build (EC2에서) → Container restart
-3. **이유**: t3.micro에서 빌드하는 것이 ECR 인증 문제를 피하는 가장 간단한 방법
+1. **로컬**: 코드 작성 → Docker build → ECR push → Git commit/push
+2. **EC2**: ECR login → Pull images → Container restart (**절대 빌드하지 말 것!**)
+3. **이유**: t2.micro에서 빌드는 너무 느리고 리소스 낭비. 로컬에서 빌드하고 레지스트리에 푸시하는 것이 정석
 
 ---
 
 ## ⚠️ CRITICAL: 배포 규칙 (MUST FOLLOW!)
 
 **절대 규칙**:
-1. **모든 코드 변경은 반드시 Git commit & push**
-2. **배포는 자동화 스크립트만 사용 (scripts/deploy.sh)**
-3. **EC2에서 Docker 이미지 빌드 (t3.micro 충분)**
+1. **로컬에서만 Docker 이미지 빌드 (EC2에서 빌드 절대 금지!)**
+2. **ECR에 이미지 푸시 후 EC2에서 pull만 수행**
+3. **모든 코드 변경은 반드시 Git commit & push**
 4. **인프라 변경은 반드시 Terraform으로만 수행**
 5. **절대 AWS 콘솔에서 수동으로 변경하지 말 것**
+6. **EC2에서 `--build` 플래그 사용 금지!**
 
 ---
 
