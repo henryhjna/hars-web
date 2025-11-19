@@ -72,6 +72,12 @@ class UserService {
     const response = await api.put<ApiResponse<User>>(`/users/${id}/verify-email`);
     return response.data;
   }
+
+  // Admin: Delete user
+  async deleteUser(id: string): Promise<ApiResponse<void>> {
+    const response = await api.delete<ApiResponse<void>>(`/users/${id}`);
+    return response.data;
+  }
 }
 
 export default new UserService();

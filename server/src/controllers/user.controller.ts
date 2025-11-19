@@ -368,6 +368,48 @@ export class UserController {
     }
   }
 
+  // DELETE /api/users/:id - Delete user (admin only)
+  static async deleteUser(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new ApiError('Authentication required', 401);
+      }
+
+      const { id } = req.params;
+
+      // Prevent admin from deleting themselves
+      if (id === req.user.id) {
+        throw new ApiError('You cannot delete your own account', 400);
+      }
+
+      const user = await UserModel.findById(id);
+      if (!user) {
+        throw new ApiError('User not found', 404);
+      }
+
+      // Delete user (cascade delete will handle related records)
+      await UserModel.deleteUser(id);
+
+      res.json({
+        success: true,
+        message: 'User deleted successfully',
+      });
+    } catch (error) {
+      if (error instanceof ApiError) {
+        res.status(error.statusCode).json({
+          success: false,
+          error: error.message,
+        });
+      } else {
+        console.error('Delete user error:', error);
+        res.status(500).json({
+          success: false,
+          error: 'Failed to delete user',
+        });
+      }
+    }
+  }
+
   // PUT /api/users/:id/roles - Update user roles (admin only)
   static async updateUserRoles(req: AuthRequest, res: Response): Promise<void> {
     try {
@@ -375,7 +417,7 @@ export class UserController {
         throw new ApiError('Authentication required', 401);
       }
 
-      const { id } = req.params;
+      const { id} = req.params;
       const { action, role, roles } = req.body;
 
       // Support two formats:

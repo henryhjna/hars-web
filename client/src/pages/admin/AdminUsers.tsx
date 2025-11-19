@@ -71,6 +71,24 @@ export default function AdminUsers() {
     }
   };
 
+  const handleDeleteUser = async (userId: string, userName: string, userEmail: string) => {
+    const confirmMessage = `Are you sure you want to delete this user?\n\nName: ${userName}\nEmail: ${userEmail}\n\nThis action cannot be undone!`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      setError('');
+      setSuccess('');
+      await userService.deleteUser(userId);
+      setSuccess('User deleted successfully');
+      await loadUsers();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to delete user');
+    }
+  };
+
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case 'admin':
@@ -189,6 +207,12 @@ export default function AdminUsers() {
                   Verify Email
                 </button>
               )}
+              <button
+                onClick={() => handleDeleteUser(user.id, `${user.first_name} ${user.last_name}`, user.email)}
+                className="w-full md:w-auto px-4 py-2 text-sm text-red-600 bg-red-50 rounded hover:bg-red-100"
+              >
+                Delete User
+              </button>
             </div>
           </div>
         ))}

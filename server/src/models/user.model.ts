@@ -212,6 +212,10 @@ export class UserModel {
     );
   }
 
+  static async deleteUser(userId: string): Promise<void> {
+    await query('DELETE FROM users WHERE id = $1', [userId]);
+  }
+
   static async list(params: {
     page?: number;
     limit?: number;

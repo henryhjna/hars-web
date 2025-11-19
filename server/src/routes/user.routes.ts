@@ -44,5 +44,6 @@ router.get('/', authorize('admin'), UserController.listUsers);
 router.get('/:id', authorize('admin'), UserController.getUserById);
 router.put('/:id/verify-email', authorize('admin'), UserController.verifyUserEmail);
 router.put('/:id/roles', authorize('admin'), UserController.updateUserRoles);
+router.delete('/:id', authorize('admin'), UserController.deleteUser);
 
 export default router;
