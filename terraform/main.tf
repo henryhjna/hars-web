@@ -184,6 +184,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "hars_lifecycle" {
     id     = "transition-old-files"
     status = "Enabled"
 
+    filter {} # Apply to all objects
+
     transition {
       days          = 90
       storage_class = "STANDARD_IA"

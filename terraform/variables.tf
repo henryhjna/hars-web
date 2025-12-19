@@ -19,7 +19,7 @@ variable "aws_secret_key" {
 variable "ami_id" {
   description = "AMI ID for Ubuntu 22.04 LTS ARM64 in ap-northeast-2"
   type        = string
-  default     = "ami-0f1e61a80c7ab943e" # Ubuntu 22.04 LTS ARM64 (Graviton)
+  default     = "ami-028a89fd47585df22" # Ubuntu 22.04 LTS ARM64 (Graviton) - 2024-12-12
 }
 
 variable "ssh_public_key" {
