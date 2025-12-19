@@ -99,24 +99,6 @@ resource "aws_security_group" "hars_sg" {
     description = "HTTPS"
   }
 
-  # Client App (React)
-  ingress {
-    from_port   = 3000
-    to_port     = 3000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "React Client"
-  }
-
-  # Backend API (Express)
-  ingress {
-    from_port   = 5000
-    to_port     = 5000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "Express API"
-  }
-
   # Outbound - Allow all
   egress {
     from_port   = 0
@@ -141,10 +123,10 @@ resource "aws_key_pair" "hars_key" {
   }
 }
 
-# EC2 Instance (Free Tier: t3.micro for ap-northeast-2)
+# EC2 Instance (ARM-based Graviton for cost optimization)
 resource "aws_instance" "hars_ec2" {
-  ami                    = var.ami_id # Ubuntu 22.04 LTS in ap-northeast-2
-  instance_type          = "t3.micro" # Free tier eligible in ap-northeast-2
+  ami                    = var.ami_id # Ubuntu 22.04 LTS ARM64 in ap-northeast-2
+  instance_type          = "t4g.micro" # ARM-based Graviton - 35% cheaper than t3.micro
   key_name               = aws_key_pair.hars_key.key_name
   vpc_security_group_ids = [aws_security_group.hars_sg.id]
   subnet_id              = aws_subnet.hars_public_subnet.id
@@ -191,6 +173,26 @@ resource "aws_s3_bucket_versioning" "hars_submissions_versioning" {
 
   versioning_configuration {
     status = "Disabled" # Disable to save costs
+  }
+}
+
+# S3 Lifecycle Policy for cost optimization
+resource "aws_s3_bucket_lifecycle_configuration" "hars_lifecycle" {
+  bucket = aws_s3_bucket.hars_submissions.id
+
+  rule {
+    id     = "transition-old-files"
+    status = "Enabled"
+
+    transition {
+      days          = 90
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 730
+      storage_class = "GLACIER_IR"
+    }
   }
 }
 

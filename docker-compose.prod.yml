@@ -23,9 +23,9 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend Server (prebuilt image from ECR)
+  # Backend Server (prebuilt image from GHCR)
   server:
-    image: 025158345480.dkr.ecr.ap-northeast-2.amazonaws.com/hars-server:latest
+    image: ghcr.io/henryhjna/hars-server:latest
     container_name: hars-server
     restart: unless-stopped
     depends_on:
@@ -53,9 +53,9 @@ services:
       timeout: 10s
       retries: 3
 
-  # Frontend Client (prebuilt image from ECR)
+  # Frontend Client (prebuilt image from GHCR)
   client:
-    image: 025158345480.dkr.ecr.ap-northeast-2.amazonaws.com/hars-client:latest
+    image: ghcr.io/henryhjna/hars-client:latest
     container_name: hars-client
     restart: unless-stopped
     depends_on:

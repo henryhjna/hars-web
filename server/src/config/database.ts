@@ -9,8 +9,8 @@ const poolConfig: PoolConfig = {
   database: process.env.DB_NAME || 'hars_db',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000,
+  max: 5, // Reduced for t4g.micro instance
+  idleTimeoutMillis: 10000, // Faster cleanup of idle connections
   connectionTimeoutMillis: 2000,
 };
 
@@ -31,8 +31,10 @@ export const query = async (text: string, params?: any[]) => {
   const start = Date.now();
   try {
     const res = await pool.query(text, params);
-    const duration = Date.now() - start;
-    console.log('Executed query', { text, duration, rows: res.rowCount });
+    if (process.env.NODE_ENV !== 'production') {
+      const duration = Date.now() - start;
+      console.log('Executed query', { text, duration, rows: res.rowCount });
+    }
     return res;
   } catch (error) {
     console.error('Database query error:', error);
