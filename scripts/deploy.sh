@@ -16,7 +16,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 # AWS Account ID (extracted from existing ECR repo)
-AWS_ACCOUNT_ID="183631316066"
+AWS_ACCOUNT_ID="025158345480"
 AWS_REGION="ap-northeast-2"
 ECR_REGISTRY="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 
