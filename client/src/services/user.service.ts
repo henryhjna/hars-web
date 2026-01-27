@@ -49,10 +49,20 @@ class UserService {
     return response.data;
   }
 
-  // Admin: Get all users
-  async getAllUsers(): Promise<ApiResponse<User[]>> {
-    const response = await api.get<ApiResponse<User[]>>('/users');
+  // Admin: Get all users with pagination
+  async getAllUsers(page: number = 1, limit: number = 20): Promise<any> {
+    const response = await api.get<any>(`/users?page=${page}&limit=${limit}`);
     return response.data;
+  }
+
+  // Admin: Get all users without pagination (for dropdowns, etc.)
+  async getAllUsersNoPagination(): Promise<ApiResponse<User[]>> {
+    // Use a large limit to get all users
+    const response = await api.get<any>('/users?page=1&limit=10000');
+    return {
+      success: response.data.success,
+      data: response.data.data || [],
+    };
   }
 
   // Admin: Get user by ID

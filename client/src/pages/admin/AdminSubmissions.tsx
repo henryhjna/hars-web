@@ -16,6 +16,11 @@ export default function AdminSubmissions() {
   const [selectedEvent, setSelectedEvent] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
+  // View mode state (table for desktop, card for mobile)
+  const [viewMode, setViewMode] = useState<'table' | 'card'>(() => {
+    return window.innerWidth >= 768 ? 'table' : 'card';
+  });
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -45,16 +50,31 @@ export default function AdminSubmissions() {
     loadData();
   }, [currentPage]);
 
+  // Responsive view mode
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setViewMode('table');
+      } else {
+        setViewMode('card');
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const loadData = async () => {
     try {
       setLoading(true);
       setError('');
 
       // Use admin endpoint to get ALL submissions with pagination
+      // Use getAllUsersNoPagination for reviewers dropdown to get ALL reviewers
       const [submissionsResponse, eventsResponse, usersResponse] = await Promise.all([
         submissionService.getAllSubmissions(currentPage, limit),
         eventService.getAllEvents(),
-        userService.getAllUsers(),
+        userService.getAllUsersNoPagination(),
       ]);
 
       setSubmissions(submissionsResponse.data || []);
@@ -265,6 +285,27 @@ export default function AdminSubmissions() {
     <div>
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Manage Submissions</h1>
+        {/* View Toggle Buttons */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setViewMode('table')}
+            className={`p-2 rounded-md ${viewMode === 'table' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
+            title="Table View"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18M3 18h18M3 6h18" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setViewMode('card')}
+            className={`p-2 rounded-md ${viewMode === 'card' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
+            title="Card View"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -322,12 +363,113 @@ export default function AdminSubmissions() {
         </div>
       </div>
 
-      {/* Submissions List - Card View */}
+      {/* Submissions List */}
       {filteredSubmissions.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-6 text-center">
           <p className="text-gray-500">No submissions found</p>
         </div>
+      ) : viewMode === 'table' ? (
+        /* Table View */
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredSubmissions.map((submission) => (
+                  <tr key={submission.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4">
+                      <div className="max-w-xs">
+                        <div className="text-sm font-medium text-gray-900 truncate" title={submission.title}>{submission.title}</div>
+                        <div className="text-sm text-gray-500 truncate" title={submission.abstract}>{submission.abstract?.substring(0, 50)}...</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{submission.corresponding_author}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{submission.event_title}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(submission.status)}`}>
+                        {submission.status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(submission.created_at).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => viewPdf(submission.pdf_url)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="View PDF"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => openReviewsModal(submission)}
+                          className="text-purple-600 hover:text-purple-900"
+                          title="View Reviews"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => openAssignModal(submission)}
+                          className="text-green-600 hover:text-green-900"
+                          title="Assign Reviewer"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                          </svg>
+                        </button>
+                        {submission.status === 'review_complete' && (
+                          <>
+                            <button
+                              onClick={() => handleOpenEmailModal(submission, 'accepted')}
+                              className="text-green-600 hover:text-green-900"
+                              title="Accept"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => handleOpenEmailModal(submission, 'rejected')}
+                              className="text-red-600 hover:text-red-900"
+                              title="Reject"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => handleDelete(submission)}
+                          className="text-red-600 hover:text-red-900"
+                          title="Delete"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : (
+        /* Card View */
         <div className="space-y-4">
           {filteredSubmissions.map((submission) => (
             <div key={submission.id} className="bg-white rounded-lg shadow p-4 md:p-6">
@@ -348,7 +490,7 @@ export default function AdminSubmissions() {
                 <div className="flex justify-between md:justify-start items-center">
                   <span className="text-sm text-gray-600 md:mr-2">Status:</span>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(submission.status)}`}>
-                    {submission.status.replace('_', ' ').replace(/bw/g, (l) => l.toUpperCase())}
+                    {submission.status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                   </span>
                 </div>
                 <div className="flex justify-between md:justify-start items-center">
