@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # HARS Web - Automated Deployment Script
-# Deployment strategy: Git push → EC2 git pull → EC2 docker build
+# Deployment strategy: Local Build → ECR Push → EC2 Pull (NO BUILD ON EC2!)
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
@@ -15,21 +15,39 @@ NC='\033[0m' # No Color
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
+# AWS Account ID (extracted from existing ECR repo)
+AWS_ACCOUNT_ID="183631316066"
+AWS_REGION="ap-northeast-2"
+ECR_REGISTRY="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
+
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  HARS Web Deployment Automation${NC}"
+echo -e "${GREEN}  Local Build → ECR Push → EC2 Pull${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
 
 # ==============================================================================
 # STEP 1: Prerequisites Check
 # ==============================================================================
-echo -e "${YELLOW}[1/4] Checking prerequisites...${NC}"
+echo -e "${YELLOW}[1/7] Checking prerequisites...${NC}"
 
 # Check if there are uncommitted changes
 if ! git diff-index --quiet HEAD --; then
     echo -e "${RED}ERROR: You have uncommitted changes${NC}"
     echo "Please commit or stash your changes first:"
     echo "  git status"
+    exit 1
+fi
+
+# Check Docker
+if ! command -v docker &> /dev/null; then
+    echo -e "${RED}ERROR: Docker is not installed${NC}"
+    exit 1
+fi
+
+# Check AWS CLI
+if ! command -v aws &> /dev/null; then
+    echo -e "${RED}ERROR: AWS CLI is not installed${NC}"
     exit 1
 fi
 
@@ -62,9 +80,8 @@ echo ""
 # ==============================================================================
 # STEP 2: Push to GitHub
 # ==============================================================================
-echo -e "${YELLOW}[2/4] Pushing changes to GitHub...${NC}"
+echo -e "${YELLOW}[2/7] Pushing changes to GitHub...${NC}"
 
-# Push to GitHub
 git push origin main || {
     echo -e "${RED}ERROR: Failed to push to GitHub${NC}"
     exit 1
@@ -74,9 +91,44 @@ echo -e "${GREEN}✓ Pushed to GitHub successfully${NC}"
 echo ""
 
 # ==============================================================================
-# STEP 3: Get EC2 IP from Terraform
+# STEP 3: Build Docker Images Locally
 # ==============================================================================
-echo -e "${YELLOW}[3/4] Getting EC2 IP from Terraform...${NC}"
+echo -e "${YELLOW}[3/7] Building Docker images locally...${NC}"
+
+echo "Building client image..."
+docker build -t hars-client:latest -f client/Dockerfile client
+
+echo "Building server image..."
+docker build -t hars-server:latest -f server/Dockerfile server
+
+echo -e "${GREEN}✓ Docker images built successfully${NC}"
+echo ""
+
+# ==============================================================================
+# STEP 4: Login to ECR and Push Images
+# ==============================================================================
+echo -e "${YELLOW}[4/7] Logging in to ECR and pushing images...${NC}"
+
+# ECR Login
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+# Tag and push client
+echo "Pushing client image to ECR..."
+docker tag hars-client:latest $ECR_REGISTRY/hars-client:latest
+docker push $ECR_REGISTRY/hars-client:latest
+
+# Tag and push server
+echo "Pushing server image to ECR..."
+docker tag hars-server:latest $ECR_REGISTRY/hars-server:latest
+docker push $ECR_REGISTRY/hars-server:latest
+
+echo -e "${GREEN}✓ Images pushed to ECR successfully${NC}"
+echo ""
+
+# ==============================================================================
+# STEP 5: Get EC2 IP from Terraform
+# ==============================================================================
+echo -e "${YELLOW}[5/7] Getting EC2 IP from Terraform...${NC}"
 
 EC2_IP=$(cd terraform && "$TERRAFORM_CMD" output -raw ec2_public_ip 2>/dev/null || echo "")
 if [ -z "$EC2_IP" ]; then
@@ -89,9 +141,9 @@ echo -e "${GREEN}✓ EC2 IP: $EC2_IP${NC}"
 echo ""
 
 # ==============================================================================
-# STEP 4: Deploy to EC2 (Git Pull + Docker Build on EC2)
+# STEP 6: Deploy to EC2 (Pull images from ECR, NO BUILD!)
 # ==============================================================================
-echo -e "${YELLOW}[4/4] Deploying to EC2...${NC}"
+echo -e "${YELLOW}[6/7] Deploying to EC2 (pulling images from ECR)...${NC}"
 
 # Set proper permissions on SSH key (Windows Git Bash compatible)
 chmod 600 "$SSH_KEY" 2>/dev/null || true
@@ -100,23 +152,25 @@ chmod 600 "$SSH_KEY" 2>/dev/null || true
 SSH_OPTS="-i $SSH_KEY -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
 
 echo "Connecting to EC2 instance at $EC2_IP..."
-echo "This will take several minutes (Docker build on EC2)..."
 echo ""
 
-# Deploy commands: git pull → stop containers → build → start
-ssh $SSH_OPTS ubuntu@$EC2_IP << 'ENDSSH'
+# Deploy commands: ECR login → git pull → pull images → restart containers (NO BUILD!)
+ssh $SSH_OPTS ubuntu@$EC2_IP << ENDSSH
 set -e
+
+echo "[EC2] Logging in to ECR..."
+aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
 
 echo "[EC2] Pulling latest code from GitHub..."
 cd hars-web
 git pull origin main
 
-echo "[EC2] Stopping old containers..."
-docker-compose down
+echo "[EC2] Pulling latest images from ECR..."
+docker-compose pull
 
-echo "[EC2] Building and starting new containers..."
-echo "This may take 5-10 minutes on t3.micro..."
-docker-compose up -d --build
+echo "[EC2] Restarting containers (NO BUILD!)..."
+docker-compose down
+docker-compose up -d
 
 echo "[EC2] Deployment complete!"
 ENDSSH
@@ -129,6 +183,11 @@ if [ $? -eq 0 ]; then
     # Wait for containers to fully start
     echo "Waiting for containers to start (10 seconds)..."
     sleep 10
+
+    # ==============================================================================
+    # STEP 7: Verify Deployment
+    # ==============================================================================
+    echo -e "${YELLOW}[7/7] Verifying deployment...${NC}"
 
     # Check container status
     echo -e "${YELLOW}Container Status:${NC}"

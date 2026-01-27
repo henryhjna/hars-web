@@ -75,90 +75,13 @@ bash scripts/deploy.sh
 **자동으로 수행되는 작업**:
 1. Git commit 확인
 2. Git push to GitHub
-3. EC2에 SSH 접속
-4. EC2에서 git pull
-5. EC2에서 docker-compose down
-6. EC2에서 docker-compose up -d --build
-7. 배포 검증
-
----
-
-## 2️⃣ 수동 배포 (자동화 실패 시)
-
-### Step 1: Git Push
-
-```bash
-cd c:/projects/hars-web
-git add .
-git commit -m "Your commit message"
-git push origin main
-```
-
-### Step 2: EC2 SSH 접속
-
-```bash
-ssh -i terraform/hars-key ubuntu@52.78.232.37
-```
-
-### Step 3: EC2에서 배포
-
-```bash
-cd hars-web
-git pull origin main
-docker-compose down
-docker-compose up -d --build
-```
-
-**소요 시간**: 약 5-10분 (TypeScript 빌드 포함)
-
-```bash
-# Client 이미지 푸시
-docker push <AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com/hars-client:latest
-
-# Server 이미지 푸시
-docker push <AWS_ACCOUNT_ID>.dkr.ecr.ap-northeast-2.amazonaws.com/hars-server:latest
-```
-
-### Step 4: Git에 소스코드 커밋
-
-```bash
-# 변경사항 확인
-git status
-
-# 파일 추가
-git add .
-
-# 커밋
-git commit -m "Update: [변경 내용 설명]"
-
-# GitHub에 푸시
-git push origin main
-```
-
-### Step 5: EC2에서 ECR 이미지 pull 및 재배포
-
-```bash
-# EC2에 SSH 접속하여 배포
-ssh -i "terraform/hars-key" ubuntu@52.78.232.37 "cd hars-web && git pull origin main && docker-compose pull && docker-compose up -d"
-```
-
-**단계별 설명**:
-1. `git pull origin main` - 최신 코드 가져오기 (docker-compose.yml 등 설정 파일 업데이트)
-2. `docker-compose pull` - ECR에서 최신 이미지 pull
-3. `docker-compose up -d` - 새 이미지로 컨테이너 재시작
-
-**주의사항**:
-- `--build` 플래그 사용 안 함 (EC2에서 빌드하지 않음!)
-- 데이터베이스 데이터는 볼륨으로 유지됨 (postgres_data)
-- `-v` 플래그는 절대 사용하지 말 것 (데이터 삭제됨!)
-
-### 언제 사용
-- ✅ React/TypeScript 코드 수정
-- ✅ Express API 코드 수정
-- ✅ 데이터베이스 스키마 변경 (db/init.sql)
-- ✅ Dockerfile 변경
-- ✅ nginx.conf 변경
-- ✅ package.json 의존성 변경
+3. 로컬에서 Docker 이미지 빌드
+4. ECR에 이미지 푸시
+5. EC2에 SSH 접속
+6. EC2에서 git pull
+7. EC2에서 docker-compose pull
+8. EC2에서 docker-compose up -d (빌드 없이 pull한 이미지 사용)
+9. 배포 검증
 
 ---
 
