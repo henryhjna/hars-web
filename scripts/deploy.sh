@@ -99,10 +99,10 @@ echo -e "${YELLOW}[3/7] Building Docker images for ARM64...${NC}"
 docker buildx create --name hars-builder --use 2>/dev/null || docker buildx use hars-builder
 
 echo "Building client image for ARM64..."
-docker buildx build --platform linux/arm64 -t hars-client:latest -f client/Dockerfile client --load
+docker buildx build --no-cache --platform linux/arm64 -t hars-client:latest -f client/Dockerfile client --load
 
 echo "Building server image for ARM64..."
-docker buildx build --platform linux/arm64 -t hars-server:latest -f server/Dockerfile server --load
+docker buildx build --no-cache --platform linux/arm64 -t hars-server:latest -f server/Dockerfile server --load
 
 echo -e "${GREEN}✓ Docker images built successfully${NC}"
 echo ""

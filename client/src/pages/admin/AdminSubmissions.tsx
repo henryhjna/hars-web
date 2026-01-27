@@ -375,9 +375,8 @@ export default function AdminSubmissions() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ width: '45%' }}>Title</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -387,13 +386,12 @@ export default function AdminSubmissions() {
                 {filteredSubmissions.map((submission) => (
                   <tr key={submission.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
-                      <div className="max-w-xs">
-                        <div className="text-sm font-medium text-gray-900 truncate" title={submission.title}>{submission.title}</div>
-                        <div className="text-sm text-gray-500 truncate" title={submission.abstract}>{submission.abstract?.substring(0, 50)}...</div>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900" title={submission.title}>{submission.title}</div>
+                        <div className="text-sm text-gray-500 line-clamp-2" title={submission.abstract}>{submission.abstract?.substring(0, 100)}...</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{submission.corresponding_author}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{submission.event_title}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(submission.status)}`}>
                         {submission.status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
@@ -478,11 +476,7 @@ export default function AdminSubmissions() {
                 <p className="text-sm text-gray-500 line-clamp-2">{submission.abstract}</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                <div className="flex justify-between md:justify-start items-start">
-                  <span className="text-sm text-gray-600 md:mr-2">Event:</span>
-                  <span className="text-sm text-gray-900 text-right md:text-left flex-1">{submission.event_title}</span>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                 <div className="flex justify-between md:justify-start items-start">
                   <span className="text-sm text-gray-600 md:mr-2">Author:</span>
                   <span className="text-sm text-gray-900 text-right md:text-left flex-1">{submission.corresponding_author}</span>
