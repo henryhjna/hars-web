@@ -91,15 +91,18 @@ echo -e "${GREEN}✓ Pushed to GitHub successfully${NC}"
 echo ""
 
 # ==============================================================================
-# STEP 3: Build Docker Images Locally
+# STEP 3: Build Docker Images for ARM64 (EC2 is ARM-based)
 # ==============================================================================
-echo -e "${YELLOW}[3/7] Building Docker images locally...${NC}"
+echo -e "${YELLOW}[3/7] Building Docker images for ARM64...${NC}"
 
-echo "Building client image..."
-docker build -t hars-client:latest -f client/Dockerfile client
+# Create buildx builder if it doesn't exist
+docker buildx create --name hars-builder --use 2>/dev/null || docker buildx use hars-builder
 
-echo "Building server image..."
-docker build -t hars-server:latest -f server/Dockerfile server
+echo "Building client image for ARM64..."
+docker buildx build --platform linux/arm64 -t hars-client:latest -f client/Dockerfile client --load
+
+echo "Building server image for ARM64..."
+docker buildx build --platform linux/arm64 -t hars-server:latest -f server/Dockerfile server --load
 
 echo -e "${GREEN}✓ Docker images built successfully${NC}"
 echo ""
