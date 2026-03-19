@@ -127,22 +127,25 @@ export default function AdminSubmissions() {
   const handleSendDecisionEmail = async (comments?: string) => {
     if (!emailSubmission) return;
 
+    // Step 1: Update status
     try {
-      // First update the status
       await submissionService.updateSubmissionStatus(emailSubmission.id, emailDecision);
-
-      // Then send the email
-      await submissionService.sendDecisionEmail(emailSubmission.id, comments);
-
-      setSuccess(`Submission ${emailDecision} and email sent successfully`);
-      setEmailModalOpen(false);
-      setEmailSubmission(null);
-
-      // Reload data
-      await loadData();
     } catch (err: any) {
-      throw new Error(err.response?.data?.message || 'Failed to send decision email');
+      throw new Error(err.response?.data?.message || 'Failed to update submission status');
     }
+
+    // Step 2: Send email (status already updated at this point)
+    try {
+      await submissionService.sendDecisionEmail(emailSubmission.id, comments);
+      setSuccess(`Submission ${emailDecision} and email sent successfully`);
+    } catch (err: any) {
+      // Status was updated but email failed - show warning, not error
+      setSuccess(`Submission ${emailDecision} successfully, but email failed to send: ${err.response?.data?.message || err.response?.data?.error || 'SMTP error'}. You can retry sending the email later.`);
+    }
+
+    setEmailModalOpen(false);
+    setEmailSubmission(null);
+    await loadData();
   };
 
   const handleDelete = async (submission: Submission) => {
@@ -164,6 +167,11 @@ export default function AdminSubmissions() {
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to delete submission');
     }
+  };
+
+  const closeAssignModal = async () => {
+    setAssignModalOpen(false);
+    await loadData();
   };
 
   const openAssignModal = async (submission: Submission) => {
@@ -750,7 +758,7 @@ export default function AdminSubmissions() {
                 <p className="text-sm text-gray-600 mt-1">{selectedSubmission.title}</p>
               </div>
               <button
-                onClick={() => setAssignModalOpen(false)}
+                onClick={closeAssignModal}
                 className="text-gray-400 hover:text-gray-600"
               >
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -835,7 +843,7 @@ export default function AdminSubmissions() {
 
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
-                    onClick={() => setAssignModalOpen(false)}
+                    onClick={closeAssignModal}
                     className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
                   >
                     Close

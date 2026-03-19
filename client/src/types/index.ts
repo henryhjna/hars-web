@@ -240,6 +240,8 @@ export interface Submission {
   pdf_size?: number;
   status: SubmissionStatus;
   submitted_at?: string;
+  is_best_paper: boolean;
+  award_type?: string;
   created_at: string;
   updated_at: string;
   // Joined fields

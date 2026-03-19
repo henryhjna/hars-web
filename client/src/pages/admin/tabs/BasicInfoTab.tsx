@@ -77,18 +77,11 @@ export default function BasicInfoTab({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Status *</label>
-          <select
-            name="status"
-            value={basicForm.status}
-            onChange={onInputChange}
-            required
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
-          >
-            <option value="upcoming">Upcoming</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="past">Past</option>
-          </select>
+          <label className="block text-sm font-medium text-gray-700">Status</label>
+          <div className="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-gray-600">
+            {basicForm.status === 'past' ? 'Past' : basicForm.status === 'ongoing' ? 'Ongoing' : 'Upcoming'}
+            <span className="text-xs text-gray-400 ml-2">(automatically determined by event date)</span>
+          </div>
         </div>
 
         <div>

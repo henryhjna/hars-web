@@ -23,6 +23,7 @@ router.delete('/:id', SubmissionController.deleteSubmission);
 // Admin/Reviewer routes
 router.get('/', authorize('admin', 'reviewer'), SubmissionController.getAllSubmissions);
 router.patch('/:id/status', authorize('admin', 'reviewer'), SubmissionController.updateSubmissionStatus);
+router.post('/:id/preview-decision-email', authorize('admin'), SubmissionController.previewDecisionEmail);
 router.post('/:id/send-decision-email', authorize('admin'), SubmissionController.sendDecisionEmail);
 
 export default router;

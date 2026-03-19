@@ -94,6 +94,15 @@ class SubmissionService {
     return response.data;
   }
 
+  // Admin: Preview decision email (returns exact HTML that will be sent)
+  async previewDecisionEmail(id: string, decision: 'accepted' | 'rejected', comments?: string): Promise<ApiResponse<{ subject: string; html: string; to: string }>> {
+    const response = await api.post<ApiResponse<{ subject: string; html: string; to: string }>>(`/submissions/${id}/preview-decision-email`, {
+      decision,
+      comments,
+    });
+    return response.data;
+  }
+
   // Admin: Send decision email
   async sendDecisionEmail(id: string, comments?: string): Promise<ApiResponse<void>> {
     const response = await api.post<ApiResponse<void>>(`/submissions/${id}/send-decision-email`, {

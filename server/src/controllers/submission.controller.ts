@@ -4,7 +4,7 @@ import { EventModel } from '../models/event.model';
 import { UserModel } from '../models/user.model';
 import { AuthRequest, SubmissionStatus, ApiError } from '../types';
 import { uploadPdfToS3, deletePhotoFromS3 } from '../utils/s3Upload';
-import { sendSubmissionConfirmationEmail, sendDecisionEmail } from '../services/email.service';
+import { sendSubmissionConfirmationEmail, sendDecisionEmail, buildDecisionEmail } from '../services/email.service';
 
 const VALID_SUBMISSION_STATUSES: SubmissionStatus[] = [
   'submitted', 'under_review', 'review_complete', 'accepted', 'rejected'
@@ -230,6 +230,12 @@ export class SubmissionController {
         throw new ApiError('You do not have permission to update this submission', 403);
       }
 
+      // Prevent editing submissions that are in review or decided
+      const lockedStatuses = ['under_review', 'review_complete', 'accepted', 'rejected'];
+      if (lockedStatuses.includes(existingSubmission.status) && !isAdmin) {
+        throw new ApiError('Cannot edit submission while it is under review or after a decision has been made', 400);
+      }
+
       // Prepare update data
       const updateData: any = {
         title,
@@ -386,6 +392,41 @@ export class SubmissionController {
     }
   }
 
+  // Preview decision email (admin only) - returns the exact HTML that would be sent
+  static async previewDecisionEmail(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { decision, comments } = req.body;
+
+      if (!decision || (decision !== 'accepted' && decision !== 'rejected')) {
+        throw new ApiError('Decision must be "accepted" or "rejected"', 400);
+      }
+
+      const submission = await SubmissionModel.findById(id);
+      if (!submission) {
+        throw new ApiError('Submission not found', 404);
+      }
+
+      const [event, author] = await Promise.all([
+        EventModel.findById(submission.event_id),
+        UserModel.findById(submission.user_id),
+      ]);
+
+      if (!event || !author) {
+        throw new ApiError('Event or author not found', 404);
+      }
+
+      const { subject, html, to } = buildDecisionEmail(author, submission, event, decision, comments);
+
+      res.json({
+        success: true,
+        data: { subject, html, to },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Send decision email (admin only)
   static async sendDecisionEmail(req: AuthRequest, res: Response, next: NextFunction) {
     try {
@@ -414,7 +455,15 @@ export class SubmissionController {
       }
 
       // Send decision email
-      await sendDecisionEmail(author, submission, event, submission.status as 'accepted' | 'rejected', comments);
+      try {
+        await sendDecisionEmail(author, submission, event, submission.status as 'accepted' | 'rejected', comments);
+      } catch (emailError: any) {
+        console.error('Failed to send decision email:', emailError.message || emailError);
+        const msg = emailError.message?.includes('BadCredentials')
+          ? 'SMTP authentication failed. Please check email credentials in server configuration.'
+          : `Failed to send email: ${emailError.message || 'Unknown error'}`;
+        throw new ApiError(msg, 502);
+      }
 
       res.json({
         success: true,

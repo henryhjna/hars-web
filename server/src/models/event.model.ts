@@ -319,13 +319,14 @@ export class EventModel {
       end_time,
       location,
       description,
+      session_order,
     } = sessionData;
 
     const sql = `
       INSERT INTO event_sessions (
         event_id, session_title, session_type, session_date,
-        start_time, end_time, location, description
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        start_time, end_time, location, description, session_order
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
 
@@ -338,6 +339,7 @@ export class EventModel {
       end_time,
       location || null,
       description || null,
+      session_order || 0,
     ]);
 
     return result.rows[0];
