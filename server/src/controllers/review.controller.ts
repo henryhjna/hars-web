@@ -188,7 +188,35 @@ export class ReviewController {
     try {
       const { assignmentId } = req.params;
 
+      // Get the assignment before deleting to know the submission_id
+      const assignment = await ReviewAssignmentModel.findById(assignmentId);
+      if (!assignment) {
+        throw new ApiError('Assignment not found', 404);
+      }
+
+      const submissionId = assignment.submission_id;
+
       await ReviewAssignmentModel.delete(assignmentId);
+
+      // Recalculate submission status based on remaining assignments
+      const remainingAssignments = await ReviewAssignmentModel.findBySubmission(submissionId);
+      const submission = await SubmissionModel.findById(submissionId);
+
+      if (submission && (submission.status === 'under_review' || submission.status === 'review_complete')) {
+        if (remainingAssignments.length === 0) {
+          // No reviewers left - revert to submitted
+          await SubmissionModel.updateStatus(submissionId, 'submitted');
+        } else {
+          const allCompleted = remainingAssignments.every(
+            (a) => a.status === 'completed' || a.review_completed
+          );
+          if (allCompleted) {
+            await SubmissionModel.updateStatus(submissionId, 'review_complete');
+          } else {
+            await SubmissionModel.updateStatus(submissionId, 'under_review');
+          }
+        }
+      }
 
       res.json({
         success: true,

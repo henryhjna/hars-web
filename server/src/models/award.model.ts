@@ -24,7 +24,7 @@ export const awardModel = {
       SELECT
         a.*,
         s.title as paper_title,
-        s.authors,
+        s.corresponding_author as authors,
         s.co_authors
       FROM awards a
       LEFT JOIN submissions s ON a.submission_id = s.id
@@ -47,7 +47,7 @@ export const awardModel = {
       SELECT
         a.*,
         s.title as paper_title,
-        s.authors,
+        s.corresponding_author as authors,
         s.co_authors
       FROM awards a
       LEFT JOIN submissions s ON a.submission_id = s.id
@@ -127,7 +127,7 @@ export const awardModel = {
       SELECT
         a.*,
         s.title as paper_title,
-        s.authors,
+        s.corresponding_author as authors,
         s.co_authors,
         e.title as event_title,
         e.event_date

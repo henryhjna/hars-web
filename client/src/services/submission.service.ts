@@ -64,9 +64,19 @@ class SubmissionService {
     return response.data;
   }
 
-  // Admin: Get all submissions with pagination
-  async getAllSubmissions(page: number = 1, limit: number = 20): Promise<any> {
-    const response = await api.get<any>(`/submissions?page=${page}&limit=${limit}`);
+  // Admin: Get all submissions with pagination and filters
+  async getAllSubmissions(
+    page: number = 1,
+    limit: number = 20,
+    filters?: { eventId?: string; status?: string }
+  ): Promise<any> {
+    const params = new URLSearchParams();
+    params.append('page', String(page));
+    params.append('limit', String(limit));
+    if (filters?.eventId) params.append('eventId', filters.eventId);
+    if (filters?.status) params.append('status', filters.status);
+
+    const response = await api.get<any>(`/submissions?${params.toString()}`);
     return response.data;
   }
 
@@ -89,6 +99,12 @@ class SubmissionService {
     const response = await api.post<ApiResponse<void>>(`/submissions/${id}/send-decision-email`, {
       comments,
     });
+    return response.data;
+  }
+
+  // Admin: Get overall submission statistics
+  async getOverallStats(): Promise<ApiResponse<{ total_submissions: number; by_status: Record<string, number> }>> {
+    const response = await api.get<ApiResponse<{ total_submissions: number; by_status: Record<string, number> }>>('/submissions/stats/overall');
     return response.data;
   }
 

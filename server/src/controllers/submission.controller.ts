@@ -2,10 +2,13 @@ import { Response, NextFunction } from 'express';
 import { SubmissionModel } from '../models/submission.model';
 import { EventModel } from '../models/event.model';
 import { UserModel } from '../models/user.model';
-import { AuthRequest } from '../types';
-import { ApiError } from '../types';
+import { AuthRequest, SubmissionStatus, ApiError } from '../types';
 import { uploadPdfToS3, deletePhotoFromS3 } from '../utils/s3Upload';
 import { sendSubmissionConfirmationEmail, sendDecisionEmail } from '../services/email.service';
+
+const VALID_SUBMISSION_STATUSES: SubmissionStatus[] = [
+  'submitted', 'under_review', 'review_complete', 'accepted', 'rejected'
+];
 
 export class SubmissionController {
   // Get all submissions with pagination (admin/reviewer only)
@@ -20,10 +23,16 @@ export class SubmissionController {
 
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
+      const eventId = req.query.eventId as string | undefined;
+      const status = req.query.status as string | undefined;
 
-      // Admins see all submissions with pagination
+      // Admins see all submissions with pagination and filters
       if (isAdmin) {
-        const { submissions, total } = await SubmissionModel.findAll(page, limit);
+        const filters: { eventId?: string; status?: string } = {};
+        if (eventId) filters.eventId = eventId;
+        if (status) filters.status = status;
+
+        const { submissions, total } = await SubmissionModel.findAll(page, limit, filters);
         return res.json({
           success: true,
           data: submissions,
@@ -234,7 +243,7 @@ export class SubmissionController {
       // If new file uploaded, update file info
       if (req.file) {
         // Delete old PDF from S3
-        if (existingSubmission.pdf_url.startsWith('https://')) {
+        if (existingSubmission.pdf_url && existingSubmission.pdf_url.startsWith('https://')) {
           await deletePhotoFromS3(existingSubmission.pdf_url);
         }
 
@@ -265,6 +274,10 @@ export class SubmissionController {
 
       if (!status) {
         throw new ApiError('Status is required', 400);
+      }
+
+      if (!VALID_SUBMISSION_STATUSES.includes(status)) {
+        throw new ApiError(`Invalid status. Must be one of: ${VALID_SUBMISSION_STATUSES.join(', ')}`, 400);
       }
 
       const submission = await SubmissionModel.findById(id);
@@ -303,7 +316,7 @@ export class SubmissionController {
       }
 
       // Prevent deletion of submissions that are being reviewed or have been reviewed
-      const protectedStatuses = ['under_review', 'accepted', 'rejected', 'revision_requested'];
+      const protectedStatuses = ['under_review', 'review_complete', 'accepted', 'rejected'];
       if (protectedStatuses.includes(submission.status) && !isAdmin) {
         throw new ApiError(
           'Cannot delete submission that is under review or has been reviewed. Please contact an administrator.',
@@ -312,7 +325,7 @@ export class SubmissionController {
       }
 
       // Delete PDF from S3
-      if (submission.pdf_url.startsWith('https://')) {
+      if (submission.pdf_url && submission.pdf_url.startsWith('https://')) {
         await deletePhotoFromS3(submission.pdf_url);
       }
 
@@ -322,6 +335,24 @@ export class SubmissionController {
       res.json({
         success: true,
         message: 'Submission deleted successfully',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Get overall submission statistics (admin only)
+  static async getOverallStats(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const counts = await SubmissionModel.getOverallCountByStatus();
+      const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+      res.json({
+        success: true,
+        data: {
+          total_submissions: total,
+          by_status: counts,
+        },
       });
     } catch (error) {
       next(error);

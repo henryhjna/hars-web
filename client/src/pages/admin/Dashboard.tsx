@@ -9,6 +9,8 @@ interface Stats {
   upcomingEvents: number;
   totalSubmissions: number;
   pendingReview: number;
+  accepted: number;
+  rejected: number;
 }
 
 export default function AdminDashboard() {
@@ -17,6 +19,8 @@ export default function AdminDashboard() {
     upcomingEvents: 0,
     totalSubmissions: 0,
     pendingReview: 0,
+    accepted: 0,
+    rejected: 0,
   });
   const [recentSubmissions, setRecentSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,35 +35,31 @@ export default function AdminDashboard() {
       setLoading(true);
       setError('');
 
-      // Load events
-      const eventsResponse = await eventService.getAllEvents();
-      const events = eventsResponse.data || [];
+      // Load events and submission stats in parallel
+      const [eventsResponse, statsResponse, submissionsResponse] = await Promise.all([
+        eventService.getAllEvents(),
+        submissionService.getOverallStats(),
+        submissionService.getAllSubmissions(1, 5), // Only need 5 most recent
+      ]);
 
-      // Load submissions
-      const submissionsResponse = await submissionService.getAllSubmissions();
-      const submissions = submissionsResponse.data || [];
+      const events = eventsResponse.data || [];
+      const statusCounts = statsResponse.data?.by_status || {};
+      const totalSubmissions = statsResponse.data?.total_submissions || 0;
 
       const totalEvents = events.length;
       const upcomingEvents = events.filter((e: Event) => e.status === 'upcoming').length;
-      const totalSubmissions = submissions.length;
-      const pendingReview = submissions.filter(
-        (s: Submission) => s.status === 'submitted' || s.status === 'under_review' || s.status === 'review_complete'
-      ).length;
+      const pendingReview = (statusCounts.submitted || 0) + (statusCounts.under_review || 0) + (statusCounts.review_complete || 0);
 
       setStats({
         totalEvents,
         upcomingEvents,
         totalSubmissions,
         pendingReview,
+        accepted: statusCounts.accepted || 0,
+        rejected: statusCounts.rejected || 0,
       });
 
-      // Get 5 most recent submissions
-      const recent = submissions
-        .sort((a: Submission, b: Submission) =>
-          new Date(b.submitted_at).getTime() - new Date(a.submitted_at).getTime()
-        )
-        .slice(0, 5);
-      setRecentSubmissions(recent);
+      setRecentSubmissions(submissionsResponse.data || []);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load dashboard data');
     } finally {
@@ -193,8 +193,15 @@ export default function AdminDashboard() {
                       {submission.event_title} • {submission.corresponding_author}
                     </p>
                   </div>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                    {submission.status}
+                  <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                    submission.status === 'submitted' ? 'bg-blue-100 text-blue-800' :
+                    submission.status === 'under_review' ? 'bg-yellow-100 text-yellow-800' :
+                    submission.status === 'review_complete' ? 'bg-purple-100 text-purple-800' :
+                    submission.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                    submission.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {submission.status.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                   </span>
                 </div>
               ))}

@@ -2,22 +2,47 @@ import { query } from '../config/database';
 import { Submission, SubmissionStatus } from '../types';
 
 export class SubmissionModel {
-  // Get all submissions with pagination (admin/reviewer)
-  static async findAll(page: number = 1, limit: number = 20): Promise<{ submissions: Submission[]; total: number }> {
+  // Get all submissions with pagination and filters (admin/reviewer)
+  static async findAll(
+    page: number = 1,
+    limit: number = 20,
+    filters?: { eventId?: string; status?: string }
+  ): Promise<{ submissions: Submission[]; total: number }> {
     const offset = (page - 1) * limit;
+    const conditions: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
 
-    const countSql = 'SELECT COUNT(*) as total FROM submissions';
+    if (filters?.eventId) {
+      conditions.push(`s.event_id = $${paramIndex++}`);
+      params.push(filters.eventId);
+    }
+    if (filters?.status) {
+      conditions.push(`s.status = $${paramIndex++}`);
+      params.push(filters.status);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    const countSql = `
+      SELECT COUNT(*) as total
+      FROM submissions s
+      ${whereClause}
+    `;
     const dataSql = `
       SELECT s.*, e.title as event_title, e.event_date
       FROM submissions s
       JOIN events e ON s.event_id = e.id
+      ${whereClause}
       ORDER BY s.created_at DESC
-      LIMIT $1 OFFSET $2
+      LIMIT $${paramIndex++} OFFSET $${paramIndex}
     `;
 
+    const dataParams = [...params, limit, offset];
+
     const [countResult, dataResult] = await Promise.all([
-      query(countSql),
-      query(dataSql, [limit, offset])
+      query(countSql, params),
+      query(dataSql, dataParams)
     ]);
 
     return {
@@ -131,7 +156,7 @@ export class SubmissionModel {
       pdf_url,
       pdf_filename,
       pdf_size || null,
-      status || 'draft',
+      status || 'submitted',
       submittedAt,
     ]);
 
@@ -246,6 +271,30 @@ export class SubmissionModel {
     return true;
   }
 
+  // Get overall submission count by status (all events)
+  static async getOverallCountByStatus(): Promise<Record<string, number>> {
+    const sql = `
+      SELECT status, COUNT(*) as count
+      FROM submissions
+      GROUP BY status
+    `;
+    const result = await query(sql);
+
+    const counts: Record<string, number> = {
+      submitted: 0,
+      under_review: 0,
+      review_complete: 0,
+      accepted: 0,
+      rejected: 0,
+    };
+
+    result.rows.forEach((row) => {
+      counts[row.status] = parseInt(row.count, 10);
+    });
+
+    return counts;
+  }
+
   // Get submission count by status for an event
   static async getCountByStatus(eventId: string): Promise<Record<string, number>> {
     const sql = `
@@ -257,12 +306,11 @@ export class SubmissionModel {
     const result = await query(sql, [eventId]);
 
     const counts: Record<string, number> = {
-      draft: 0,
       submitted: 0,
       under_review: 0,
+      review_complete: 0,
       accepted: 0,
       rejected: 0,
-      revision_requested: 0,
     };
 
     result.rows.forEach((row) => {

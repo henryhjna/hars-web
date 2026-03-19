@@ -4,6 +4,13 @@ import type { User, UserRole } from '../../types';
 
 type ViewMode = 'table' | 'card';
 
+interface UserStats {
+  total: number;
+  admins: number;
+  reviewers: number;
+  verified: number;
+}
+
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -11,6 +18,7 @@ export default function AdminUsers() {
   const [success, setSuccess] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
+  const [userStats, setUserStats] = useState<UserStats>({ total: 0, admins: 0, reviewers: 0, verified: 0 });
 
   // View mode - table for desktop, card for mobile
   const [viewMode, setViewMode] = useState<ViewMode>('table');
@@ -41,11 +49,17 @@ export default function AdminUsers() {
     try {
       setLoading(true);
       setError('');
-      const response = await userService.getAllUsers(currentPage, limit);
+      const [response, statsResponse] = await Promise.all([
+        userService.getAllUsers(currentPage, limit),
+        userService.getUserStats(),
+      ]);
       setUsers(response.data || []);
       if (response.pagination) {
         setTotalPages(response.pagination.totalPages);
         setTotalUsers(response.pagination.total);
+      }
+      if (statsResponse.data) {
+        setUserStats(statsResponse.data);
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load users');
@@ -386,26 +400,20 @@ export default function AdminUsers() {
       <div className="mt-6 bg-white rounded-lg shadow p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
           <div>
-            <p className="text-2xl font-bold text-gray-900">{totalUsers}</p>
+            <p className="text-2xl font-bold text-gray-900">{userStats.total}</p>
             <p className="text-sm text-gray-600">Total Users</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-red-600">
-              {users.filter((u) => u.roles.includes('admin')).length}
-            </p>
-            <p className="text-sm text-gray-600">Admins (this page)</p>
+            <p className="text-2xl font-bold text-red-600">{userStats.admins}</p>
+            <p className="text-sm text-gray-600">Admins</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-blue-600">
-              {users.filter((u) => u.roles.includes('reviewer')).length}
-            </p>
-            <p className="text-sm text-gray-600">Reviewers (this page)</p>
+            <p className="text-2xl font-bold text-blue-600">{userStats.reviewers}</p>
+            <p className="text-sm text-gray-600">Reviewers</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-green-600">
-              {users.filter((u) => u.is_email_verified).length}
-            </p>
-            <p className="text-sm text-gray-600">Verified (this page)</p>
+            <p className="text-2xl font-bold text-green-600">{userStats.verified}</p>
+            <p className="text-sm text-gray-600">Verified</p>
           </div>
         </div>
       </div>

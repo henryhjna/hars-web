@@ -65,6 +65,12 @@ class UserService {
     };
   }
 
+  // Admin: Get user statistics
+  async getUserStats(): Promise<ApiResponse<{ total: number; admins: number; reviewers: number; verified: number }>> {
+    const response = await api.get<ApiResponse<{ total: number; admins: number; reviewers: number; verified: number }>>('/users/stats');
+    return response.data;
+  }
+
   // Admin: Get user by ID
   async getUserById(id: string): Promise<ApiResponse<User>> {
     const response = await api.get<ApiResponse<User>>(`/users/${id}`);

@@ -251,6 +251,17 @@ export class UserController {
     }
   }
 
+  // GET /api/users/stats - Get user statistics (admin only)
+  static async getUserStats(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const stats = await UserModel.getStats();
+      res.json({ success: true, data: stats });
+    } catch (error) {
+      console.error('Get user stats error:', error);
+      res.status(500).json({ success: false, error: 'Failed to get user stats' });
+    }
+  }
+
   // GET /api/users - List all users (admin only)
   static async listUsers(req: AuthRequest, res: Response): Promise<void> {
     try {

@@ -8,8 +8,13 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
-// User routes
+// Specific path routes BEFORE parameterized /:id routes
 router.get('/my-submissions', SubmissionController.getUserSubmissions);
+router.get('/stats/overall', authorize('admin'), SubmissionController.getOverallStats);
+router.get('/event/:eventId', authorize('admin', 'reviewer'), SubmissionController.getEventSubmissions);
+router.get('/event/:eventId/stats', authorize('admin'), SubmissionController.getEventSubmissionStats);
+
+// Parameterized routes
 router.get('/:id', SubmissionController.getSubmission);
 router.post('/', upload.single('pdf'), SubmissionController.createSubmission);
 router.put('/:id', upload.single('pdf'), SubmissionController.updateSubmission);
@@ -17,8 +22,6 @@ router.delete('/:id', SubmissionController.deleteSubmission);
 
 // Admin/Reviewer routes
 router.get('/', authorize('admin', 'reviewer'), SubmissionController.getAllSubmissions);
-router.get('/event/:eventId', authorize('admin', 'reviewer'), SubmissionController.getEventSubmissions);
-router.get('/event/:eventId/stats', authorize('admin'), SubmissionController.getEventSubmissionStats);
 router.patch('/:id/status', authorize('admin', 'reviewer'), SubmissionController.updateSubmissionStatus);
 router.post('/:id/send-decision-email', authorize('admin'), SubmissionController.sendDecisionEmail);
 

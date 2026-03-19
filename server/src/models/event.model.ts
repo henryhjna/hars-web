@@ -400,13 +400,15 @@ export class EventModel {
       affiliation,
       bio,
       photo_url,
+      topic,
+      presentation_time,
       display_order,
     } = speakerData;
 
     const sql = `
       INSERT INTO keynote_speakers (
-        event_id, name, title, affiliation, bio, photo_url, display_order
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        event_id, name, title, affiliation, bio, photo_url, topic, presentation_time, display_order
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
 
@@ -417,6 +419,8 @@ export class EventModel {
       affiliation,
       bio || null,
       photo_url || null,
+      topic || null,
+      presentation_time || null,
       display_order || 0,
     ]);
 

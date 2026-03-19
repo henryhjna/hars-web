@@ -48,7 +48,7 @@ export default function AdminSubmissions() {
 
   useEffect(() => {
     loadData();
-  }, [currentPage]);
+  }, [currentPage, selectedEvent, selectedStatus]);
 
   // Responsive view mode
   useEffect(() => {
@@ -69,10 +69,13 @@ export default function AdminSubmissions() {
       setLoading(true);
       setError('');
 
-      // Use admin endpoint to get ALL submissions with pagination
-      // Use getAllUsersNoPagination for reviewers dropdown to get ALL reviewers
+      // Build server-side filters
+      const filters: { eventId?: string; status?: string } = {};
+      if (selectedEvent !== 'all') filters.eventId = selectedEvent;
+      if (selectedStatus !== 'all') filters.status = selectedStatus;
+
       const [submissionsResponse, eventsResponse, usersResponse] = await Promise.all([
-        submissionService.getAllSubmissions(currentPage, limit),
+        submissionService.getAllSubmissions(currentPage, limit, filters),
         eventService.getAllEvents(),
         userService.getAllUsersNoPagination(),
       ]);
@@ -81,6 +84,9 @@ export default function AdminSubmissions() {
       if (submissionsResponse.pagination) {
         setTotalPages(submissionsResponse.pagination.totalPages);
         setTotalSubmissions(submissionsResponse.pagination.total);
+      } else {
+        setTotalPages(1);
+        setTotalSubmissions((submissionsResponse.data || []).length);
       }
       setEvents(eventsResponse.data || []);
 
@@ -252,8 +258,6 @@ export default function AdminSubmissions() {
         return 'bg-red-100 text-red-800';
       case 'review_complete':
         return 'bg-purple-100 text-purple-800';
-      case 'draft':
-        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -264,11 +268,11 @@ export default function AdminSubmissions() {
     window.open(fullUrl, '_blank');
   };
 
-  const filteredSubmissions = submissions.filter((submission) => {
-    const matchesEvent = selectedEvent === 'all' || submission.event_id === selectedEvent;
-    const matchesStatus = selectedStatus === 'all' || submission.status === selectedStatus;
-    return matchesEvent && matchesStatus;
-  });
+  const handleFilterChange = (type: 'event' | 'status', value: string) => {
+    setCurrentPage(1);
+    if (type === 'event') setSelectedEvent(value);
+    else setSelectedStatus(value);
+  };
 
   if (loading) {
     return (
@@ -330,7 +334,7 @@ export default function AdminSubmissions() {
             <select
               id="event-filter"
               value={selectedEvent}
-              onChange={(e) => setSelectedEvent(e.target.value)}
+              onChange={(e) => handleFilterChange('event', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Events</option>
@@ -349,7 +353,7 @@ export default function AdminSubmissions() {
             <select
               id="status-filter"
               value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
+              onChange={(e) => handleFilterChange('status', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Statuses</option>
@@ -364,7 +368,7 @@ export default function AdminSubmissions() {
       </div>
 
       {/* Submissions List */}
-      {filteredSubmissions.length === 0 ? (
+      {submissions.length === 0 ? (
         <div className="bg-white rounded-lg shadow p-6 text-center">
           <p className="text-gray-500">No submissions found</p>
         </div>
@@ -383,7 +387,7 @@ export default function AdminSubmissions() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredSubmissions.map((submission) => (
+                {submissions.map((submission) => (
                   <tr key={submission.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div>
@@ -394,7 +398,7 @@ export default function AdminSubmissions() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{submission.corresponding_author}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(submission.status)}`}>
-                        {submission.status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                        {submission.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(submission.created_at).toLocaleDateString()}</td>
@@ -469,7 +473,7 @@ export default function AdminSubmissions() {
       ) : (
         /* Card View */
         <div className="space-y-4">
-          {filteredSubmissions.map((submission) => (
+          {submissions.map((submission) => (
             <div key={submission.id} className="bg-white rounded-lg shadow p-4 md:p-6">
               <div className="mb-4">
                 <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-2">{submission.title}</h3>
@@ -484,7 +488,7 @@ export default function AdminSubmissions() {
                 <div className="flex justify-between md:justify-start items-center">
                   <span className="text-sm text-gray-600 md:mr-2">Status:</span>
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(submission.status)}`}>
-                    {submission.status.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
+                    {submission.status.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                   </span>
                 </div>
                 <div className="flex justify-between md:justify-start items-center">

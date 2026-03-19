@@ -286,6 +286,13 @@ export interface ReviewAssignment {
   assigned_at: Date;
   due_date?: Date;
   status: ReviewAssignmentStatus;
+  // JOIN fields from findBySubmission/findByReviewer
+  reviewer_name?: string;
+  reviewer_email?: string;
+  review_completed?: boolean;
+  review_recommendation?: string;
+  review_score?: number;
+  submission_title?: string;
 }
 
 // API Response Types

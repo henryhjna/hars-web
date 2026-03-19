@@ -360,8 +360,9 @@ export interface KeynoteSpeakerCreateData {
   affiliation?: string;
   bio?: string;
   photo_url?: string;
-  presentation_title?: string;
-  speaker_order?: number;
+  topic?: string;
+  presentation_time?: string;
+  display_order?: number;
 }
 
 export interface Testimonial {

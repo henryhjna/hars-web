@@ -59,8 +59,6 @@ export default function MySubmissions() {
         return 'bg-red-100 text-red-800';
       case 'review_complete':
         return 'bg-purple-100 text-purple-800';
-      case 'draft':
-        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }

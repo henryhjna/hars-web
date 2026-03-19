@@ -258,6 +258,24 @@ export class UserModel {
     }
   }
 
+  static async getStats(): Promise<{ total: number; admins: number; reviewers: number; verified: number }> {
+    const result = await query(`
+      SELECT
+        COUNT(*) as total,
+        COUNT(*) FILTER (WHERE 'admin' = ANY(roles)) as admins,
+        COUNT(*) FILTER (WHERE 'reviewer' = ANY(roles)) as reviewers,
+        COUNT(*) FILTER (WHERE is_email_verified = true) as verified
+      FROM users
+    `);
+    const row = result.rows[0];
+    return {
+      total: parseInt(row.total, 10),
+      admins: parseInt(row.admins, 10),
+      reviewers: parseInt(row.reviewers, 10),
+      verified: parseInt(row.verified, 10),
+    };
+  }
+
   static async list(params: {
     page?: number;
     limit?: number;

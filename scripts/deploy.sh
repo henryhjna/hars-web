@@ -175,6 +175,18 @@ echo "[EC2] Restarting containers (NO BUILD!)..."
 docker-compose down
 docker-compose up -d
 
+echo "[EC2] Waiting for database to be ready..."
+sleep 5
+
+echo "[EC2] Checking migration tracking table..."
+if docker exec hars-db psql -U postgres -d hars_db -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='schema_migrations'" 2>/dev/null | grep -q 1; then
+  echo "[EC2] Migration tracking exists. Running pending migrations..."
+  docker exec hars-server npm run migrate:prod 2>&1 || echo "[EC2] Warning: Migration failed or no pending migrations"
+else
+  echo "[EC2] First-time migration setup. Marking existing migrations as applied..."
+  docker exec hars-server npm run migrate:init-existing:prod 2>&1 || echo "[EC2] Warning: Migration init failed"
+fi
+
 echo "[EC2] Deployment complete!"
 ENDSSH
 
