@@ -4,6 +4,7 @@ import { Train, Bus, Car, Plane } from 'lucide-react';
 import eventService from '../services/event.service';
 import pastEventsService from '../services/pastEvents.service';
 import type { Event, EventPhoto, EventSession, Testimonial } from '../types';
+import { formatLocalDate, parseLocalDate, getLocalYear } from '../utils/dateUtils';
 
 type ViewTab = 'overview' | 'program' | 'photos' | 'highlights';
 
@@ -30,7 +31,7 @@ export default function PastEvents() {
   useEffect(() => {
     if (selectedEvent) {
       fetchEventData();
-      setSearchParams({ year: new Date(selectedEvent.event_date).getFullYear().toString() });
+      setSearchParams({ year: getLocalYear(selectedEvent.event_date).toString() });
     }
   }, [selectedEvent]);
 
@@ -44,7 +45,7 @@ export default function PastEvents() {
       const yearParam = searchParams.get('year');
       if (yearParam && events.length > 0) {
         const eventForYear = events.find(e =>
-          new Date(e.event_date).getFullYear().toString() === yearParam
+          getLocalYear(e.event_date).toString() === yearParam
         );
         setSelectedEvent(eventForYear || events[0]);
       } else if (events.length > 0) {
@@ -100,8 +101,8 @@ export default function PastEvents() {
     })
     .sort((a, b) => {
       // Sort by date first
-      const dateA = a.session_date ? new Date(a.session_date).getTime() : 0;
-      const dateB = b.session_date ? new Date(b.session_date).getTime() : 0;
+      const dateA = a.session_date ? parseLocalDate(a.session_date).getTime() : 0;
+      const dateB = b.session_date ? parseLocalDate(b.session_date).getTime() : 0;
       if (dateA !== dateB) return dateA - dateB;
 
       // Then by start_time
@@ -144,7 +145,7 @@ export default function PastEvents() {
         <div className="border-b border-gray-200 mb-8">
           <nav className="-mb-px flex space-x-8">
             {pastEvents.map((event) => {
-              const year = new Date(event.event_date).getFullYear();
+              const year = getLocalYear(event.event_date);
               const isSelected = selectedEvent?.id === event.id;
               return (
                 <button
@@ -202,11 +203,7 @@ export default function PastEvents() {
                     <div>
                       <h2 className="text-3xl font-bold text-gray-900 mb-2">{selectedEvent.title}</h2>
                       <p className="text-lg text-gray-600">
-                        {new Date(selectedEvent.event_date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
+                        {formatLocalDate(selectedEvent.event_date, { kst: true })}
                       </p>
                     </div>
 
@@ -472,11 +469,7 @@ export default function PastEvents() {
                               {session.session_date && (
                                 <div className="flex items-center gap-1">
                                   <span className="font-medium">Date:</span>
-                                  <span>{new Date(session.session_date).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                  })}</span>
+                                  <span>{formatLocalDate(session.session_date, { kst: true })}</span>
                                 </div>
                               )}
                               {(session.start_time || session.end_time) && (
@@ -486,6 +479,7 @@ export default function PastEvents() {
                                     {session.start_time && session.start_time.substring(0, 5)}
                                     {session.start_time && session.end_time && ' - '}
                                     {session.end_time && session.end_time.substring(0, 5)}
+                                    {' (KST)'}
                                   </span>
                                 </div>
                               )}

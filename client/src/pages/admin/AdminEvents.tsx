@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import eventService from '../../services/event.service';
 import type { Event, EventStatus } from '../../types';
+import { formatLocalDate } from '../../utils/dateUtils';
 
 export default function AdminEvents() {
   const navigate = useNavigate();
@@ -116,15 +117,15 @@ export default function AdminEvents() {
               <div className="space-y-2 text-sm text-gray-600 mb-4">
                 <div>
                   <span className="font-medium">Event Date:</span>{' '}
-                  {new Date(event.event_date).toLocaleDateString()}
+                  {formatLocalDate(event.event_date)}
                 </div>
                 <div>
                   <span className="font-medium">Location:</span> {event.location || '-'}
                 </div>
                 <div>
                   <span className="font-medium">Submission:</span>{' '}
-                  {new Date(event.submission_start_date).toLocaleDateString()} -{' '}
-                  {new Date(event.submission_end_date).toLocaleDateString()}
+                  {formatLocalDate(event.submission_start_date)} -{' '}
+                  {formatLocalDate(event.submission_end_date)}
                 </div>
               </div>
 
@@ -181,7 +182,7 @@ export default function AdminEvents() {
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(event.event_date).toLocaleDateString()}
+                      {formatLocalDate(event.event_date)}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span

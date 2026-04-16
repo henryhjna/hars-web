@@ -7,6 +7,7 @@ import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import eventService from '../services/event.service';
 import type { Event } from '../types';
+import { formatLocalDate } from '../utils/dateUtils';
 
 const NOTICE_DISMISSED_KEY = 'hars_migration_notice_dismissed';
 
@@ -48,12 +49,7 @@ export default function Home() {
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return 'TBD';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    return formatLocalDate(dateString, { kst: true });
   };
 
   return (

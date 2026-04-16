@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import eventService from '../../../services/event.service';
 import type { EventSession } from '../../../types';
+import { formatLocalDate } from '../../../utils/dateUtils';
 
 interface ProgramTabProps {
   eventId: string;
@@ -146,7 +147,7 @@ export default function ProgramTab({
               {sessions.map((session) => (
                 <tr key={session.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {session.session_date && new Date(session.session_date).toLocaleDateString()}
+                    {session.session_date && formatLocalDate(session.session_date)}
                     {session.start_time && (
                       <div className="text-gray-500">
                         {formatTime(session.start_time)} - {formatTime(session.end_time)}

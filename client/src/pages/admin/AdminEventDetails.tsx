@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import eventService from '../../services/event.service';
 import pastEventsService from '../../services/pastEvents.service';
 import type { Event, EventPhoto, Testimonial, EventContent, CommitteeMember, EventSession } from '../../types';
+import { formatLocalDate } from '../../utils/dateUtils';
 
 // Import tab components
 import BasicInfoTab from './tabs/BasicInfoTab';
@@ -478,7 +479,7 @@ export default function AdminEventDetails() {
           <>
             <p className="text-gray-600 mt-2">{event.description}</p>
             <div className="mt-2 text-sm text-gray-500">
-              {new Date(event.event_date).toLocaleDateString()} • {event.location}
+              {formatLocalDate(event.event_date)} • {event.location}
             </div>
           </>
         )}

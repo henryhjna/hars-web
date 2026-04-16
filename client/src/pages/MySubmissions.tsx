@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import submissionService from '../services/submission.service';
 import type { Submission } from '../types';
+import { formatLocalDate } from '../utils/dateUtils';
 
 export default function MySubmissions() {
   const navigate = useNavigate();
@@ -163,7 +164,7 @@ export default function MySubmissions() {
                       <p className="text-sm text-gray-600 mb-2">
                         Event: {submission.event_title}
                         {submission.event_date &&
-                          ` - ${new Date(submission.event_date).toLocaleDateString()}`}
+                          ` - ${formatLocalDate(submission.event_date)}`}
                       </p>
                     )}
 

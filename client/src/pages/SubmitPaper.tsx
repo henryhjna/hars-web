@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import eventService from '../services/event.service';
 import submissionService from '../services/submission.service';
 import type { Event, Submission } from '../types';
+import { parseLocalDate, formatLocalDate } from '../utils/dateUtils';
 
 export default function SubmitPaper() {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export default function SubmitPaper() {
   const isSubmissionOpen = (event: Event | null): boolean => {
     if (!event) return false;
     const now = new Date();
-    const eventDate = new Date(event.event_date);
+    const eventDate = parseLocalDate(event.event_date);
     const startDate = new Date(event.submission_start_date);
     const endDate = new Date(event.submission_end_date);
 
@@ -48,7 +49,7 @@ export default function SubmitPaper() {
     if (!event) return { message: '', type: 'info' };
 
     const now = new Date();
-    const eventDate = new Date(event.event_date);
+    const eventDate = parseLocalDate(event.event_date);
     const startDate = new Date(event.submission_start_date);
     const endDate = new Date(event.submission_end_date);
 
@@ -317,7 +318,7 @@ export default function SubmitPaper() {
                 <option value="">-- Select an Event --</option>
                 {events.map((event) => (
                   <option key={event.id} value={event.id}>
-                    {event.title} - {new Date(event.event_date).toLocaleDateString()}
+                    {event.title} - {formatLocalDate(event.event_date, { kst: true })}
                   </option>
                 ))}
               </select>

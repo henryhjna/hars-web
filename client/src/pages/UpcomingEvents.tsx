@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import eventService from '../services/event.service';
 import conferenceTopicService from '../services/conferenceTopic.service';
 import type { Event, ConferenceTopic, CommitteeMember, EventSession } from '../types';
+import { formatLocalDate, parseLocalDate, getLocalYear } from '../utils/dateUtils';
 
 export default function UpcomingEvents() {
   const [loading, setLoading] = useState(true);
@@ -59,23 +60,18 @@ export default function UpcomingEvents() {
     fetchData();
   }, []);
 
-  // Format date for display
+  // Format date for display (timezone-safe, with KST indicator)
   const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    return formatLocalDate(dateString, { kst: true });
   };
 
   // Format date for important dates cards (shorter format)
   const formatShortDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return formatLocalDate(dateString, {
       month: 'long',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      kst: true
     });
   };
 
@@ -113,8 +109,8 @@ export default function UpcomingEvents() {
     })
     .sort((a, b) => {
       // Sort by date first
-      const dateA = a.session_date ? new Date(a.session_date).getTime() : 0;
-      const dateB = b.session_date ? new Date(b.session_date).getTime() : 0;
+      const dateA = a.session_date ? parseLocalDate(a.session_date).getTime() : 0;
+      const dateB = b.session_date ? parseLocalDate(b.session_date).getTime() : 0;
       if (dateA !== dateB) return dateA - dateB;
 
       // Then by start_time
@@ -435,11 +431,7 @@ export default function UpcomingEvents() {
                     {session.session_date && (
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-gray-400" />
-                        <span>{new Date(session.session_date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}</span>
+                        <span>{formatLocalDate(session.session_date, { kst: true })}</span>
                       </div>
                     )}
                     {(session.start_time || session.end_time) && (
@@ -449,6 +441,7 @@ export default function UpcomingEvents() {
                           {session.start_time && session.start_time.substring(0, 5)}
                           {session.start_time && session.end_time && ' - '}
                           {session.end_time && session.end_time.substring(0, 5)}
+                          {' (KST)'}
                         </span>
                       </div>
                     )}
@@ -741,7 +734,7 @@ export default function UpcomingEvents() {
         <div className="max-w-4xl mx-auto text-center px-4">
           <h2 className="text-3xl font-bold mb-4">Ready to Submit Your Research?</h2>
           <p className="text-lg md:text-xl mb-8">
-            We look forward to receiving your submissions and welcoming you to Seoul in {new Date(event.event_date).getFullYear()}!
+            We look forward to receiving your submissions and welcoming you to Seoul in {getLocalYear(event.event_date)}!
           </p>
           <Link to="/submit-paper">
             <Button variant="outline" size="lg" className="bg-white text-primary-600 hover:bg-gray-100">
