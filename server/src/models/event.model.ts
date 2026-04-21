@@ -291,7 +291,7 @@ export class EventModel {
     const sql = `
       SELECT * FROM event_sessions
       WHERE event_id = $1
-      ORDER BY session_date ASC, start_time ASC
+      ORDER BY session_date ASC NULLS LAST, start_time ASC NULLS LAST, session_order ASC
     `;
     const result = await query(sql, [eventId]);
     return result.rows;
