@@ -201,6 +201,19 @@ export interface EventCreateData {
   status?: EventStatus;
 }
 
+// Site Notice Types
+export type NoticeSeverity = 'info' | 'warning' | 'critical';
+
+export interface SiteNotice {
+  id: string;
+  title: string;
+  body: string;
+  severity: NoticeSeverity;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // Event Session Types
 export interface EventSession {
   id: string;

@@ -320,6 +320,23 @@ CREATE INDEX idx_faculty_is_active ON faculty_members(is_active);
 CREATE TRIGGER update_faculty_updated_at BEFORE UPDATE ON faculty_members
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+-- Site Notices Table (home page popup modals, managed via admin)
+CREATE TABLE site_notices (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title VARCHAR(255) NOT NULL,
+    body TEXT NOT NULL,
+    severity VARCHAR(20) NOT NULL DEFAULT 'info',
+    is_active BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT site_notices_severity_check CHECK (severity IN ('info', 'warning', 'critical'))
+);
+
+CREATE INDEX idx_site_notices_active ON site_notices(is_active) WHERE is_active = true;
+
+CREATE TRIGGER update_site_notices_updated_at BEFORE UPDATE ON site_notices
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Insert default admin user (password: Admin123!)
 -- Password hash generated with bcrypt rounds=10
 INSERT INTO users (email, password_hash, first_name, last_name, affiliation, roles, is_email_verified)

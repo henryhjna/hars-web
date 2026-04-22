@@ -1,36 +1,46 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Users, BookOpen, Calendar, ArrowRight, Building2, Lightbulb, Award, AlertTriangle, X } from 'lucide-react';
+import { FileText, Users, BookOpen, Calendar, ArrowRight, Building2, Lightbulb, Award } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import eventService from '../services/event.service';
-import type { Event } from '../types';
+import noticeService from '../services/notice.service';
+import NoticeModal from '../components/NoticeModal';
+import type { Event, SiteNotice } from '../types';
 import { formatLocalDate } from '../utils/dateUtils';
 
-const NOTICE_DISMISSED_KEY = 'hars_migration_notice_dismissed';
+const noticeDismissKey = (id: string) => `hars_notice_dismissed_${id}`;
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const [nextEvent, setNextEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showNotice, setShowNotice] = useState(false);
-  const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [notice, setNotice] = useState<SiteNotice | null>(null);
 
   useEffect(() => {
     loadNextEvent();
-    const dismissed = localStorage.getItem(NOTICE_DISMISSED_KEY);
-    if (!dismissed) {
-      setShowNotice(true);
-    }
+    loadActiveNotice();
   }, []);
 
-  const handleCloseNotice = () => {
-    if (dontShowAgain) {
-      localStorage.setItem(NOTICE_DISMISSED_KEY, 'true');
+  const loadActiveNotice = async () => {
+    try {
+      const response = await noticeService.getActive();
+      const n = response.data;
+      if (n && !localStorage.getItem(noticeDismissKey(n.id))) {
+        setNotice(n);
+      }
+    } catch (error) {
+      console.error('Failed to load active notice:', error);
     }
-    setShowNotice(false);
+  };
+
+  const handleCloseNotice = (dontShowAgain: boolean) => {
+    if (notice && dontShowAgain) {
+      localStorage.setItem(noticeDismissKey(notice.id), 'true');
+    }
+    setNotice(null);
   };
 
   const loadNextEvent = async () => {
@@ -54,30 +64,7 @@ export default function Home() {
 
   return (
     <div className="bg-white">
-      {showNotice && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 relative">
-            <button onClick={handleCloseNotice} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"><X className="w-5 h-5" /></button>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0"><AlertTriangle className="w-6 h-6 text-amber-600" /></div>
-              <h2 className="text-xl font-bold text-gray-900">Important Notice</h2>
-            </div>
-            <div className="space-y-4 text-gray-700">
-              <p>We sincerely apologize for the inconvenience.</p>
-              <p>Due to a server migration on <strong>December 18th, 2024</strong>, some data was unfortunately lost.</p>
-              <p>If you registered an account or submitted a paper before this date, please <strong>re-register your account</strong> and <strong>resubmit your paper</strong>.</p>
-              <p className="text-gray-600 italic">We deeply regret any inconvenience this may have caused and sincerely appreciate your understanding.</p>
-            </div>
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <label className="flex items-center gap-2 cursor-pointer mb-4">
-                <input type="checkbox" checked={dontShowAgain} onChange={(e) => setDontShowAgain(e.target.checked)} className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
-                <span className="text-sm text-gray-600">Dont show this again</span>
-              </label>
-              <Button variant="primary" className="w-full" onClick={handleCloseNotice}>I Understand</Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {notice && <NoticeModal notice={notice} onClose={handleCloseNotice} />}
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800">
         <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />

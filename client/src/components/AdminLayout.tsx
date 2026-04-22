@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Calendar, Users, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, FileText, Calendar, Users, GraduationCap, Megaphone } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface AdminLayoutProps {
@@ -22,6 +22,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Events', href: '/admin/events', icon: Calendar },
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Faculty', href: '/admin/faculty', icon: GraduationCap },
+    { name: 'Notices', href: '/admin/notices', icon: Megaphone },
   ];
 
   const isActive = (href: string) => {
