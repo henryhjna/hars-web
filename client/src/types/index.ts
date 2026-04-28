@@ -49,6 +49,17 @@ export interface ApiResponse<T = any> {
   error?: string;
 }
 
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 // Faculty Types
 export interface Education {
   degree: string;

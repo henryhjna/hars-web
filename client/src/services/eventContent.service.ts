@@ -9,7 +9,7 @@ import type {
   TestimonialCreateData,
 } from '../types';
 
-class PastEventsService {
+class EventContentService {
   // Event Photos
   async getEventPhotos(eventId: string): Promise<EventPhoto[]> {
     const response = await api.get<ApiResponse<EventPhoto[]>>(
@@ -133,4 +133,4 @@ class PastEventsService {
   }
 }
 
-export default new PastEventsService();
+export default new EventContentService();

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import eventService from '../../services/event.service';
-import pastEventsService from '../../services/pastEvents.service';
+import eventContentService from '../../services/eventContent.service';
 import type { Event, EventPhoto, Testimonial, EventContent, CommitteeMember, EventSession } from '../../types';
 import { formatLocalDate } from '../../utils/dateUtils';
 
@@ -198,8 +198,8 @@ export default function AdminEventDetails() {
 
     try {
       const [photosData, testimonialsData, sessionsResponse] = await Promise.all([
-        pastEventsService.getEventPhotos(eventId),
-        pastEventsService.getEventTestimonials(eventId),
+        eventContentService.getEventPhotos(eventId),
+        eventContentService.getEventTestimonials(eventId),
         eventService.getSessions(eventId),
       ]);
 
@@ -232,7 +232,7 @@ export default function AdminEventDetails() {
       formData.append('is_highlight', photoForm.is_highlight.toString());
       formData.append('photo_order', photoForm.photo_order.toString());
 
-      await pastEventsService.createEventPhoto(eventId!, formData);
+      await eventContentService.createEventPhoto(eventId!, formData);
       setSuccess('Photo added successfully');
       setShowPhotoModal(false);
       resetPhotoForm();
@@ -246,7 +246,7 @@ export default function AdminEventDetails() {
     if (!confirm('Are you sure you want to delete this photo?')) return;
 
     try {
-      await pastEventsService.deleteEventPhoto(photoId);
+      await eventContentService.deleteEventPhoto(photoId);
       setSuccess('Photo deleted successfully');
       await loadEventData();
     } catch (err: any) {
@@ -270,7 +270,7 @@ export default function AdminEventDetails() {
     setSuccess('');
 
     try {
-      await pastEventsService.createEventTestimonial(eventId!, testimonialForm);
+      await eventContentService.createEventTestimonial(eventId!, testimonialForm);
       setSuccess('Testimonial added successfully');
       setShowTestimonialModal(false);
       resetTestimonialForm();
@@ -284,7 +284,7 @@ export default function AdminEventDetails() {
     if (!confirm('Are you sure you want to delete this testimonial?')) return;
 
     try {
-      await pastEventsService.deleteEventTestimonial(testimonialId);
+      await eventContentService.deleteEventTestimonial(testimonialId);
       setSuccess('Testimonial deleted successfully');
       await loadEventData();
     } catch (err: any) {

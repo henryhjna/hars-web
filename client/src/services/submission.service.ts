@@ -1,5 +1,5 @@
 import api from './api';
-import type { Submission, SubmissionCreateData, ApiResponse } from '../types';
+import type { Submission, SubmissionCreateData, ApiResponse, PaginatedResponse } from '../types';
 
 class SubmissionService {
   // Get user's submissions
@@ -69,14 +69,14 @@ class SubmissionService {
     page: number = 1,
     limit: number = 20,
     filters?: { eventId?: string; status?: string }
-  ): Promise<any> {
+  ): Promise<PaginatedResponse<Submission>> {
     const params = new URLSearchParams();
     params.append('page', String(page));
     params.append('limit', String(limit));
     if (filters?.eventId) params.append('eventId', filters.eventId);
     if (filters?.status) params.append('status', filters.status);
 
-    const response = await api.get<any>(`/submissions?${params.toString()}`);
+    const response = await api.get<PaginatedResponse<Submission>>(`/submissions?${params.toString()}`);
     return response.data;
   }
 

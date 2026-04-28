@@ -1,5 +1,6 @@
 import { query } from '../config/database';
 import { User, UserRole, UserResponse } from '../types';
+import { paginate } from '../utils/pagination';
 
 export class UserModel {
   static async create(data: {
@@ -283,33 +284,21 @@ export class UserModel {
   }): Promise<{ users: UserResponse[]; total: number }> {
     const page = params.page || 1;
     const limit = params.limit || 20;
-    const offset = (page - 1) * limit;
 
-    let whereClause = '';
-    const queryParams: any[] = [];
+    const where = params.role ? 'WHERE $1 = ANY(roles)' : '';
+    const whereParams = params.role ? [params.role] : [];
 
-    if (params.role) {
-      whereClause = 'WHERE $1 = ANY(roles)';
-      queryParams.push(params.role);
-    }
+    const { rows, total } = await paginate<UserResponse>({
+      select: 'id, email, first_name, last_name, preferred_name, prefix, academic_title, affiliation, photo_url, roles, is_email_verified, created_at',
+      from: 'users',
+      where,
+      whereParams,
+      orderBy: 'created_at DESC',
+      page,
+      limit,
+    });
 
-    const countResult = await query(
-      `SELECT COUNT(*) FROM users ${whereClause}`,
-      queryParams
-    );
-
-    const usersResult = await query(
-      `SELECT id, email, first_name, last_name, preferred_name, prefix, academic_title, affiliation, photo_url, roles, is_email_verified, created_at
-       FROM users ${whereClause}
-       ORDER BY created_at DESC
-       LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`,
-      [...queryParams, limit, offset]
-    );
-
-    return {
-      users: usersResult.rows,
-      total: parseInt(countResult.rows[0].count),
-    };
+    return { users: rows, total };
   }
 
   static sanitize(user: User): UserResponse {

@@ -1,5 +1,6 @@
 import { query } from '../config/database';
 import { Submission, SubmissionStatus } from '../types';
+import { paginate } from '../utils/pagination';
 
 export class SubmissionModel {
   // Get all submissions with pagination and filters (admin/reviewer)
@@ -8,47 +9,31 @@ export class SubmissionModel {
     limit: number = 20,
     filters?: { eventId?: string; status?: string }
   ): Promise<{ submissions: Submission[]; total: number }> {
-    const offset = (page - 1) * limit;
     const conditions: string[] = [];
-    const params: any[] = [];
-    let paramIndex = 1;
+    const whereParams: any[] = [];
 
     if (filters?.eventId) {
-      conditions.push(`s.event_id = $${paramIndex++}`);
-      params.push(filters.eventId);
+      conditions.push(`s.event_id = $${whereParams.length + 1}`);
+      whereParams.push(filters.eventId);
     }
     if (filters?.status) {
-      conditions.push(`s.status = $${paramIndex++}`);
-      params.push(filters.status);
+      conditions.push(`s.status = $${whereParams.length + 1}`);
+      whereParams.push(filters.status);
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-    const countSql = `
-      SELECT COUNT(*) as total
-      FROM submissions s
-      ${whereClause}
-    `;
-    const dataSql = `
-      SELECT s.*, e.title as event_title, e.event_date
-      FROM submissions s
-      JOIN events e ON s.event_id = e.id
-      ${whereClause}
-      ORDER BY s.created_at DESC
-      LIMIT $${paramIndex++} OFFSET $${paramIndex}
-    `;
+    const { rows, total } = await paginate<Submission>({
+      select: 's.*, e.title as event_title, e.event_date',
+      from: 'submissions s JOIN events e ON s.event_id = e.id',
+      where,
+      whereParams,
+      orderBy: 's.created_at DESC',
+      page,
+      limit,
+    });
 
-    const dataParams = [...params, limit, offset];
-
-    const [countResult, dataResult] = await Promise.all([
-      query(countSql, params),
-      query(dataSql, dataParams)
-    ]);
-
-    return {
-      submissions: dataResult.rows,
-      total: parseInt(countResult.rows[0].total, 10)
-    };
+    return { submissions: rows, total };
   }
 
   // Get submissions by event

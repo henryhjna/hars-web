@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Train, Bus, Car, Plane } from 'lucide-react';
 import eventService from '../services/event.service';
-import pastEventsService from '../services/pastEvents.service';
+import eventContentService from '../services/eventContent.service';
 import type { Event, EventPhoto, EventSession, Testimonial } from '../types';
 import { formatLocalDate, parseLocalDate, getLocalYear } from '../utils/dateUtils';
 
@@ -63,11 +63,11 @@ export default function PastEvents() {
 
     try {
       const [photosData, highlightPhotosData, sessionsResponse, testimonialsData, featuredTestimonialsData] = await Promise.all([
-        pastEventsService.getEventPhotos(selectedEvent.id),
-        pastEventsService.getHighlightPhotos(selectedEvent.id),
+        eventContentService.getEventPhotos(selectedEvent.id),
+        eventContentService.getHighlightPhotos(selectedEvent.id),
         eventService.getSessions(selectedEvent.id),
-        pastEventsService.getEventTestimonials(selectedEvent.id),
-        pastEventsService.getFeaturedTestimonials(selectedEvent.id),
+        eventContentService.getEventTestimonials(selectedEvent.id),
+        eventContentService.getFeaturedTestimonials(selectedEvent.id),
       ]);
 
       setPhotos(photosData);
