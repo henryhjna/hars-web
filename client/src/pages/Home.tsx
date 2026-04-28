@@ -9,7 +9,7 @@ import eventService from '../services/event.service';
 import noticeService from '../services/notice.service';
 import NoticeModal from '../components/NoticeModal';
 import type { Event, SiteNotice } from '../types';
-import { formatLocalDate } from '../utils/dateUtils';
+import { formatLocalDate, formatKstDate } from '../utils/dateUtils';
 
 const noticeDismissKey = (id: string) => `hars_notice_dismissed_${id}`;
 
@@ -159,7 +159,7 @@ export default function Home() {
                 Paper Submission Deadline
               </div>
               <div className="text-2xl font-bold text-white">
-                {loading ? 'Loading...' : formatDate(nextEvent?.submission_end_date)}
+                {loading ? 'Loading...' : (nextEvent?.submission_end_date ? formatKstDate(nextEvent.submission_end_date) : 'TBD')}
               </div>
             </div>
             <div className="space-y-1">

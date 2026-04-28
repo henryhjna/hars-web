@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import eventService from '../services/event.service';
 import conferenceTopicService from '../services/conferenceTopic.service';
 import type { Event, ConferenceTopic, CommitteeMember, EventSession } from '../types';
-import { formatLocalDate, parseLocalDate, getLocalYear } from '../utils/dateUtils';
+import { formatLocalDate, parseLocalDate, getLocalYear, formatKstDate } from '../utils/dateUtils';
 
 export default function UpcomingEvents() {
   const [loading, setLoading] = useState(true);
@@ -175,11 +175,14 @@ export default function UpcomingEvents() {
     );
   }
 
-  // Build important dates array from DB data
+  // Build important dates array from DB data.
+  // Time-sensitive deadlines (submission_end_date) use formatKstDate so the KST
+  // calendar day is correct regardless of the time portion. Pure-date fields
+  // (notification_date, event_date) keep formatShortDate.
   const importantDates = [
     {
       label: 'Paper Submission Deadline',
-      date: formatShortDate(event.submission_end_date),
+      date: formatKstDate(event.submission_end_date),
       icon: Calendar
     },
     event.notification_date && {

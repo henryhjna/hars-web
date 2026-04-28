@@ -83,6 +83,25 @@ export function utcIsoToKstDateTimeInput(iso: string | null | undefined): string
 }
 
 /**
+ * Format a UTC ISO timestamp as a calendar date in KST. Use this when only the
+ * date matters but the value is a TIMESTAMP — `formatLocalDate` strips the time
+ * portion before timezone-converting, which can shift the KST calendar day.
+ * "2026-12-12T23:59:00.000Z" -> "December 13, 2026 (KST)"
+ */
+export function formatKstDate(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const formatted = d.toLocaleDateString('en-US', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  return `${formatted} (KST)`;
+}
+
+/**
  * Format a UTC ISO string for human display in KST. Always includes "(KST)".
  * "2026-12-12T14:59:00.000Z" -> "Dec 12, 2026, 11:59 PM (KST)"
  */

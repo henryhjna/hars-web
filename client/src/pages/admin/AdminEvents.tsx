@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import eventService from '../../services/event.service';
 import type { Event, EventStatus } from '../../types';
-import { formatLocalDate } from '../../utils/dateUtils';
+import { formatLocalDate, formatKstDate } from '../../utils/dateUtils';
 
 export default function AdminEvents() {
   const navigate = useNavigate();
@@ -124,8 +124,8 @@ export default function AdminEvents() {
                 </div>
                 <div>
                   <span className="font-medium">Submission:</span>{' '}
-                  {formatLocalDate(event.submission_start_date)} -{' '}
-                  {formatLocalDate(event.submission_end_date)}
+                  {formatKstDate(event.submission_start_date)} -{' '}
+                  {formatKstDate(event.submission_end_date)}
                 </div>
               </div>
 
