@@ -742,13 +742,28 @@ export default function UpcomingEvents() {
                 Submit Paper Now
               </Button>
             </Link>
-            {event.registration_deadline && new Date(event.registration_deadline) > new Date() && (
-              <Link to={`/events/${event.id}/register`}>
-                <Button variant="outline" size="lg" className="bg-white text-primary-600 hover:bg-gray-100">
-                  Register to Attend
-                </Button>
-              </Link>
-            )}
+            {(() => {
+              if (!event.registration_deadline) return null;
+              const now = new Date();
+              const deadline = new Date(event.registration_deadline);
+              if (now > deadline) return null;
+              const start = event.registration_start_date ? new Date(event.registration_start_date) : null;
+              const notYetOpen = start && now < start;
+              if (notYetOpen) {
+                return (
+                  <span className="bg-white/20 text-white px-6 py-3 rounded-md text-base">
+                    Registration opens soon
+                  </span>
+                );
+              }
+              return (
+                <Link to={`/events/${event.id}/register`}>
+                  <Button variant="outline" size="lg" className="bg-white text-primary-600 hover:bg-gray-100">
+                    Register to Attend
+                  </Button>
+                </Link>
+              );
+            })()}
           </div>
         </div>
       </section>

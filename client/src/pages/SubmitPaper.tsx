@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import eventService from '../services/event.service';
 import submissionService from '../services/submission.service';
 import type { Event, Submission } from '../types';
-import { parseLocalDate, formatLocalDate } from '../utils/dateUtils';
+import { parseLocalDate, formatLocalDate, formatKstDateTime } from '../utils/dateUtils';
 
 export default function SubmitPaper() {
   const navigate = useNavigate();
@@ -63,21 +63,21 @@ export default function SubmitPaper() {
 
     if (now < startDate) {
       return {
-        message: `Submission will open on ${startDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`,
+        message: `Submission will open on ${formatKstDateTime(event.submission_start_date)}`,
         type: 'warning'
       };
     }
 
     if (now > endDate) {
       return {
-        message: `Submission deadline has passed (${endDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })})`,
+        message: `Submission deadline has passed (${formatKstDateTime(event.submission_end_date)})`,
         type: 'error'
       };
     }
 
     const daysLeft = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     return {
-      message: `Submission is open! Deadline: ${endDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} (${daysLeft} days left)`,
+      message: `Submission is open! Deadline: ${formatKstDateTime(event.submission_end_date)} (${daysLeft} days left)`,
       type: 'info'
     };
   };

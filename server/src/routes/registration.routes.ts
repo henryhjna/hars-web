@@ -18,6 +18,7 @@ router.post('/:id/cancel', RegistrationController.cancelRegistration);
 router.get('/', authorize('admin'), RegistrationController.getAllRegistrations);
 router.get('/stats/overall', authorize('admin'), RegistrationController.getOverallStats);
 router.get('/event/:eventId', authorize('admin'), RegistrationController.getEventRegistrations);
+router.get('/event/:eventId/stats', authorize('admin'), RegistrationController.getEventStats);
 router.get('/event/:eventId/csv', authorize('admin'), RegistrationController.exportEventCsv);
 router.patch('/:id', authorize('admin'), RegistrationController.updateRegistration);
 router.delete('/:id', authorize('admin'), RegistrationController.deleteRegistration);

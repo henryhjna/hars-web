@@ -162,6 +162,7 @@ export interface Event {
   review_deadline?: string;
   notification_date?: string;
   program_announcement_date?: string;
+  registration_start_date?: string;
   registration_deadline?: string;
   theme_color: string;
   banner_image_url?: string;
@@ -194,6 +195,7 @@ export interface EventCreateData {
   review_deadline?: string;
   notification_date?: string;
   program_announcement_date?: string;
+  registration_start_date?: string;
   registration_deadline?: string;
   theme_color?: string;
   banner_image_url?: string;

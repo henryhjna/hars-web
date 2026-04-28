@@ -9,16 +9,18 @@ import StatsCardRow from '../../components/admin/StatsCardRow';
 import { useResponsiveViewMode } from '../../hooks/useResponsiveViewMode';
 import type { Event, Registration, RegistrationStatus } from '../../types';
 
-interface OverallStats {
+interface RegStats {
   total: number;
   registered: number;
   cancelled: number;
+  lunch?: number;
+  dinner?: number;
 }
 
 export default function AdminRegistrations() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  const [stats, setStats] = useState<OverallStats>({ total: 0, registered: 0, cancelled: 0 });
+  const [stats, setStats] = useState<RegStats>({ total: 0, registered: 0, cancelled: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -50,10 +52,14 @@ export default function AdminRegistrations() {
       if (selectedEvent !== 'all') filters.eventId = selectedEvent;
       if (selectedStatus !== 'all') filters.status = selectedStatus;
 
+      const statsPromise = selectedEvent === 'all'
+        ? registrationService.getOverallStats()
+        : registrationService.getEventStats(selectedEvent);
+
       const [regsResponse, eventsResponse, statsResponse] = await Promise.all([
         registrationService.getAllRegistrations(currentPage, limit, filters),
         eventService.getAllEvents(),
-        registrationService.getOverallStats(),
+        statsPromise,
       ]);
 
       setRegistrations(regsResponse.data || []);
@@ -278,11 +284,20 @@ export default function AdminRegistrations() {
       />
 
       <StatsCardRow
-        stats={[
-          { label: 'Total', value: stats.total },
-          { label: 'Registered', value: stats.registered, color: 'text-green-600' },
-          { label: 'Cancelled', value: stats.cancelled, color: 'text-gray-600' },
-        ]}
+        stats={
+          selectedEvent === 'all'
+            ? [
+                { label: 'Total', value: stats.total },
+                { label: 'Registered', value: stats.registered, color: 'text-green-600' },
+                { label: 'Cancelled', value: stats.cancelled, color: 'text-gray-600' },
+              ]
+            : [
+                { label: 'Registered', value: stats.registered, color: 'text-green-600' },
+                { label: 'Cancelled', value: stats.cancelled, color: 'text-gray-600' },
+                { label: 'Lunch', value: stats.lunch ?? 0, color: 'text-blue-600' },
+                { label: 'Dinner', value: stats.dinner ?? 0, color: 'text-blue-600' },
+              ]
+        }
       />
 
       {editing && (

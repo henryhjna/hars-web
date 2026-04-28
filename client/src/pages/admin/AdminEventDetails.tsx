@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import eventService from '../../services/event.service';
 import eventContentService from '../../services/eventContent.service';
 import type { Event, EventPhoto, Testimonial, EventContent, CommitteeMember, EventSession } from '../../types';
-import { formatLocalDate } from '../../utils/dateUtils';
+import { formatLocalDate, kstDateTimeInputToUtcIso, utcIsoToKstDateTimeInput } from '../../utils/dateUtils';
 
 // Import tab components
 import BasicInfoTab from './tabs/BasicInfoTab';
@@ -82,6 +82,7 @@ export default function AdminEventDetails() {
     review_deadline: string;
     notification_date: string;
     program_announcement_date: string;
+    registration_start_date: string;
     registration_deadline: string;
     theme_color: string;
     banner_image_url: string;
@@ -106,6 +107,7 @@ export default function AdminEventDetails() {
     review_deadline: '',
     notification_date: '',
     program_announcement_date: '',
+    registration_start_date: '',
     registration_deadline: '',
     theme_color: '#3B82F6',
     banner_image_url: '',
@@ -144,12 +146,13 @@ export default function AdminEventDetails() {
         description: eventData.description || '',
         event_date: eventData.event_date.split('T')[0],
         location: eventData.location || '',
-        submission_start_date: eventData.submission_start_date.split('T')[0],
-        submission_end_date: eventData.submission_end_date.split('T')[0],
-        review_deadline: eventData.review_deadline?.split('T')[0] || '',
+        submission_start_date: utcIsoToKstDateTimeInput(eventData.submission_start_date),
+        submission_end_date: utcIsoToKstDateTimeInput(eventData.submission_end_date),
+        review_deadline: utcIsoToKstDateTimeInput(eventData.review_deadline),
         notification_date: eventData.notification_date?.split('T')[0] || '',
         program_announcement_date: eventData.program_announcement_date?.split('T')[0] || '',
-        registration_deadline: eventData.registration_deadline?.split('T')[0] || '',
+        registration_start_date: utcIsoToKstDateTimeInput(eventData.registration_start_date),
+        registration_deadline: utcIsoToKstDateTimeInput(eventData.registration_deadline),
         theme_color: eventData.theme_color,
         banner_image_url: eventData.banner_image_url || '',
         show_overview: eventData.show_overview,
@@ -307,14 +310,26 @@ export default function AdminEventDetails() {
     setError('');
     setSuccess('');
 
+    // Convert KST datetime-local inputs to UTC ISO before sending. Empty
+    // strings (optional fields not set) become undefined so COALESCE on the
+    // server preserves existing values.
+    const payload = {
+      ...basicForm,
+      submission_start_date: kstDateTimeInputToUtcIso(basicForm.submission_start_date) ?? '',
+      submission_end_date: kstDateTimeInputToUtcIso(basicForm.submission_end_date) ?? '',
+      review_deadline: kstDateTimeInputToUtcIso(basicForm.review_deadline) ?? undefined,
+      registration_start_date: kstDateTimeInputToUtcIso(basicForm.registration_start_date) ?? undefined,
+      registration_deadline: kstDateTimeInputToUtcIso(basicForm.registration_deadline) ?? undefined,
+    };
+
     try {
       if (isNewEvent) {
-        const response = await eventService.createEvent(basicForm);
+        const response = await eventService.createEvent(payload);
         setSuccess('Event created successfully');
         // Redirect to the new event's edit page
         window.location.href = `/admin/events/${response.data.id}`;
       } else {
-        await eventService.updateEvent(eventId!, basicForm);
+        await eventService.updateEvent(eventId!, payload);
         setSuccess('Event updated successfully');
         await loadEvent();
       }

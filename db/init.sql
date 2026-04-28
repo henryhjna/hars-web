@@ -58,6 +58,7 @@ CREATE TABLE events (
     review_deadline TIMESTAMP,
     notification_date TIMESTAMP,
     program_announcement_date TIMESTAMP,
+    registration_start_date TIMESTAMP,
     registration_deadline TIMESTAMP,
 
     -- Event customization

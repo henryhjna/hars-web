@@ -13,6 +13,7 @@ interface BasicInfoTabProps {
     review_deadline: string;
     notification_date: string;
     program_announcement_date: string;
+    registration_start_date: string;
     registration_deadline: string;
     theme_color: string;
     banner_image_url: string;
@@ -96,9 +97,9 @@ export default function BasicInfoTab({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Submission Start Date *</label>
+          <label className="block text-sm font-medium text-gray-700">Submission Start * <span className="text-xs text-gray-500">(KST)</span></label>
           <input
-            type="date"
+            type="datetime-local"
             name="submission_start_date"
             value={basicForm.submission_start_date}
             onChange={onInputChange}
@@ -108,9 +109,9 @@ export default function BasicInfoTab({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Submission End Date *</label>
+          <label className="block text-sm font-medium text-gray-700">Submission End * <span className="text-xs text-gray-500">(KST)</span></label>
           <input
-            type="date"
+            type="datetime-local"
             name="submission_end_date"
             value={basicForm.submission_end_date}
             onChange={onInputChange}
@@ -120,9 +121,9 @@ export default function BasicInfoTab({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Review Deadline</label>
+          <label className="block text-sm font-medium text-gray-700">Review Deadline <span className="text-xs text-gray-500">(KST)</span></label>
           <input
-            type="date"
+            type="datetime-local"
             name="review_deadline"
             value={basicForm.review_deadline}
             onChange={onInputChange}
@@ -153,9 +154,20 @@ export default function BasicInfoTab({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Registration Deadline</label>
+          <label className="block text-sm font-medium text-gray-700">Registration Start <span className="text-xs text-gray-500">(KST)</span></label>
           <input
-            type="date"
+            type="datetime-local"
+            name="registration_start_date"
+            value={basicForm.registration_start_date}
+            onChange={onInputChange}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Registration Deadline <span className="text-xs text-gray-500">(KST)</span></label>
+          <input
+            type="datetime-local"
             name="registration_deadline"
             value={basicForm.registration_deadline}
             onChange={onInputChange}

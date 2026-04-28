@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import eventService from '../services/event.service';
 import registrationService from '../services/registration.service';
 import type { Event } from '../types';
-import { formatLocalDate, parseLocalDate } from '../utils/dateUtils';
+import { formatLocalDate, parseLocalDate, formatKstDateTime } from '../utils/dateUtils';
 
 export default function EventRegister() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -47,17 +47,26 @@ export default function EventRegister() {
     if (today > eventDay) {
       return { ok: false, message: 'This event has already occurred.' };
     }
+    if (e.registration_start_date) {
+      const start = new Date(e.registration_start_date);
+      if (now < start) {
+        return {
+          ok: false,
+          message: `Registration opens on ${formatKstDateTime(e.registration_start_date)}`,
+        };
+      }
+    }
     if (e.registration_deadline) {
       const deadline = new Date(e.registration_deadline);
       if (now > deadline) {
         return {
           ok: false,
-          message: `Registration deadline passed (${formatLocalDate(e.registration_deadline)})`,
+          message: `Registration deadline passed (${formatKstDateTime(e.registration_deadline)})`,
         };
       }
       return {
         ok: true,
-        message: `Registration deadline: ${formatLocalDate(e.registration_deadline)}`,
+        message: `Registration deadline: ${formatKstDateTime(e.registration_deadline)}`,
       };
     }
     return { ok: true, message: 'Registration is open.' };

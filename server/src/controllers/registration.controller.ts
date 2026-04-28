@@ -27,10 +27,18 @@ export class RegistrationController {
         throw new ApiError('Cannot register for a past event', 400);
       }
 
-      // Check registration_deadline if set
+      const now = new Date();
+
+      if (event.registration_start_date) {
+        const start = new Date(event.registration_start_date);
+        if (now < start) {
+          throw new ApiError('Registration is not yet open', 400);
+        }
+      }
+
       if (event.registration_deadline) {
         const deadline = new Date(event.registration_deadline);
-        if (new Date() > deadline) {
+        if (now > deadline) {
           throw new ApiError('Registration deadline has passed', 400);
         }
       }
@@ -226,6 +234,15 @@ export class RegistrationController {
         throw new ApiError('Registration not found', 404);
       }
 
+      // The email template says "Registration Confirmed" — sending it on a
+      // cancelled row would mislead the recipient.
+      if (registration.status === 'cancelled') {
+        throw new ApiError(
+          'Cannot resend confirmation for a cancelled registration. Re-activate it first.',
+          400,
+        );
+      }
+
       const [user, event] = await Promise.all([
         UserModel.findById(registration.user_id),
         EventModel.findById(registration.event_id),
@@ -295,6 +312,17 @@ export class RegistrationController {
   static async getOverallStats(_req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const stats = await RegistrationModel.getOverallCounts();
+      res.json({ success: true, data: stats });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // Stats for a specific event, including lunch/dinner counts (admin)
+  static async getEventStats(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const { eventId } = req.params;
+      const stats = await RegistrationModel.getCountsByEvent(eventId);
       res.json({ success: true, data: stats });
     } catch (error) {
       next(error);

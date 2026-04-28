@@ -30,6 +30,15 @@ export class EventModel {
     if (notificationDate && eventDate && notificationDate >= eventDate) {
       throw new ApiError('Notification date must be before event date', 400);
     }
+
+    const regStart = data.registration_start_date ? new Date(data.registration_start_date) : null;
+    const regEnd = data.registration_deadline ? new Date(data.registration_deadline) : null;
+    if (regStart && regEnd && regStart >= regEnd) {
+      throw new ApiError('Registration start must be before registration deadline', 400);
+    }
+    if (regEnd && eventDate && regEnd > eventDate) {
+      throw new ApiError('Registration deadline must be on or before the event date', 400);
+    }
   }
 
   // Get all events with computed status
@@ -110,6 +119,7 @@ export class EventModel {
       review_deadline,
       notification_date,
       program_announcement_date,
+      registration_start_date,
       registration_deadline,
       theme_color,
       banner_image_url,
@@ -131,12 +141,13 @@ export class EventModel {
       INSERT INTO events (
         title, description, event_date, location, venue_details,
         submission_start_date, submission_end_date, review_deadline,
-        notification_date, program_announcement_date, registration_deadline,
+        notification_date, program_announcement_date,
+        registration_start_date, registration_deadline,
         theme_color, banner_image_url, highlight_stats, event_content,
         show_overview, show_practitioner_sessions, show_submission_guidelines,
         show_awards, show_committees, show_venue, show_program, show_keynote, show_photos, show_testimonials,
         created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
       RETURNING *,
         CASE
           WHEN event_date < CURRENT_DATE THEN 'past'
@@ -156,6 +167,7 @@ export class EventModel {
       review_deadline || null,
       notification_date || null,
       program_announcement_date || null,
+      registration_start_date || null,
       registration_deadline || null,
       theme_color || '#1a73e8',
       banner_image_url || null,
@@ -193,6 +205,7 @@ export class EventModel {
       review_deadline,
       notification_date,
       program_announcement_date,
+      registration_start_date,
       registration_deadline,
       theme_color,
       banner_image_url,
@@ -222,23 +235,24 @@ export class EventModel {
         review_deadline = COALESCE($8, review_deadline),
         notification_date = COALESCE($9, notification_date),
         program_announcement_date = COALESCE($10, program_announcement_date),
-        registration_deadline = COALESCE($11, registration_deadline),
-        theme_color = COALESCE($12, theme_color),
-        banner_image_url = COALESCE($13, banner_image_url),
-        highlight_stats = COALESCE($14, highlight_stats),
-        event_content = COALESCE($15, event_content),
-        show_overview = COALESCE($16, show_overview),
-        show_practitioner_sessions = COALESCE($17, show_practitioner_sessions),
-        show_submission_guidelines = COALESCE($18, show_submission_guidelines),
-        show_awards = COALESCE($19, show_awards),
-        show_committees = COALESCE($20, show_committees),
-        show_venue = COALESCE($21, show_venue),
-        show_program = COALESCE($22, show_program),
-        show_keynote = COALESCE($23, show_keynote),
-        show_photos = COALESCE($24, show_photos),
-        show_testimonials = COALESCE($25, show_testimonials),
+        registration_start_date = COALESCE($11, registration_start_date),
+        registration_deadline = COALESCE($12, registration_deadline),
+        theme_color = COALESCE($13, theme_color),
+        banner_image_url = COALESCE($14, banner_image_url),
+        highlight_stats = COALESCE($15, highlight_stats),
+        event_content = COALESCE($16, event_content),
+        show_overview = COALESCE($17, show_overview),
+        show_practitioner_sessions = COALESCE($18, show_practitioner_sessions),
+        show_submission_guidelines = COALESCE($19, show_submission_guidelines),
+        show_awards = COALESCE($20, show_awards),
+        show_committees = COALESCE($21, show_committees),
+        show_venue = COALESCE($22, show_venue),
+        show_program = COALESCE($23, show_program),
+        show_keynote = COALESCE($24, show_keynote),
+        show_photos = COALESCE($25, show_photos),
+        show_testimonials = COALESCE($26, show_testimonials),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $26
+      WHERE id = $27
       RETURNING *,
         CASE
           WHEN event_date < CURRENT_DATE THEN 'past'
@@ -258,6 +272,7 @@ export class EventModel {
       review_deadline || null,
       notification_date || null,
       program_announcement_date || null,
+      registration_start_date || null,
       registration_deadline || null,
       theme_color,
       banner_image_url,

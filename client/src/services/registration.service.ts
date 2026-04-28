@@ -61,6 +61,15 @@ class RegistrationService {
     return response.data;
   }
 
+  async getEventStats(eventId: string): Promise<
+    ApiResponse<{ total: number; registered: number; cancelled: number; lunch: number; dinner: number }>
+  > {
+    const response = await api.get<
+      ApiResponse<{ total: number; registered: number; cancelled: number; lunch: number; dinner: number }>
+    >(`/registrations/event/${eventId}/stats`);
+    return response.data;
+  }
+
   async updateRegistration(
     id: string,
     data: { status?: RegistrationStatus; lunch?: boolean; dinner?: boolean }

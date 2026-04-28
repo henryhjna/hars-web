@@ -173,6 +173,7 @@ export interface Event {
   review_deadline?: Date;
   notification_date?: Date;
   program_announcement_date?: Date;
+  registration_start_date?: Date;
   registration_deadline?: Date;
   theme_color: string;
   banner_image_url?: string;
