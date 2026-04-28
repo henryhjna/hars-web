@@ -1,10 +1,8 @@
 import axios, { type AxiosInstance, type AxiosError } from 'axios';
 
-// FIXED: Force cache bust - Use environment variable or default to /api for development proxy
 // In development: /api goes through Vite proxy to http://localhost:5001
-// In production: should be set to full API URL (e.g., https://api.hanyanghars.com/api)
+// In production: set VITE_API_BASE_URL to full API URL (e.g., https://api.hanyanghars.com/api)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
-console.log('[API CONFIG] Base URL:', API_BASE_URL);
 
 // Create axios instance
 const api: AxiosInstance = axios.create({

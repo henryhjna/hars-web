@@ -68,4 +68,11 @@ server/uploads/*
 PROJECT_STRUCTURE.md
 claude.md
 .claude/settings.local.json
-.claude/settings.local.json
+
+# Operational data (never commit — contains PII/papers)
+backup_pdfs_*/
+backup_prod_*.sql
+*_submitted_papers/
+submissions_with_users.*
+users_list.csv
+HARS_*_Submission_Statistics.md
