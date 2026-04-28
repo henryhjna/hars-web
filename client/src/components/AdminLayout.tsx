@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Calendar, Users, GraduationCap, Megaphone } from 'lucide-react';
+import { LayoutDashboard, FileText, Calendar, Users, GraduationCap, Megaphone, Ticket } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface AdminLayoutProps {
@@ -19,6 +19,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Submissions', href: '/admin/submissions', icon: FileText },
+    { name: 'Registrations', href: '/admin/registrations', icon: Ticket },
     { name: 'Events', href: '/admin/events', icon: Calendar },
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Faculty', href: '/admin/faculty', icon: GraduationCap },

@@ -736,11 +736,20 @@ export default function UpcomingEvents() {
           <p className="text-lg md:text-xl mb-8">
             We look forward to receiving your submissions and welcoming you to Seoul in {getLocalYear(event.event_date)}!
           </p>
-          <Link to="/submit-paper">
-            <Button variant="outline" size="lg" className="bg-white text-primary-600 hover:bg-gray-100">
-              Submit Paper Now
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link to="/submit-paper">
+              <Button variant="outline" size="lg" className="bg-white text-primary-600 hover:bg-gray-100">
+                Submit Paper Now
+              </Button>
+            </Link>
+            {event.registration_deadline && new Date(event.registration_deadline) > new Date() && (
+              <Link to={`/events/${event.id}/register`}>
+                <Button variant="outline" size="lg" className="bg-white text-primary-600 hover:bg-gray-100">
+                  Register to Attend
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </section>
     </div>

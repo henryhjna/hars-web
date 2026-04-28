@@ -243,6 +243,33 @@ export interface EventSession {
   created_at: string;
 }
 
+// Registration Types
+export type RegistrationStatus = 'registered' | 'cancelled';
+export interface Registration {
+  id: string;
+  user_id: string;
+  event_id: string;
+  status: RegistrationStatus;
+  lunch: boolean;
+  dinner: boolean;
+  created_at: string;
+  updated_at: string;
+  // Joined fields when returned with details
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  preferred_name?: string;
+  affiliation?: string;
+  event_title?: string;
+  event_date?: string;
+}
+
+export interface RegistrationCreateData {
+  event_id: string;
+  lunch: boolean;
+  dinner: boolean;
+}
+
 // Submission Types
 export type SubmissionStatus =
   | 'submitted'

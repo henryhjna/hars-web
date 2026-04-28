@@ -142,6 +142,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                             My Submissions
                           </Link>
                           <Link
+                            to="/my-registrations"
+                            onClick={() => setUserDropdownOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            <FileText className="w-4 h-4 text-gray-500" />
+                            My Registrations
+                          </Link>
+                          <Link
                             to="/my-page/change-password"
                             onClick={() => setUserDropdownOpen(false)}
                             className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -267,6 +275,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   >
                     <FileText className="w-5 h-5" />
                     My Submissions
+                  </Link>
+                  <Link
+                    to="/my-registrations"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                  >
+                    <FileText className="w-5 h-5" />
+                    My Registrations
                   </Link>
                   <Link
                     to="/my-page/change-password"

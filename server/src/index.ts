@@ -14,6 +14,7 @@ import testimonialRoutes from './routes/testimonial.routes';
 import conferenceTopicRoutes from './routes/conferenceTopic.routes';
 import facultyRoutes from './routes/faculty.routes';
 import noticeRoutes from './routes/notice.routes';
+import registrationRoutes from './routes/registration.routes';
 import { errorHandler, notFound } from './middleware/errorHandler';
 
 dotenv.config();
@@ -90,6 +91,7 @@ app.get('/', (req, res) => {
       testimonials: '/api/testimonials',
       topics: '/api/conference-topics',
       faculty: '/api/faculty',
+      registrations: '/api/registrations',
       health: '/health'
     }
   });
@@ -107,6 +109,7 @@ app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/conference-topics', conferenceTopicRoutes);
 app.use('/api/faculty', facultyRoutes);
 app.use('/api/notices', noticeRoutes);
+app.use('/api/registrations', registrationRoutes);
 
 // Error handling
 app.use(notFound);

@@ -225,6 +225,19 @@ export interface KeynoteSpeaker {
   created_at: Date;
 }
 
+// Registration Types
+export type RegistrationStatus = 'registered' | 'cancelled';
+export interface Registration {
+  id: string;
+  user_id: string;
+  event_id: string;
+  status: RegistrationStatus;
+  lunch: boolean;
+  dinner: boolean;
+  created_at: Date;
+  updated_at: Date;
+}
+
 // Submission Types
 export type SubmissionStatus =
   | 'submitted'

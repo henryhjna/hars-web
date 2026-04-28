@@ -159,6 +159,55 @@ export const sendSubmissionConfirmationEmail = async (
   await transporter.sendMail(mailOptions);
 };
 
+export const sendRegistrationConfirmationEmail = async (
+  user: User,
+  eventTitle: string,
+  eventDate: Date | string,
+  lunch: boolean,
+  dinner: boolean,
+): Promise<void> => {
+  const eventDateStr = new Date(eventDate).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  const meals = [lunch ? 'Lunch' : null, dinner ? 'Dinner' : null].filter(Boolean).join(', ') || 'None';
+
+  const mailOptions = {
+    from: EMAIL_SENDER,
+    to: user.email,
+    subject: `Registration Confirmed: ${eventTitle}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background-color: #1a73e8; color: white; padding: 20px; text-align: center;">
+            <h1 style="margin: 0;">Registration Confirmed</h1>
+          </div>
+          <div style="padding: 30px; background-color: #f9f9f9;">
+            <h2 style="margin-top: 0;">Hello ${user.first_name} ${user.last_name},</h2>
+            <p>Your registration has been received. We look forward to seeing you at the event.</p>
+            <div style="background-color: #e3f2fd; padding: 15px; border-left: 4px solid #1a73e8; margin: 20px 0;">
+              <strong>Event:</strong> ${eventTitle}<br>
+              <strong>Date:</strong> ${eventDateStr}<br>
+              <strong>Meals:</strong> ${meals}
+            </div>
+            <p>If your plans change, please log in and update your registration so we can adjust catering.</p>
+            <p>Thank you!</p>
+          </div>
+          <div style="padding: 20px; text-align: center; color: #666; font-size: 12px;">
+            <p>&copy; ${new Date().getFullYear()} Hanyang Accounting Research Symposium. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 export const sendWelcomeEmail = async (user: User): Promise<void> => {
   const mailOptions = {
     from: EMAIL_SENDER,

@@ -13,6 +13,8 @@ import UpcomingEvents from './pages/UpcomingEvents';
 import PastEvents from './pages/PastEvents';
 import SubmitPaper from './pages/SubmitPaper';
 import MySubmissions from './pages/MySubmissions';
+import MyRegistrations from './pages/MyRegistrations';
+import EventRegister from './pages/EventRegister';
 import MyPage from './pages/MyPage';
 import MyPageEdit from './pages/MyPageEdit';
 import ChangePassword from './pages/ChangePassword';
@@ -21,6 +23,7 @@ import AdminSubmissions from './pages/admin/AdminSubmissions';
 import AdminEvents from './pages/admin/AdminEvents';
 import AdminEventDetails from './pages/admin/AdminEventDetails';
 import AdminUsers from './pages/admin/AdminUsers';
+import AdminRegistrations from './pages/admin/AdminRegistrations';
 import AdminFaculty from './pages/admin/AdminFaculty';
 import AdminNotices from './pages/admin/AdminNotices';
 import ReviewerDashboard from './pages/reviewer/ReviewerDashboard';
@@ -90,6 +93,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <Layout><MySubmissions /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-registrations"
+        element={
+          <ProtectedRoute>
+            <Layout><MyRegistrations /></Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/events/:eventId/register"
+        element={
+          <ProtectedRoute>
+            <Layout><EventRegister /></Layout>
           </ProtectedRoute>
         }
       />
@@ -174,6 +193,14 @@ function AppRoutes() {
         element={
           <AdminRoute>
             <AdminLayout><AdminUsers /></AdminLayout>
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/registrations"
+        element={
+          <AdminRoute>
+            <AdminLayout><AdminRegistrations /></AdminLayout>
           </AdminRoute>
         }
       />

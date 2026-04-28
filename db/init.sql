@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS conference_topics CASCADE;
 DROP TABLE IF EXISTS review_assignments CASCADE;
 DROP TABLE IF EXISTS reviews CASCADE;
 DROP TABLE IF EXISTS submissions CASCADE;
+DROP TABLE IF EXISTS registrations CASCADE;
 DROP TABLE IF EXISTS keynote_speakers CASCADE;
 DROP TABLE IF EXISTS event_sessions CASCADE;
 DROP TABLE IF EXISTS events CASCADE;
@@ -240,6 +241,20 @@ CREATE TABLE conference_topics (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Event Registrations
+CREATE TABLE registrations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL DEFAULT 'registered'
+        CHECK (status IN ('registered', 'cancelled')),
+    lunch BOOLEAN NOT NULL DEFAULT FALSE,
+    dinner BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (user_id, event_id)
+);
+
 -- Activity Logs
 CREATE TABLE activity_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -270,6 +285,9 @@ CREATE INDEX idx_conference_topics_event ON conference_topics(event_id);
 CREATE INDEX idx_conference_topics_active ON conference_topics(is_active);
 CREATE INDEX idx_activity_logs_user ON activity_logs(user_id);
 CREATE INDEX idx_activity_logs_created ON activity_logs(created_at DESC);
+CREATE INDEX idx_registrations_user ON registrations(user_id);
+CREATE INDEX idx_registrations_event ON registrations(event_id);
+CREATE INDEX idx_registrations_status ON registrations(status);
 
 -- Triggers for updated_at timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -293,6 +311,9 @@ CREATE TRIGGER update_reviews_updated_at BEFORE UPDATE ON reviews
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_conference_topics_updated_at BEFORE UPDATE ON conference_topics
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_registrations_updated_at BEFORE UPDATE ON registrations
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Faculty Members Table
