@@ -1,16 +1,20 @@
 import multer from 'multer';
 import fs from 'fs';
-import { Request } from 'express';
 
-// Use memory storage for S3 upload (no disk storage needed)
-const storage = multer.memoryStorage();
+const memoryStorage = multer.memoryStorage();
+const MB = 1024 * 1024;
 
-// File filter - only accept PDF files
-const fileFilter = (
-  req: Request,
-  file: Express.Multer.File,
-  cb: multer.FileFilterCallback
-) => {
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
+const imageFileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
+  if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'));
+  }
+};
+
+const pdfFileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
   if (file.mimetype === 'application/pdf') {
     cb(null, true);
   } else {
@@ -18,16 +22,23 @@ const fileFilter = (
   }
 };
 
-// Configure multer
-export const upload = multer({
-  storage,
-  fileFilter,
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10 MB limit
-  },
-});
+export const imageUpload = (maxMb: number) =>
+  multer({
+    storage: memoryStorage,
+    limits: { fileSize: maxMb * MB },
+    fileFilter: imageFileFilter,
+  });
 
-// Helper function to delete uploaded file
+export const pdfUpload = (maxMb: number) =>
+  multer({
+    storage: memoryStorage,
+    limits: { fileSize: maxMb * MB },
+    fileFilter: pdfFileFilter,
+  });
+
+// Default PDF upload (10MB) — used by submission routes
+export const upload = pdfUpload(10);
+
 export const deleteFile = (filePath: string): void => {
   try {
     if (fs.existsSync(filePath)) {

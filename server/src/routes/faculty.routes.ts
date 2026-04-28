@@ -1,25 +1,10 @@
 import { Router } from 'express';
-import multer from 'multer';
 import { FacultyController } from '../controllers/faculty.controller';
 import { authenticate, authorize } from '../middleware/auth';
+import { imageUpload } from '../config/upload';
 
 const router = Router();
-
-// Multer configuration for photo upload
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'));
-    }
-  },
-});
+const upload = imageUpload(2);
 
 // Public routes
 router.get('/', FacultyController.getAll);

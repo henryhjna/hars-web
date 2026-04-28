@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import multer from 'multer';
 import {
   createPhoto,
   getEventPhotos,
@@ -9,25 +8,10 @@ import {
 } from '../controllers/eventPhoto.controller';
 import { authenticate, authorize } from '../middleware/auth';
 import { UserRole } from '../types';
+import { imageUpload } from '../config/upload';
 
 const router = Router();
-
-// Multer configuration for file uploads
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage,
-  limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only JPEG, PNG, and WebP are allowed.'));
-    }
-  },
-});
+const upload = imageUpload(2);
 
 // Public routes
 router.get('/event/:eventId', getEventPhotos);
