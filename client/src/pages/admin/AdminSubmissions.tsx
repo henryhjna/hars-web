@@ -4,6 +4,11 @@ import eventService from '../../services/event.service';
 import reviewService from '../../services/review.service';
 import userService from '../../services/user.service';
 import EmailPreviewModal from '../../components/EmailPreviewModal';
+import LoadingState from '../../components/admin/LoadingState';
+import MessageBanners from '../../components/admin/MessageBanners';
+import PaginationFooter from '../../components/admin/PaginationFooter';
+import ViewModeToggle from '../../components/admin/ViewModeToggle';
+import { useResponsiveViewMode } from '../../hooks/useResponsiveViewMode';
 import type { Submission, Event, SubmissionStatus, User, ReviewAssignment, Review } from '../../types';
 
 export default function AdminSubmissions() {
@@ -16,10 +21,7 @@ export default function AdminSubmissions() {
   const [selectedEvent, setSelectedEvent] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
-  // View mode state (table for desktop, card for mobile)
-  const [viewMode, setViewMode] = useState<'table' | 'card'>(() => {
-    return window.innerWidth >= 768 ? 'table' : 'card';
-  });
+  const [viewMode, setViewMode] = useResponsiveViewMode();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,20 +51,6 @@ export default function AdminSubmissions() {
   useEffect(() => {
     loadData();
   }, [currentPage, selectedEvent, selectedStatus]);
-
-  // Responsive view mode
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setViewMode('table');
-      } else {
-        setViewMode('card');
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const loadData = async () => {
     try {
@@ -283,54 +271,17 @@ export default function AdminSubmissions() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading submissions...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState label="Loading submissions..." />;
   }
 
   return (
     <div>
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Manage Submissions</h1>
-        {/* View Toggle Buttons */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => setViewMode('table')}
-            className={`p-2 rounded-md ${viewMode === 'table' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
-            title="Table View"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18M3 18h18M3 6h18" />
-            </svg>
-          </button>
-          <button
-            onClick={() => setViewMode('card')}
-            className={`p-2 rounded-md ${viewMode === 'card' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}
-            title="Card View"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-            </svg>
-          </button>
-        </div>
+        <ViewModeToggle mode={viewMode} onChange={setViewMode} />
       </div>
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded text-red-700">
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded text-green-700">
-          {success}
-        </div>
-      )}
+      <MessageBanners error={error} success={success} />
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
@@ -555,32 +506,13 @@ export default function AdminSubmissions() {
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-6 bg-white rounded-lg shadow p-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages} ({totalSubmissions} total submissions)
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PaginationFooter
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalSubmissions}
+        itemLabel="submissions"
+        onPageChange={setCurrentPage}
+      />
 
       {/* View Reviews Modal */}
       {reviewsModalOpen && selectedSubmission && (

@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import userService from '../../services/user.service';
+import LoadingState from '../../components/admin/LoadingState';
+import MessageBanners from '../../components/admin/MessageBanners';
+import PaginationFooter from '../../components/admin/PaginationFooter';
+import ViewModeToggle from '../../components/admin/ViewModeToggle';
+import StatsCardRow from '../../components/admin/StatsCardRow';
+import { useResponsiveViewMode } from '../../hooks/useResponsiveViewMode';
 import type { User, UserRole } from '../../types';
-
-type ViewMode = 'table' | 'card';
 
 interface UserStats {
   total: number;
@@ -20,8 +24,7 @@ export default function AdminUsers() {
   const [selectedRoles, setSelectedRoles] = useState<UserRole[]>([]);
   const [userStats, setUserStats] = useState<UserStats>({ total: 0, admins: 0, reviewers: 0, verified: 0 });
 
-  // View mode - table for desktop, card for mobile
-  const [viewMode, setViewMode] = useState<ViewMode>('table');
+  const [viewMode, setViewMode] = useResponsiveViewMode();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -32,18 +35,6 @@ export default function AdminUsers() {
   useEffect(() => {
     loadUsers();
   }, [currentPage]);
-
-  // Set default view based on screen size
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768) {
-        setViewMode('card');
-      }
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   const loadUsers = async () => {
     try {
@@ -144,14 +135,7 @@ export default function AdminUsers() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading users...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState label="Loading users..." />;
   }
 
   return (
@@ -159,27 +143,7 @@ export default function AdminUsers() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Manage Users</h1>
         <div className="flex items-center gap-2">
-          {/* View Toggle */}
-          <div className="hidden md:flex items-center bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('table')}
-              className={`p-2 rounded ${viewMode === 'table' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-              title="Table View"
-            >
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18M3 18h18M3 6h18" />
-              </svg>
-            </button>
-            <button
-              onClick={() => setViewMode('card')}
-              className={`p-2 rounded ${viewMode === 'card' ? 'bg-white shadow-sm' : 'hover:bg-gray-200'}`}
-              title="Card View"
-            >
-              <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </button>
-          </div>
+          <ViewModeToggle mode={viewMode} onChange={setViewMode} />
           <button
             onClick={loadUsers}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
@@ -192,17 +156,7 @@ export default function AdminUsers() {
         </div>
       </div>
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded text-red-700">
-          {error}
-        </div>
-      )}
-
-      {success && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded text-green-700">
-          {success}
-        </div>
-      )}
+      <MessageBanners error={error} success={success} />
 
       {/* Table View */}
       {viewMode === 'table' && (
@@ -369,54 +323,22 @@ export default function AdminUsers() {
         </div>
       )}
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-6 bg-white rounded-lg shadow p-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages} ({totalUsers} total users)
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PaginationFooter
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalUsers}
+        itemLabel="users"
+        onPageChange={setCurrentPage}
+      />
 
-      {/* Summary */}
-      <div className="mt-6 bg-white rounded-lg shadow p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-          <div>
-            <p className="text-2xl font-bold text-gray-900">{userStats.total}</p>
-            <p className="text-sm text-gray-600">Total Users</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-red-600">{userStats.admins}</p>
-            <p className="text-sm text-gray-600">Admins</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-blue-600">{userStats.reviewers}</p>
-            <p className="text-sm text-gray-600">Reviewers</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-green-600">{userStats.verified}</p>
-            <p className="text-sm text-gray-600">Verified</p>
-          </div>
-        </div>
-      </div>
+      <StatsCardRow
+        stats={[
+          { label: 'Total Users', value: userStats.total },
+          { label: 'Admins', value: userStats.admins, color: 'text-red-600' },
+          { label: 'Reviewers', value: userStats.reviewers, color: 'text-blue-600' },
+          { label: 'Verified', value: userStats.verified, color: 'text-green-600' },
+        ]}
+      />
 
       {/* Edit Roles Modal */}
       {editingUser && (
