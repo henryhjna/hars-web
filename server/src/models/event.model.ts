@@ -46,8 +46,8 @@ export class EventModel {
     const sql = `
       SELECT *,
         CASE
-          WHEN event_date < CURRENT_DATE THEN 'past'
-          WHEN event_date = CURRENT_DATE THEN 'ongoing'
+          WHEN event_date < ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'past'
+          WHEN event_date = ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'ongoing'
           ELSE 'upcoming'
         END as status
       FROM events
@@ -62,12 +62,12 @@ export class EventModel {
     const sql = `
       SELECT *,
         CASE
-          WHEN event_date < CURRENT_DATE THEN 'past'
-          WHEN event_date = CURRENT_DATE THEN 'ongoing'
+          WHEN event_date < ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'past'
+          WHEN event_date = ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'ongoing'
           ELSE 'upcoming'
         END as status
       FROM events
-      WHERE event_date >= CURRENT_DATE
+      WHERE event_date >= ((NOW() AT TIME ZONE 'Asia/Seoul')::date)
       ORDER BY event_date ASC
     `;
     const result = await query(sql);
@@ -80,7 +80,7 @@ export class EventModel {
       SELECT *,
         'past' as status
       FROM events
-      WHERE event_date < CURRENT_DATE
+      WHERE event_date < ((NOW() AT TIME ZONE 'Asia/Seoul')::date)
       ORDER BY event_date DESC
     `;
     const result = await query(sql);
@@ -92,8 +92,8 @@ export class EventModel {
     const sql = `
       SELECT *,
         CASE
-          WHEN event_date < CURRENT_DATE THEN 'past'
-          WHEN event_date = CURRENT_DATE THEN 'ongoing'
+          WHEN event_date < ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'past'
+          WHEN event_date = ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'ongoing'
           ELSE 'upcoming'
         END as status
       FROM events
@@ -150,8 +150,8 @@ export class EventModel {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
       RETURNING *,
         CASE
-          WHEN event_date < CURRENT_DATE THEN 'past'
-          WHEN event_date = CURRENT_DATE THEN 'ongoing'
+          WHEN event_date < ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'past'
+          WHEN event_date = ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'ongoing'
           ELSE 'upcoming'
         END as status
     `;
@@ -255,8 +255,8 @@ export class EventModel {
       WHERE id = $27
       RETURNING *,
         CASE
-          WHEN event_date < CURRENT_DATE THEN 'past'
-          WHEN event_date = CURRENT_DATE THEN 'ongoing'
+          WHEN event_date < ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'past'
+          WHEN event_date = ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'ongoing'
           ELSE 'upcoming'
         END as status
     `;

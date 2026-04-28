@@ -70,13 +70,15 @@ function AppRoutes() {
         }
       />
       <Route
-        path="/register"
+        path="/signup"
         element={
           <PublicRoute>
             <Register />
           </PublicRoute>
         }
       />
+      {/* Legacy URL kept so any old bookmarks/email links still work. */}
+      <Route path="/register" element={<Navigate to="/signup" replace />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
 
       {/* Protected routes (require authentication) */}

@@ -178,10 +178,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                       Login
                     </Link>
                     <Link
-                      to="/register"
+                      to="/signup"
                       className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
                     >
-                      Register
+                      Sign Up
                     </Link>
                   </>
                 )}
@@ -332,11 +332,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     Login
                   </Link>
                   <Link
-                    to="/register"
+                    to="/signup"
                     onClick={() => setMobileMenuOpen(false)}
                     className="block px-3 py-2 text-base font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-md text-center"
                   >
-                    Register
+                    Sign Up
                   </Link>
                 </div>
               )}

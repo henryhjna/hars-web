@@ -103,10 +103,10 @@ export default function VerifyEmail() {
                 Go to Login
               </button>
               <button
-                onClick={() => navigate('/register')}
+                onClick={() => navigate('/signup')}
                 className="w-full px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
               >
-                Register Again
+                Sign Up Again
               </button>
             </div>
           </div>

@@ -13,15 +13,127 @@ import { formatLocalDate, formatKstDate } from '../utils/dateUtils';
 
 const noticeDismissKey = (id: string) => `hars_notice_dismissed_${id}`;
 
+type WindowState =
+  | { kind: 'open'; closesAt: string }
+  | { kind: 'upcoming'; opensAt: string }
+  | { kind: 'closed'; closedAt: string }
+  | { kind: 'unavailable' };
+
+function submissionWindow(event: Event): WindowState {
+  if (!event.submission_start_date || !event.submission_end_date) return { kind: 'unavailable' };
+  const now = Date.now();
+  const start = new Date(event.submission_start_date).getTime();
+  const end = new Date(event.submission_end_date).getTime();
+  if (now < start) return { kind: 'upcoming', opensAt: event.submission_start_date };
+  if (now > end) return { kind: 'closed', closedAt: event.submission_end_date };
+  return { kind: 'open', closesAt: event.submission_end_date };
+}
+
+function registrationWindow(event: Event): WindowState {
+  if (!event.registration_deadline) return { kind: 'unavailable' };
+  const now = Date.now();
+  const end = new Date(event.registration_deadline).getTime();
+  if (now > end) return { kind: 'closed', closedAt: event.registration_deadline };
+  if (event.registration_start_date) {
+    const start = new Date(event.registration_start_date).getTime();
+    if (now < start) return { kind: 'upcoming', opensAt: event.registration_start_date };
+  }
+  return { kind: 'open', closesAt: event.registration_deadline };
+}
+
+interface CTA {
+  label: string;
+  to: string;
+  variant: 'primary' | 'secondary' | 'outline';
+}
+
+function buildCTAs(event: Event | null, isAuthenticated: boolean): CTA[] {
+  const ctas: CTA[] = [];
+
+  if (event) {
+    const reg = registrationWindow(event);
+    const sub = submissionWindow(event);
+
+    if (reg.kind === 'open') {
+      ctas.push({ label: 'Register to Attend', to: `/events/${event.id}/register`, variant: 'secondary' });
+    }
+    if (sub.kind === 'open') {
+      ctas.push({ label: 'Submit Paper', to: '/submit-paper', variant: 'secondary' });
+    }
+    ctas.push({ label: 'View Event Details', to: '/upcoming-events', variant: 'outline' });
+  } else {
+    ctas.push({ label: 'View Past Events', to: '/past-events', variant: 'secondary' });
+  }
+
+  if (!isAuthenticated) {
+    ctas.push({ label: 'Create Account', to: '/signup', variant: 'outline' });
+  }
+
+  // Cap at 3 buttons; if registration AND submission are both open we'd otherwise
+  // have 4 (register, submit, view, account). View loses to the more actionable two.
+  return ctas.slice(0, 3);
+}
+
+interface InfoItem {
+  label: string;
+  value: string;
+}
+
+function buildInfoItems(event: Event): InfoItem[] {
+  const items: InfoItem[] = [];
+  // Submission end is NOT NULL on the schema; always present.
+  items.push({ label: 'Paper Submission Deadline', value: formatKstDate(event.submission_end_date) });
+  if (event.registration_deadline) {
+    items.push({ label: 'Registration Deadline', value: formatKstDate(event.registration_deadline) });
+  }
+  if (event.notification_date) {
+    items.push({ label: 'Review Results', value: formatLocalDate(event.notification_date, { kst: true }) });
+  }
+  items.push({ label: 'Symposium Date', value: formatLocalDate(event.event_date, { kst: true }) });
+  return items;
+}
+
+function StatusBadge({ label, state }: { label: string; state: WindowState }) {
+  if (state.kind === 'unavailable') return null;
+
+  const cls =
+    state.kind === 'open'
+      ? 'bg-green-500/20 text-green-100 border-green-300/40'
+      : state.kind === 'upcoming'
+      ? 'bg-yellow-500/20 text-yellow-100 border-yellow-300/40'
+      : 'bg-red-500/20 text-red-100 border-red-300/40';
+
+  const text =
+    state.kind === 'open'
+      ? `${label} open · closes ${formatKstDate(state.closesAt)}`
+      : state.kind === 'upcoming'
+      ? `${label} opens ${formatKstDate(state.opensAt)}`
+      : `${label} closed (${formatKstDate(state.closedAt)})`;
+
+  return (
+    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${cls}`}>
+      {text}
+    </span>
+  );
+}
+
+const COLS_CLASS: Record<number, string> = {
+  1: 'md:grid-cols-1',
+  2: 'md:grid-cols-2',
+  3: 'md:grid-cols-3',
+  4: 'md:grid-cols-4',
+};
+
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const [nextEvent, setNextEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string>('');
   const [notice, setNotice] = useState<SiteNotice | null>(null);
 
   useEffect(() => {
-    loadNextEvent();
-    loadActiveNotice();
+    void loadNextEvent();
+    void loadActiveNotice();
   }, []);
 
   const loadActiveNotice = async () => {
@@ -45,22 +157,23 @@ export default function Home() {
 
   const loadNextEvent = async () => {
     try {
+      setLoadError('');
       const response = await eventService.getUpcomingEvents();
       if (response.data && response.data.length > 0) {
-        // Get the first upcoming event
         setNextEvent(response.data[0]);
       }
     } catch (error) {
       console.error('Failed to load upcoming event:', error);
+      setLoadError('Could not load the next event. Please refresh in a moment.');
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'TBD';
-    return formatLocalDate(dateString, { kst: true });
-  };
+  const ctas = buildCTAs(nextEvent, isAuthenticated);
+  const infoItems = nextEvent ? buildInfoItems(nextEvent) : [];
+  const submission = nextEvent ? submissionWindow(nextEvent) : null;
+  const registration = nextEvent ? registrationWindow(nextEvent) : null;
 
   return (
     <div className="bg-white">
@@ -71,7 +184,6 @@ export default function Home() {
 
         <div className="relative max-w-7xl mx-auto py-20 px-4 sm:py-28 sm:px-6 lg:px-8">
           <div className="text-center">
-            {/* University Badge */}
             <div className="mb-6 flex justify-center">
               <Badge variant="secondary" size="lg" rounded>
                 <Building2 className="w-4 h-4 mr-2" />
@@ -103,84 +215,72 @@ export default function Home() {
               ) : nextEvent ? (
                 <>
                   <div className="text-3xl font-bold text-white mb-1">
-                    {formatDate(nextEvent.event_date)}
+                    {formatLocalDate(nextEvent.event_date, { kst: true })}
                   </div>
-                  <div className="text-primary-200">
+                  <div className="text-primary-200 mb-3">
                     {nextEvent.location || 'Hanyang University, Seoul, South Korea'}
                   </div>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {submission && <StatusBadge label="Submission" state={submission} />}
+                    {registration && <StatusBadge label="Registration" state={registration} />}
+                  </div>
                 </>
               ) : (
-                <div className="text-2xl font-bold text-white mb-1">TBD</div>
+                <>
+                  <div className="text-2xl font-bold text-white mb-1">To Be Announced</div>
+                  <div className="text-primary-200 text-sm">
+                    The next symposium will be posted here once scheduled.
+                  </div>
+                </>
               )}
             </div>
 
-            {/* CTA Buttons */}
+            {loadError && !loading && (
+              <div className="mt-6 inline-block px-4 py-2 bg-red-500/20 border border-red-300/40 rounded-md text-red-100 text-sm">
+                {loadError}
+              </div>
+            )}
+
+            {/* CTA Buttons - dynamic based on event state and auth */}
             <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-              {isAuthenticated ? (
-                <>
-                  <Link to="/upcoming-events">
-                    <Button variant="secondary" size="lg" className="w-full sm:w-auto shadow-xl">
-                      View Event Details
-                      <ArrowRight className="ml-2 w-5 h-5" />
-                    </Button>
-                  </Link>
-                  <Link to="/my-submissions">
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto border-white text-white hover:bg-white/10">
-                      My Submissions
-                    </Button>
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link to="/upcoming-events">
-                    <Button variant="secondary" size="lg" className="w-full sm:w-auto shadow-xl">
-                      View Event Details
-                      <ArrowRight className="ml-2 w-5 h-5" />
-                    </Button>
-                  </Link>
-                  <Link to="/register">
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto border-white text-white hover:bg-white/10">
-                      Create Account
-                    </Button>
-                  </Link>
-                </>
-              )}
+              {ctas.map((cta) => (
+                <Link key={cta.label} to={cta.to}>
+                  <Button
+                    variant={cta.variant}
+                    size="lg"
+                    className={
+                      cta.variant === 'outline'
+                        ? 'w-full sm:w-auto border-white text-white hover:bg-white/10'
+                        : 'w-full sm:w-auto shadow-xl'
+                    }
+                  >
+                    {cta.label}
+                    {cta.variant !== 'outline' && <ArrowRight className="ml-2 w-5 h-5" />}
+                  </Button>
+                </Link>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Info Bar */}
-      <div className="bg-gray-900 border-b border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-            <div className="space-y-1">
-              <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
-                Paper Submission Deadline
-              </div>
-              <div className="text-2xl font-bold text-white">
-                {loading ? 'Loading...' : (nextEvent?.submission_end_date ? formatKstDate(nextEvent.submission_end_date) : 'TBD')}
-              </div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
-                Review Results
-              </div>
-              <div className="text-2xl font-bold text-white">
-                {loading ? 'Loading...' : formatDate(nextEvent?.notification_date)}
-              </div>
-            </div>
-            <div className="space-y-1">
-              <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
-                Symposium Date
-              </div>
-              <div className="text-2xl font-bold text-white">
-                {loading ? 'Loading...' : formatDate(nextEvent?.event_date)}
-              </div>
+      {/* Quick Info Bar - only when there's an event with at least one date to show */}
+      {nextEvent && infoItems.length > 0 && (
+        <div className="bg-gray-900 border-b border-gray-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className={`grid grid-cols-1 ${COLS_CLASS[infoItems.length] ?? 'md:grid-cols-4'} gap-6 text-center`}>
+              {infoItems.map((item) => (
+                <div key={item.label} className="space-y-1">
+                  <div className="text-sm font-medium text-gray-400 uppercase tracking-wider">
+                    {item.label}
+                  </div>
+                  <div className="text-2xl font-bold text-white">{item.value}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Research Scope */}
       <div className="py-20 bg-white">
@@ -199,7 +299,6 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {/* All Accounting Topics */}
             <Card variant="elevated" padding="lg" className="bg-gradient-to-br from-primary-50 to-white">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center flex-shrink-0">
@@ -208,34 +307,15 @@ export default function Home() {
                 <h3 className="text-2xl font-bold text-gray-900">All Accounting Research</h3>
               </div>
               <ul className="space-y-3 text-gray-700">
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
-                  Financial Reporting & Disclosure
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
-                  Corporate Governance & ESG
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
-                  Audit Quality & Regulation
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
-                  Capital Markets & Valuation
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
-                  Managerial & Cost Accounting
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>
-                  Taxation & Public Policy
-                </li>
+                <li className="flex items-center"><span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>Financial Reporting & Disclosure</li>
+                <li className="flex items-center"><span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>Corporate Governance & ESG</li>
+                <li className="flex items-center"><span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>Audit Quality & Regulation</li>
+                <li className="flex items-center"><span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>Capital Markets & Valuation</li>
+                <li className="flex items-center"><span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>Managerial & Cost Accounting</li>
+                <li className="flex items-center"><span className="w-2 h-2 rounded-full bg-primary-500 mr-3 flex-shrink-0"></span>Taxation & Public Policy</li>
               </ul>
             </Card>
 
-            {/* Tech Strength */}
             <Card variant="elevated" padding="lg" className="bg-gradient-to-br from-accent-50 to-white">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center flex-shrink-0">
@@ -248,81 +328,49 @@ export default function Home() {
                 we particularly encourage innovative research using:
               </p>
               <ul className="space-y-3 text-gray-700">
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>
-                  AI & Machine Learning
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>
-                  Large Language Models
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>
-                  Big Data & Analytics
-                </li>
-                <li className="flex items-center">
-                  <span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>
-                  Alternative Data Sources
-                </li>
+                <li className="flex items-center"><span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>AI & Machine Learning</li>
+                <li className="flex items-center"><span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>Large Language Models</li>
+                <li className="flex items-center"><span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>Big Data & Analytics</li>
+                <li className="flex items-center"><span className="w-2 h-2 rounded-full bg-accent-500 mr-3 flex-shrink-0"></span>Alternative Data Sources</li>
               </ul>
             </Card>
           </div>
         </div>
       </div>
 
-      {/* Why HARS - Simple & Action-oriented */}
+      {/* Why HARS */}
       <div className="py-20 bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-6">
-              Why HARS?
-            </h2>
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-6">Why HARS?</h2>
           </div>
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
             {[
-              {
-                icon: FileText,
-                title: 'Present Your Research',
-                description: 'Share your work with scholars and receive valuable feedback',
-              },
-              {
-                icon: Users,
-                title: 'Build Connections',
-                description: 'Network with leading researchers and practitioners',
-              },
-              {
-                icon: Award,
-                title: 'Earn Recognition',
-                description: 'Best paper awards',
-              },
+              { icon: FileText, title: 'Present Your Research', description: 'Share your work with scholars and receive valuable feedback' },
+              { icon: Users, title: 'Build Connections', description: 'Network with leading researchers and practitioners' },
+              { icon: Award, title: 'Earn Recognition', description: 'Best paper awards' },
             ].map((feature) => (
               <Card key={feature.title} variant="elevated" padding="lg" hoverable className="bg-white">
                 <div className="inline-flex items-center justify-center p-3 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl shadow-lg mb-4">
                   <feature.icon className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {feature.description}
-                </p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
+                <p className="text-sm text-gray-600">{feature.description}</p>
               </Card>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Hosted by Hanyang University - Concise */}
+      {/* Hosted by Hanyang */}
       <div className="py-16 bg-gradient-to-br from-gray-900 to-gray-800 text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Badge variant="secondary" size="lg" rounded className="mb-6">
             <Building2 className="w-4 h-4 mr-2" />
             Hosted by
           </Badge>
-          <h2 className="text-3xl font-extrabold sm:text-4xl mb-4">
-            Hanyang University Business School
-          </h2>
+          <h2 className="text-3xl font-extrabold sm:text-4xl mb-4">Hanyang University Business School</h2>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
             Ranked #4 in South Korea, renowned for excellence in computer science,
             engineering, and technological innovation
@@ -339,16 +387,12 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Past Events Highlight */}
+      {/* Past Events */}
       <div className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <Badge variant="primary" size="lg" rounded className="mb-4">
-              Previous Events
-            </Badge>
-            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-6">
-              HARS Archive
-            </h2>
+            <Badge variant="primary" size="lg" rounded className="mb-4">Previous Events</Badge>
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl mb-6">HARS Archive</h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Explore presentations, papers, and highlights from previous symposiums
             </p>
@@ -365,7 +409,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* CTA Section */}
+      {/* Final CTA - logged-out only */}
       {!isAuthenticated && (
         <div className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800">
           <div className="absolute inset-0 bg-grid-white/[0.05] bg-[size:20px_20px]" />
@@ -375,10 +419,10 @@ export default function Home() {
               Join the HARS Community
             </h2>
             <p className="text-xl text-primary-100 mb-10 max-w-2xl mx-auto">
-              Create an account to submit papers, access symposium materials,
+              Create an account to register for the symposium, submit papers,
               and connect with leading researchers in accounting and finance
             </p>
-            <Link to="/register">
+            <Link to="/signup">
               <Button variant="secondary" size="lg" className="shadow-xl">
                 Create Your Account
                 <ArrowRight className="ml-2 w-5 h-5" />
