@@ -14,7 +14,8 @@ export default function EventRegister() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [lunch, setLunch] = useState(true);
-  const [dinner, setDinner] = useState(true);
+  const [dinnerEligible, setDinnerEligible] = useState(false);
+  const [dinner, setDinner] = useState(false);
 
   useEffect(() => {
     if (!eventId) {
@@ -80,8 +81,8 @@ export default function EventRegister() {
     try {
       await registrationService.createRegistration({
         event_id: event.id,
-        lunch,
-        dinner,
+        lunch: event.show_lunch_question ? lunch : false,
+        dinner: event.show_dinner_question && dinnerEligible ? dinner : false,
       });
       navigate('/my-registrations');
     } catch (err: any) {
@@ -133,27 +134,54 @@ export default function EventRegister() {
       )}
 
       <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-4">
-        <div>
-          <p className="text-sm font-medium text-gray-700 mb-3">Meals</p>
-          <label className="flex items-center mb-2">
-            <input
-              type="checkbox"
-              checked={lunch}
-              onChange={(e) => setLunch(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-            />
-            <span className="text-sm text-gray-900">I will attend the lunch</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={dinner}
-              onChange={(e) => setDinner(e.target.checked)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
-            />
-            <span className="text-sm text-gray-900">I will attend the dinner</span>
-          </label>
-        </div>
+        {(event.show_lunch_question || event.show_dinner_question) && (
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-3">Meals</p>
+            {event.show_lunch_question && (
+              <label className="flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  checked={lunch}
+                  onChange={(e) => setLunch(e.target.checked)}
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                />
+                <span className="text-sm text-gray-900">I will attend the lunch</span>
+              </label>
+            )}
+            {event.show_dinner_question && (
+              <div className="mt-2">
+                <label className="flex items-start">
+                  <input
+                    type="checkbox"
+                    checked={dinnerEligible}
+                    onChange={(e) => {
+                      setDinnerEligible(e.target.checked);
+                      if (!e.target.checked) setDinner(false);
+                    }}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2 mt-0.5"
+                  />
+                  <span className="text-sm text-gray-900">
+                    I am a presenter, discussant, or co-author
+                    <span className="block text-xs text-gray-500 mt-0.5">
+                      Dinner attendance is reserved for these roles.
+                    </span>
+                  </span>
+                </label>
+                {dinnerEligible && (
+                  <label className="flex items-center mt-2 ml-6">
+                    <input
+                      type="checkbox"
+                      checked={dinner}
+                      onChange={(e) => setDinner(e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 mr-2"
+                    />
+                    <span className="text-sm text-gray-900">I will attend the dinner</span>
+                  </label>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="pt-4 flex gap-3">
           <button

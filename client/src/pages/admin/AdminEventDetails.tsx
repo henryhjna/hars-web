@@ -96,6 +96,8 @@ export default function AdminEventDetails() {
     show_keynote: boolean;
     show_photos: boolean;
     show_testimonials: boolean;
+    show_lunch_question: boolean;
+    show_dinner_question: boolean;
     status: Event['status'];
   }>({
     title: '',
@@ -121,6 +123,8 @@ export default function AdminEventDetails() {
     show_keynote: true,
     show_photos: true,
     show_testimonials: true,
+    show_lunch_question: true,
+    show_dinner_question: true,
     status: 'upcoming',
   });
 
@@ -165,6 +169,8 @@ export default function AdminEventDetails() {
         show_keynote: eventData.show_keynote,
         show_photos: eventData.show_photos,
         show_testimonials: eventData.show_testimonials,
+        show_lunch_question: eventData.show_lunch_question,
+        show_dinner_question: eventData.show_dinner_question,
         status: eventData.status,
       });
 

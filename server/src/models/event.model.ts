@@ -135,6 +135,8 @@ export class EventModel {
       show_keynote,
       show_photos,
       show_testimonials,
+      show_lunch_question,
+      show_dinner_question,
     } = eventData;
 
     const sql = `
@@ -146,8 +148,9 @@ export class EventModel {
         theme_color, banner_image_url, highlight_stats, event_content,
         show_overview, show_practitioner_sessions, show_submission_guidelines,
         show_awards, show_committees, show_venue, show_program, show_keynote, show_photos, show_testimonials,
+        show_lunch_question, show_dinner_question,
         created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)
       RETURNING *,
         CASE
           WHEN event_date < ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'past'
@@ -183,6 +186,8 @@ export class EventModel {
       show_keynote !== undefined ? show_keynote : true,
       show_photos !== undefined ? show_photos : true,
       show_testimonials !== undefined ? show_testimonials : false,
+      show_lunch_question !== undefined ? show_lunch_question : true,
+      show_dinner_question !== undefined ? show_dinner_question : true,
       createdBy,
     ]);
 
@@ -221,6 +226,8 @@ export class EventModel {
       show_keynote,
       show_photos,
       show_testimonials,
+      show_lunch_question,
+      show_dinner_question,
     } = eventData;
 
     const sql = `
@@ -251,8 +258,10 @@ export class EventModel {
         show_keynote = COALESCE($24, show_keynote),
         show_photos = COALESCE($25, show_photos),
         show_testimonials = COALESCE($26, show_testimonials),
+        show_lunch_question = COALESCE($27, show_lunch_question),
+        show_dinner_question = COALESCE($28, show_dinner_question),
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $27
+      WHERE id = $29
       RETURNING *,
         CASE
           WHEN event_date < ((NOW() AT TIME ZONE 'Asia/Seoul')::date) THEN 'past'
@@ -288,6 +297,8 @@ export class EventModel {
       show_keynote,
       show_photos,
       show_testimonials,
+      show_lunch_question,
+      show_dinner_question,
       id,
     ]);
 

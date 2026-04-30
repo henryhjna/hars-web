@@ -17,6 +17,8 @@ interface DisplayTabProps {
     show_keynote: boolean;
     show_photos: boolean;
     show_testimonials: boolean;
+    show_lunch_question: boolean;
+    show_dinner_question: boolean;
   };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -143,6 +145,42 @@ export default function DisplayTab({ event, basicForm, onInputChange, onSubmit, 
               { name: 'show_keynote', label: 'Show Keynote Speakers' },
               { name: 'show_photos', label: 'Show Photos' },
               { name: 'show_testimonials', label: 'Show Testimonials' },
+            ].map((option) => (
+              <div
+                key={option.name}
+                className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-colors ${
+                  basicForm[option.name as keyof typeof basicForm]
+                    ? 'bg-blue-50 border-blue-300'
+                    : 'bg-gray-50 border-gray-200'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  name={option.name}
+                  checked={basicForm[option.name as keyof typeof basicForm] as boolean}
+                  onChange={onInputChange}
+                  className="h-5 w-5 text-blue-600 border-gray-300 rounded"
+                />
+                <label className="text-sm text-gray-700 cursor-pointer select-none">
+                  {option.label}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Registration Form Options */}
+        <div className="pt-8 border-t border-gray-200 mt-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-4">Registration Form Options</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Control which meal questions appear on the event registration form.
+            Dinner is gated behind a self-reported eligibility checkbox
+            (presenter / discussant / co-author).
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              { name: 'show_lunch_question', label: 'Ask about lunch attendance' },
+              { name: 'show_dinner_question', label: 'Ask about dinner attendance (eligibility-gated)' },
             ].map((option) => (
               <div
                 key={option.name}

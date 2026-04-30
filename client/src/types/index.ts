@@ -178,6 +178,8 @@ export interface Event {
   show_keynote: boolean;
   show_photos: boolean;
   show_testimonials: boolean;
+  show_lunch_question: boolean;
+  show_dinner_question: boolean;
   status: EventStatus;
   created_by: string;
   created_at: string;
@@ -211,6 +213,8 @@ export interface EventCreateData {
   show_keynote?: boolean;
   show_photos?: boolean;
   show_testimonials?: boolean;
+  show_lunch_question?: boolean;
+  show_dinner_question?: boolean;
   status?: EventStatus;
 }
 

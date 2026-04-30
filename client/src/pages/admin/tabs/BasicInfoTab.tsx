@@ -27,6 +27,8 @@ interface BasicInfoTabProps {
     show_keynote: boolean;
     show_photos: boolean;
     show_testimonials: boolean;
+    show_lunch_question: boolean;
+    show_dinner_question: boolean;
     status: Event['status'];
   };
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
