@@ -22,6 +22,11 @@ dotenv.config();
 const app: Application = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust the single nginx hop in front of us so req.ip reflects the real client
+// IP from X-Forwarded-For. Without this, express-rate-limit lumps every request
+// under the nginx container IP and applies its limit globally.
+app.set('trust proxy', 1);
+
 // CORS Middleware - MUST be before routes
 const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
 const allowedOrigins = [
